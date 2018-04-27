@@ -17,11 +17,16 @@
         <file>icon_max.png</file>
         <file>icon_min.png</file>
         <file>icon_up_arrow.png</file>
-        <file>logo_aip.png</file>
         <file>qss_black.css</file>
         <file>qss_light.css</file>
         <file>qt_zh_CN.qm</file>
         <file>qtbase_zh_CN.qm</file>
         <file>logo_aip.bmp</file>
+        <file>loading1.png</file>
+        <file>loading2.png</file>
+        <file>logo_arm.png</file>
+        <file>icon_net.png</file>
+        <file>logo_aip.png</file>
+        <file>icon_aip.png</file>
     </qresource>
 </RCC>

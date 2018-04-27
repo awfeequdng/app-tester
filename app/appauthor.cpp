@@ -17,27 +17,32 @@ void AppAuthor::initUI()
 {
     initSkin();
     initLayout();
-    initButton();
+    initTitleBar();
+    initButtonBar();
 }
 
 void AppAuthor::initSkin()
 {
-    QString style = ".QFrame{border-image:url(:/logo_aip.bmp)}";
+    QString style = ".QFrame{border-image:url(:/logo_arm.png)}";
     this->setStyleSheet(style);
 }
 
 void AppAuthor::initLayout()
 {
+    QVBoxLayout *frameLayout = new QVBoxLayout;
+
+    topLayout = new QHBoxLayout;
+    frameLayout->addLayout(topLayout);
+    frameLayout->addStretch();
+
     btnLayout = new QHBoxLayout;
     btnLayout->setMargin(0);
-    btnLayout->setSpacing(9);
-
-    QVBoxLayout *frameLayout = new QVBoxLayout;
-    frameLayout->addStretch();
+    btnLayout->setSpacing(5);
     frameLayout->addLayout(btnLayout);
     frameLayout->addStretch();
-    frameLayout->setStretch(0, 1);
-    frameLayout->setContentsMargins(0, 9, 0, 20);
+
+    frameLayout->setStretch(1, 1);
+    frameLayout->setContentsMargins(0, 9, 0, 30);
 
     QFrame *frame = new QFrame(this);
     frame->setLayout(frameLayout);
@@ -45,11 +50,19 @@ void AppAuthor::initLayout()
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(frame);
     layout->setMargin(0);
+    layout->setSpacing(0);
 
     this->setLayout(layout);
 }
 
-void AppAuthor::initButton()
+void AppAuthor::initTitleBar()
+{
+    version = new QLabel(this);
+    topLayout->addStretch();
+    topLayout->addWidget(version);
+}
+
+void AppAuthor::initButtonBar()
 {
     btnLayout->addStretch();
 
@@ -67,12 +80,12 @@ void AppAuthor::initButton()
     connect(btnConfig, SIGNAL(clicked(bool)), this, SLOT(clickButton()));
     btnLayout->addWidget(btnConfig);
 
-    QPushButton *btnSqlite = new QPushButton(this);
-    btnSqlite->setText("数据管理");
-    btnSqlite->setMinimumHeight(65);
-    btnSqlite->setObjectName("sqlite");
-    connect(btnSqlite, SIGNAL(clicked(bool)), this, SLOT(clickButton()));
-    btnLayout->addWidget(btnSqlite);
+    QPushButton *btnRecord = new QPushButton(this);
+    btnRecord->setText("数据管理");
+    btnRecord->setMinimumHeight(65);
+    btnRecord->setObjectName("record");
+    connect(btnRecord, SIGNAL(clicked(bool)), this, SLOT(clickButton()));
+    btnLayout->addWidget(btnRecord);
 
     QPushButton *btnTester = new QPushButton(this);
     btnTester->setText("进入测试");
@@ -88,16 +101,19 @@ void AppAuthor::initButton()
 
 void AppAuthor::clickButton()
 {
-    tmpMap.insert("enum", QMessageBox::Close);
-    tmpMap.insert("winName", QObject::sender()->objectName());
+    tmpMap.insert("enum", Qt::Key_Display);
+    tmpMap.insert("text", QObject::sender()->objectName());
     emit sendAppMap(tmpMap);
     tmpMap.clear();
 }
 
-void AppAuthor::showEvent(QShowEvent *e)
-{
-    tmpMap.insert("enum", QMessageBox::Question);
-    tmpMap.insert("txMessage", QString("6004 Conf"));
-    emit sendAppMap(tmpMap);
-    e->accept();
+void AppAuthor::recvAppMap(QVariantMap msg)
+{  // 版本信息存储在0x0000
+    switch (msg.value("enum").toInt()) {
+    case Qt::Key_Option:
+        version->setText(msg["0"].toString());
+        break;
+    default:
+        break;
+    }
 }

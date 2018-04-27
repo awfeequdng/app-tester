@@ -4,39 +4,42 @@
  *
  * version:     0.1
  * author:      zhaonanlin
- * brief:       电枢测试仪主页
+ * brief:       数据上传
 *******************************************************************************/
-#ifndef APPAUTHOR_H
-#define APPAUTHOR_H
+#ifndef SQLUPLOAD_H
+#define SQLUPLOAD_H
 
 #include <QLabel>
 #include <QLayout>
 #include <QWidget>
 #include <QVariant>
+#include <QGroupBox>
+#include <QLineEdit>
 #include <QShowEvent>
-#include <QMessageBox>
 #include <QPushButton>
+#include <QMessageBox>
 
-class AppAuthor : public QWidget
+class SqlUpload : public QWidget
 {
     Q_OBJECT
 public:
-    explicit AppAuthor(QWidget *parent = 0);
+    explicit SqlUpload(QWidget *parent = 0);
 signals:
     void sendAppMap(QVariantMap msg);
 private slots:
     void initUI();
-    void initSkin();
     void initLayout();
-    void initTitleBar();
-    void initButtonBar();
-    void clickButton();
+    void initBoxText();
+    void initBoxCtrl();
+    void initSettings();
+    void saveSettings();
     void recvAppMap(QVariantMap msg);
+    virtual void showEvent(QShowEvent *e);
 private:
-    QLabel *version;
-    QVariantMap tmpMap;
-    QHBoxLayout *topLayout;
-    QHBoxLayout *btnLayout;
+    QHBoxLayout *layout;
+    QList<QLineEdit*> texts;
+    QList<QLineEdit*> ctrls;
+    QVariantMap config;
 };
 
-#endif // APPAUTHOR_H
+#endif // SQLUPLOAD_H
