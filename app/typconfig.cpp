@@ -1,3 +1,11 @@
+/*******************************************************************************
+ * Copyright [2018] <青岛艾普智能仪器有限公司>
+ * All rights reserved.
+ *
+ * version:     0.1
+ * author:      zhaonanlin
+ * brief:       型号管理界面
+*******************************************************************************/
 #include "typconfig.h"
 
 TypConfig::TypConfig(QWidget *parent) : QWidget(parent)
@@ -17,6 +25,9 @@ void TypConfig::initLayout()
 {
     boxLayout = new QVBoxLayout;
 
+    splitter = new QSplitter(this);
+    boxLayout->addWidget(splitter);
+
     QGroupBox *box = new QGroupBox(this);
     box->setLayout(boxLayout);
 
@@ -28,7 +39,7 @@ void TypConfig::initLayout()
 void TypConfig::initViewBar()
 {
     QStringList headers;
-    headers << tr("型号编号") << tr("型号名称");
+    headers << tr("编号") << tr("型号名称");
 
     view = new QTableWidget(this);
     view->setRowCount(C_ROW);
@@ -50,49 +61,79 @@ void TypConfig::initViewBar()
     view->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     view->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 #endif
-    boxLayout->addWidget(view);
+    view->setColumnWidth(0, 50);
+    splitter->addWidget(view);
+    splitter->setStretchFactor(0, 5);
     view->setItemDelegate(new BoxQItems);
     connect(view, SIGNAL(clicked(QModelIndex)), this, SLOT(clickViewBar()));
 }
 
 void TypConfig::initConfigBar()
 {
+    isShow = Qt::Key_Equal;
     setFrame = new QFrame(this);
-    boxLayout->addWidget(setFrame);
+    splitter->addWidget(setFrame);
+    splitter->setStretchFactor(1, 1);
 
-    QHBoxLayout *layout = new QHBoxLayout;
+    QVBoxLayout *layout = new QVBoxLayout;
     layout->setMargin(0);
     setFrame->setLayout(layout);
 
-    layout->addWidget(new QLabel(tr("编号"), this));
-    numb = new QLineEdit(this);
-    numb->setFixedSize(50, 36);
-    layout->addWidget(numb);
 
-    layout->addWidget(new QLabel(tr("名称"), this));
-    type = new QLineEdit(this);
-    type->setFixedSize(150, 36);
-    layout->addWidget(type);
+    QStringList headers;
+    headers << tr("型号编号") << tr("型号名称");
 
-    layout->addStretch();
+    names << tr("当前型号") << tr("电枢类型") << tr("操作工位")
+          << tr("电枢片数") << tr("夹具类型")
+          << tr("选中编号") << tr("选中型号");
+
+    settings = new QTableWidget(this);
+    settings->setRowCount(names.size());
+    settings->setColumnCount(headers.size());
+    settings->setHorizontalHeaderLabels(headers);
+    settings->verticalHeader()->hide();
+    settings->horizontalHeader()->hide();
+    for (int i=0; i < headers.size(); i++) {
+        for (int j=0; j < names.size(); j++) {
+            QTableWidgetItem *item = new QTableWidgetItem;
+            if (i == 0)
+                item->setText(names.at(j));
+            else
+                item->setText("");
+            item->setTextAlignment(Qt::AlignCenter);
+            settings->setItem(j, i, item);
+        }
+    }
+#if (QT_VERSION <= QT_VERSION_CHECK(5, 0, 0))
+    settings->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
+    settings->verticalHeader()->setResizeMode(QHeaderView::Stretch);
+#else
+    settings->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    settings->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+#endif
+    settings->setColumnWidth(0, 70);
+    settings->setItemDelegateForColumn(0, new BoxQItems);
+    settings->setEditTriggers(QAbstractItemView::AllEditTriggers);
+    layout->addWidget(settings);
+
+    QHBoxLayout *box2 = new QHBoxLayout;
+    layout->addLayout(box2);
+    box2->setMargin(0);
+    box2->addStretch();
 
     QPushButton *btnAdd = new QPushButton(this);
     btnAdd->setFixedSize(97, 40);
     btnAdd->setText(tr("添加"));
-    layout->addWidget(btnAdd);
+    box2->addWidget(btnAdd);
     connect(btnAdd, SIGNAL(clicked(bool)), this, SLOT(appendModelType()));
 
     QPushButton *btnDel = new QPushButton(this);
     btnDel->setFixedSize(97, 40);
     btnDel->setText(tr("删除"));
-    layout->addWidget(btnDel);
+    box2->addWidget(btnDel);
     connect(btnDel, SIGNAL(clicked(bool)), this, SLOT(deleteModelType()));
 
-    //    QPushButton *btnExport = new QPushButton(this);
-    //    btnExport->setFixedSize(97, 40);
-    //    btnExport->setText(tr("导出"));
-    //    layout->addWidget(btnExport);
-    //    connect(btnExport, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
+    layout->addStretch();
 }
 
 void TypConfig::initButtonBar()
@@ -117,11 +158,6 @@ void TypConfig::initButtonBar()
     btnLayout->addWidget(next);
     connect(next, SIGNAL(clicked(bool)), this, SLOT(clickButtons()));
 
-    btnLayout->addWidget(new QLabel(tr("当前型号:"), this));
-
-    curr = new QLabel(this);
-    btnLayout->addWidget(curr);
-
     btnLayout->addStretch();
 
     QPushButton *btnGet = new QPushButton(this);
@@ -130,44 +166,55 @@ void TypConfig::initButtonBar()
     btnLayout->addWidget(btnGet);
     connect(btnGet, SIGNAL(clicked(bool)), this, SLOT(selectModelType()));
 
+    QPushButton *btnSave = new QPushButton(this);
+    btnSave->setFixedSize(97, 40);
+    btnSave->setText(tr("保存"));
+    btnLayout->addWidget(btnSave);
+
     boxLayout->addLayout(btnLayout);
 }
 
 void TypConfig::initSettings()
 {
     int p = page->text().toInt() - 1;    // 页码
-    int s = 0x0300 + C_ROW*p;       // 起始地址
+    int s = AddrModels + C_ROW*p;       // 起始地址
     for (int i=0; i < C_ROW; i++) {
         int t = s + i;
-        view->item(i, 0)->setText(QString("%1").arg(t-0x0300+1, 3, 10, QChar('0')));
+        view->item(i, 0)->setText(QString("%1").arg(t-AddrModels+1, 3, 10, QChar('0')));
         view->item(i, 1)->setText(config[QString::number(t)].toString());
     }
+    int t = names.indexOf(tr("当前型号"));
+    settings->item(t, 1)->setText(config[QString::number(AddrConfig)].toString());
 
-    curr->setText(config[ConfigAddr].toString());
+    if (isShow == Qt::Key_Less)
+        setFrame->show();
+    else
+        setFrame->hide();
 }
 
 void TypConfig::appendModelType()
 {
-    QString t_numb = numb->text();
-    QString t_name = type->text();
+    int t = names.indexOf(tr("选中编号"));
+    QString t_numb = settings->item(t+0, 1)->text();
+    QString t_name = settings->item(t+1, 1)->text();
     if (t_name.isEmpty())
         return;
     if (t_numb.isEmpty()) {
-        for (int i=0x0300; i < 0x0300+0x0100; i++) {
+        for (int i=AddrModels; i < AddrModels+0x0100; i++) {
             if (config[QString::number(i)].toString().isEmpty()) {
-                t_numb = QString::number(i - 0x0300 + 1);
+                t_numb = QString::number(i - AddrModels + 1);
                 break;
             }
         }
     }
-    for (int i=0x0300; i < 0x0300+0x0100; i++) {
+    for (int i=AddrModels; i < AddrModels+0x0100; i++) {
         if (config[QString::number(i)].toString() == t_name) {
-            QString tmp = tr("发现编号%1与此型号名称相同").arg(i-0x0300+1, 3, 10, QChar('0'));
+            QString tmp = tr("发现编号%1与此型号名称相同").arg(i-AddrModels+1, 3, 10, QChar('0'));
             QMessageBox::warning(this, tr("警告"), tmp, QMessageBox::Ok);
             return;
         }
     }
-    t_numb = QString::number(0x0300 + (t_numb.toInt() - 1)%0x0100);
+    t_numb = QString::number(AddrModels + (t_numb.toInt() - 1)%0x0100);
     if (!config[t_numb].toString().isEmpty()) {
         QString tmp = tr("此编号已使用");
         QMessageBox::warning(this, tr("警告"), tmp, QMessageBox::Ok);
@@ -175,7 +222,7 @@ void TypConfig::appendModelType()
     }
 
     QString name = "sqlite";
-    QString c_name = config[ConfigAddr].toString();
+    QString c_name = config[QString::number(AddrConfig)].toString();
     QSqlQuery query(QSqlDatabase::database(name));
     QSqlDatabase::database(name).transaction();
     query.exec(tr("create table M_%1 as select * from M_%2").arg(t_name).arg(c_name));
@@ -198,7 +245,7 @@ void TypConfig::selectModelType()
         return;
 
     config.insert("enum", Qt::Key_Reload);
-    config[ConfigAddr] = t_name;
+    config[QString::number(AddrConfig)] = t_name;
     emit sendAppMap(config);
 
     initSettings();
@@ -206,14 +253,15 @@ void TypConfig::selectModelType()
 
 void TypConfig::deleteModelType()
 {
-    QString t_numb = numb->text();
-    QString t_name = type->text();
+    int t = names.indexOf(tr("选中编号"));
+    QString t_numb = settings->item(t+0, 1)->text();
+    QString t_name = settings->item(t+1, 1)->text();
     if (t_numb.isEmpty())
         return;
     if (t_name.isEmpty())
         return;
 
-    QString c_name = config[ConfigAddr].toString();
+    QString c_name = config[QString::number(AddrConfig)].toString();
     if (t_name == c_name) {
         QMessageBox::warning(this, tr("警告"), tr("不能删除当前型号"), QMessageBox::Ok);
         return;
@@ -222,7 +270,7 @@ void TypConfig::deleteModelType()
     QSqlQuery query(QSqlDatabase::database("sqlite"));
     query.exec(tr("drop table M_%1").arg(t_name));
 
-    t_numb = QString::number(0x0300 + (t_numb.toInt() - 1)%0x0100);
+    t_numb = QString::number(AddrModels + (t_numb.toInt() - 1)%0x0100);
     config[t_numb] = "";
     config.insert("enum", Qt::Key_Save);
     emit sendAppMap(config);
@@ -253,19 +301,24 @@ void TypConfig::clickViewBar()
     if (row < 0)
         return;
     int p = page->text().toInt() - 1;    // 页码
-    int s = 0x0300 + C_ROW*p + row; // 地址
-    numb->setText(QString("%1").arg(s-0x0300+1, 3, 10, QChar('0')));
-    type->setText(config[QString::number(s)].toString());
+    int s = AddrModels + C_ROW*p + row; // 地址
+    int t = names.indexOf(tr("选中编号"));
+    settings->item(t+0, 1)->setText(QString("%1").arg(s-AddrModels+1, 3, 10, QChar('0')));
+    settings->item(t+1, 1)->setText(config[QString::number(s)].toString());
 }
 
 void TypConfig::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
     case Qt::Key_Option:
-        for (int i=0x0300; i < 0x0300+0x0100; i++) {  // 型号信息存放在0x0300
+        for (int i=AddrModels; i < AddrModels+0x0100; i++) {
             config[QString::number(i)] = msg[QString::number(i)];
         }
-        config[ConfigAddr] = msg[ConfigAddr];  // 当前型号
+        config[QString::number(AddrConfig)] = msg[QString::number(AddrConfig)];  // 当前型号
+        break;
+    case Qt::Key_Less:
+    case Qt::Key_Equal:
+        isShow = msg.value("enum").toInt();
         break;
     default:
         break;

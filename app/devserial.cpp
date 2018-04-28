@@ -1,12 +1,20 @@
-#include "devsetkey.h"
+/*******************************************************************************
+ * Copyright [2018] <青岛艾普智能仪器有限公司>
+ * All rights reserved.
+ *
+ * version:     0.1
+ * author:      zhaonanlin
+ * brief:       串口键盘设置
+*******************************************************************************/
+#include "devserial.h"
 
-DevSetKey::DevSetKey(QObject *parent) : QObject(parent)
+DevSerial::DevSerial(QObject *parent) : QObject(parent)
 {
     initParam();
     initDevPort();
 }
 
-void DevSetKey::initParam()
+void DevSerial::initParam()
 {
     upper = true;
     keys["k1\r\n"] = Qt::Key_Stop;
@@ -38,7 +46,7 @@ void DevSetKey::initParam()
     keys["k27\r\n"] = Qt::Key_F2;
 }
 
-void DevSetKey::initDevPort()
+void DevSerial::initDevPort()
 {
     com = new QSerialPort("ttyS3", this);
     if (com->open(QIODevice::ReadWrite)) {
@@ -53,7 +61,7 @@ void DevSetKey::initDevPort()
     connect(com, SIGNAL(readyRead()), this, SLOT(readDevPort()));
 }
 
-void DevSetKey::readDevPort()
+void DevSerial::readDevPort()
 {
     tmpByte.append(com->readAll());
     if (tmpByte.startsWith("k") && tmpByte.endsWith("\r\n")) {
@@ -62,7 +70,7 @@ void DevSetKey::readDevPort()
     }
 }
 
-void DevSetKey::clickButton(int id)
+void DevSerial::clickButton(int id)
 {
     switch (id) {
     case Qt::Key_Stop:
@@ -86,11 +94,12 @@ void DevSetKey::clickButton(int id)
     }
 }
 
-void DevSetKey::recvAppMap(QVariantMap msg)
+void DevSerial::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
     case Qt::Key_View:
-        com->write(msg.value("data").toByteArray());
+        if (!msg.value("text").isNull())
+            com->write(msg.value("text").toByteArray());
         break;
     default:
         break;

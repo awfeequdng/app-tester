@@ -1,3 +1,11 @@
+/*******************************************************************************
+ * Copyright [2018] <青岛艾普智能仪器有限公司>
+ * All rights reserved.
+ *
+ * version:     0.1
+ * author:      zhaonanlin
+ * brief:       虚拟键盘
+*******************************************************************************/
 #include "boxqinput.h"
 
 BoxQInput *BoxQInput::_instance = 0;
@@ -152,16 +160,17 @@ void BoxQInput::focusChanged(QWidget *, QWidget *curr)
 #endif
 }
 
-void BoxQInput::showEvent(QShowEvent *)
+void BoxQInput::showEvent(QShowEvent *e)
 {
-    int mouse_y = QCursor::pos().y();//鼠标点击处纵坐标
+    int mouse_y = QCursor::pos().y();  // 鼠标点击处纵坐标
     int x = 70;
     this->resize(660, 240);
 
-    if(mouse_y>300) {
+    if (mouse_y > 300) {
         this->move(x, mouse_y-280);
     } else {
         this->move(x, mouse_y+50);
     }
+    e->accept();
 }
 /*********************************END OF FILE**********************************/

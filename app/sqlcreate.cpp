@@ -146,7 +146,7 @@ void SqlCreate::insertUserInfo(QSqlQuery query)
 
 void SqlCreate::insertSignInfo(QSqlQuery query)
 { // 用户名,密码,记住密码,自动登录
-    int from = 0x0040;
+    int from = AddrSignIn;
     QStringList parm;
     parm << tr("admin") << tr("6") << tr("1") << tr("1");
     for (int i=parm.size(); i < STEP; i++) {
@@ -162,7 +162,7 @@ void SqlCreate::insertSignInfo(QSqlQuery query)
 
 void SqlCreate::insertTypeInfo(QSqlQuery query)
 {  // 当前型号
-    int from = 0x0050;
+    int from = AddrConfig;
     QStringList parm;
     parm << tr("DEFAULT");
     for (int i=parm.size(); i < STEP; i++) {
@@ -266,7 +266,7 @@ void SqlCreate::insertSqlNetwork(QSqlQuery query)
 
 void SqlCreate::insertMasterInfo(QSqlQuery query)
 {  // 用户组别:0-超级用户;1-管理员;2-技术员;3-操作员;4-未登录;
-    int from = 0x0100;
+    int from = AddrMaster;
     QStringList parm;
     QString time = QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss");
     parm << "supper" << "aip9918" << "0" << time;
@@ -287,7 +287,7 @@ void SqlCreate::insertMasterInfo(QSqlQuery query)
 void SqlCreate::insertSourceInfo(QSqlQuery query)
 {   // 界面组别:0-所有界面;1-系统设置;2-型号管理;3-数据管理;
     // 界面权限:0-超级用户;1-管理员;2-技术员;3-操作员;4-未登录;
-    int from = 0x0200;
+    int from = AddrAction;
     QStringList parm;
     parm << "backup" << "后台管理" << "1" << "0";
     parm << "ioctrl" << "输出调试" << "1" << "0";
@@ -306,11 +306,10 @@ void SqlCreate::insertSourceInfo(QSqlQuery query)
         parm << "" << "" << "" << "";
     }
 
-    parm << "system" << "系统设置" << "1" << "1";
+    parm << "system" << "系统设置" << "1" << "2";
     parm << "master" << "用户管理" << "1" << "1";
     parm << "action" << "权限管理" << "1" << "1";
-    parm << "config" << "型号管理" << "2" << "2";
-    parm << "setall" << "综合配置" << "2" << "2";
+    parm << "config" << "型号管理" << "2" << "3";
     parm << "setdcr" << "电阻配置" << "2" << "2";
     parm << "setacw" << "介电强度" << "2" << "2";
     parm << "setimp" << "匝间配置" << "2" << "2";
@@ -333,7 +332,7 @@ void SqlCreate::insertSourceInfo(QSqlQuery query)
 
 void SqlCreate::insertConfigInfo(QSqlQuery query)
 {
-    int from = 0x0300;
+    int from = AddrModels;
     QStringList parm;
     parm << "DEFAULT";
 
@@ -361,19 +360,19 @@ void SqlCreate::insertSetAcwInfo(QSqlQuery query)
     for (int i=parm.size(); i < STEP*0x01; i++) {
         parm << "";
     }
-    parm << "1";
+    parm << "1" << "500" << "1" << "0" << "500" << "0";
     for (int i=parm.size(); i < STEP*0x02; i++) {
         parm << "";
     }
-    parm << "1";
+    parm << "1" << "1500" << "1" << "1" << "0.1" << "0";
     for (int i=parm.size(); i < STEP*0x03; i++) {
         parm << "";
     }
-    parm << "1";
+    parm << "1" << "2500" << "1" << "1" << "0.1" << "0";
     for (int i=parm.size(); i < STEP*0x04; i++) {
         parm << "";
     }
-    parm << "1";
+    parm << "1" << "4500" << "1" << "1" << "0.1" << "0";
     for (int i=parm.size(); i < STEP*0x05; i++) {
         parm << "";
     }

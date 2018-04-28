@@ -4,11 +4,17 @@
  *
  * version:     0.1
  * author:      zhaonanlin
- * brief:       介电强度后台配置界面
+ * brief:       PWM常用参数
 *******************************************************************************/
-#include "typoffacw.h"
+#ifndef DEVDRIVER
+#define DEVDRIVER
 
-TypOffAcw::TypOffAcw(QWidget *parent) : QWidget(parent)
-{
-}
+struct pwm_config_info {
+    unsigned int freq;
+    unsigned int duty;
+    unsigned int polarity;
+    unsigned int count;
+};
+
+#endif // DEVDRIVER
 

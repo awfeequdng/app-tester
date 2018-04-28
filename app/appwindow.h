@@ -16,7 +16,11 @@
 #include <QPropertyAnimation>
 #include <QParallelAnimationGroup>
 
-#include "devsetkey.h"
+#include "devserial.h"
+#include "devsetrtc.h"
+#include "devbuzzer.h"
+#include "devscreen.h"
+#include "tcpsocket.h"
 
 #include "appauthor.h"
 #include "appsignin.h"
@@ -26,7 +30,6 @@
 #include "appmaster.h"
 #include "appaction.h"
 #include "typconfig.h"
-#include "typsetall.h"
 #include "typsetdcr.h"
 #include "typsetacw.h"
 #include "typsetimp.h"
@@ -41,6 +44,8 @@
 #include "apptester.h"
 
 #include "boxdialog.h"
+
+#include "appdefine.h"
 
 #define WIDTH 150
 
@@ -57,6 +62,7 @@ private slots:
     void initTitle();
     void initLayout();
     void initAuthor();
+    void initSocket();
     void initDevice();
     void initScreen();
     void initSignin();
@@ -66,7 +72,6 @@ private slots:
     void initMaster();
     void initAction();
     void initConfig();
-    void initSetAll();
     void initSetDcr();
     void initSetAcw();
     void initSetImp();

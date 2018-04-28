@@ -1,3 +1,11 @@
+/*******************************************************************************
+ * Copyright [2018] <青岛艾普智能仪器有限公司>
+ * All rights reserved.
+ *
+ * version:     0.1
+ * author:      zhaonanlin
+ * brief:       不良分析界面
+*******************************************************************************/
 #include "sqlunqual.h"
 
 SqlUnqual::SqlUnqual(QWidget *parent) : QWidget(parent)

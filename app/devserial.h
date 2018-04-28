@@ -1,5 +1,13 @@
-#ifndef DEVSETKEY_H
-#define DEVSETKEY_H
+/*******************************************************************************
+ * Copyright [2018] <青岛艾普智能仪器有限公司>
+ * All rights reserved.
+ *
+ * version:     0.1
+ * author:      zhaonanlin
+ * brief:       串口键盘设置
+*******************************************************************************/
+#ifndef DEVSERIAL_H
+#define DEVSERIAL_H
 
 #include <QDebug>
 #include <QObject>
@@ -13,12 +21,11 @@
 #include <QWSServer>
 #endif
 
-
-class DevSetKey : public QObject
+class DevSerial : public QObject
 {
     Q_OBJECT
 public:
-    explicit DevSetKey(QObject *parent = 0);
+    explicit DevSerial(QObject *parent = 0);
 signals:
     void sendAppMap(QVariantMap msg);
 private slots:
@@ -35,4 +42,4 @@ private:
     QMap<QString, int> keys;
 };
 
-#endif // DEVSETKEY_H
+#endif // DEVSERIAL_H

@@ -17,6 +17,8 @@
 #include <QMessageBox>
 #include <QPushButton>
 
+#include "appdefine.h"
+
 class AppAuthor : public QWidget
 {
     Q_OBJECT
@@ -33,6 +35,7 @@ private slots:
     void clickButton();
     void recvAppMap(QVariantMap msg);
 private:
+    QLabel *tcpStat;
     QLabel *version;
     QVariantMap tmpMap;
     QHBoxLayout *topLayout;

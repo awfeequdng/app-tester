@@ -29,36 +29,38 @@ void AppAuthor::initSkin()
 
 void AppAuthor::initLayout()
 {
-    QVBoxLayout *frameLayout = new QVBoxLayout;
+    QVBoxLayout *boxLayout = new QVBoxLayout;
+    boxLayout->setContentsMargins(0, 9, 0, 30);
 
     topLayout = new QHBoxLayout;
-    frameLayout->addLayout(topLayout);
-    frameLayout->addStretch();
+    topLayout->setContentsMargins(0, 0, 9, 0);
+    boxLayout->addLayout(topLayout);
+    boxLayout->addStretch();
 
     btnLayout = new QHBoxLayout;
     btnLayout->setMargin(0);
     btnLayout->setSpacing(5);
-    frameLayout->addLayout(btnLayout);
-    frameLayout->addStretch();
-
-    frameLayout->setStretch(1, 1);
-    frameLayout->setContentsMargins(0, 9, 0, 30);
+    boxLayout->addLayout(btnLayout);
 
     QFrame *frame = new QFrame(this);
-    frame->setLayout(frameLayout);
+    frame->setLayout(boxLayout);
 
-    QVBoxLayout *layout = new QVBoxLayout;
+    QVBoxLayout *layout = new QVBoxLayout(this);
     layout->addWidget(frame);
     layout->setMargin(0);
     layout->setSpacing(0);
-
-    this->setLayout(layout);
 }
 
 void AppAuthor::initTitleBar()
 {
-    version = new QLabel(this);
     topLayout->addStretch();
+
+    tcpStat = new QLabel(this);
+    tcpStat->setPixmap(QPixmap(":/icon_wifi.png"));
+    topLayout->addWidget(tcpStat);
+    tcpStat->hide();
+
+    version = new QLabel(this);
     topLayout->addWidget(version);
 }
 
@@ -108,10 +110,13 @@ void AppAuthor::clickButton()
 }
 
 void AppAuthor::recvAppMap(QVariantMap msg)
-{  // 版本信息存储在0x0000
+{
     switch (msg.value("enum").toInt()) {
     case Qt::Key_Option:
-        version->setText(msg["0"].toString());
+        version->setText(msg[QString::number(AddrVerNub)].toString());
+        break;
+    case Qt::Key_Community:
+        tcpStat->show();
         break;
     default:
         break;

@@ -45,6 +45,7 @@ void AppAction::initView()
     view->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 #endif
     view->hideColumn(0);
+    view->setEditTriggers(QAbstractItemView::AllEditTriggers);
 }
 
 void AppAction::initLayout()
@@ -105,7 +106,7 @@ void AppAction::initDelegate()
 void AppAction::initSettings()
 {
     int p = page->text().toInt() - 1;               // 页码
-    int s = ADDR_ACTION + A_ROW*A_COL*p+0x40;       // 起始地址,隐藏通用界面
+    int s = AddrAction + A_ROW*A_COL*p+0x40;       // 起始地址,隐藏通用界面
     for (int i=0; i < A_ROW; i++) {
         int t = s + A_COL*i;
         view->item(i, 0)->setText(config[QString::number(t+0)].toString());
@@ -123,7 +124,7 @@ void AppAction::initSettings()
 void AppAction::saveSettings()
 {
     int p = page->text().toInt() - 1;               // 页码
-    int s = ADDR_ACTION + A_ROW*A_COL*p + 0x40;     // 起始地址,隐藏通用界面
+    int s = AddrAction + A_ROW*A_COL*p + 0x40;     // 起始地址,隐藏通用界面
     for (int i=0; i < A_ROW; i++) {
         int t = s + A_COL*i;
         QString username = view->item(i, 0)->text();
@@ -149,7 +150,6 @@ void AppAction::clickButtons()
     p = (p >= 1) ? p : 1;
     p = (p <= 3) ? p : 3;
 
-    saveSettings();
     page->setText(QString::number(p));
     initSettings();
 }
@@ -158,7 +158,7 @@ void AppAction::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
     case Qt::Key_Option:
-        for (int i=ADDR_ACTION; i < ADDR_ACTION+0x0100; i++) {  // 界面信息存放在0x0200
+        for (int i=AddrAction; i < AddrAction+0x0100; i++) {
             config[QString::number(i)] = msg[QString::number(i)];
         }
         break;

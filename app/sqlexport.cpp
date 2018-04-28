@@ -1,3 +1,11 @@
+/*******************************************************************************
+ * Copyright [2018] <青岛艾普智能仪器有限公司>
+ * All rights reserved.
+ *
+ * version:     0.1
+ * author:      zhaonanlin
+ * brief:       数据导出
+*******************************************************************************/
 #include "sqlexport.h"
 
 SqlExport::SqlExport(QObject *parent) : QObject(parent)
@@ -158,7 +166,6 @@ int SqlExport::exportHead()
             title.append(QString("%1结果").arg(name));
             title.append(QString("%1判定").arg(name));
         }
-
     }
     file->write(ToGbk(title.join(",")));
     file->write("\n");
@@ -203,7 +210,7 @@ int SqlExport::exportData()
                 groupBuffer.append(query.value(6).toString());
                 tempBuffer[numb] = groupBuffer.join(",");
                 if (uuid == guid) {
-                    foreach (int n, tempBuffer.keys()) {
+                    foreach(int n, tempBuffer.keys()) {
                         lineBuffer.append(tempBuffer[n]);
                     }
                     file->write(ToGbk(lineBuffer.join(",")));
@@ -239,7 +246,7 @@ int SqlExport::exportData()
                 groupBuffer.append(query.value(6).toString());
                 tempBuffer[numb] = groupBuffer.join(",");
                 if (uuid == guid) {
-                    foreach (int n, tempBuffer.keys()) {
+                    foreach(int n, tempBuffer.keys()) {
                         lineBuffer.append(tempBuffer[n]);
                     }
                     file->write(ToGbk(lineBuffer.join(",")));

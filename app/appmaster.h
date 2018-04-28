@@ -10,11 +10,13 @@
 #define APPMASTER_H
 
 #include <QDebug>
+#include <QLabel>
 #include <QLayout>
 #include <QWidget>
 #include <QVariant>
 #include <QLineEdit>
 #include <QGroupBox>
+#include <QDateTime>
 #include <QShowEvent>
 #include <QHeaderView>
 #include <QMessageBox>
@@ -25,7 +27,7 @@
 #include "boxqcombo.h"
 #include "boxqitems.h"
 
-#define ADDR_MASTER 0x0100
+#include "appdefine.h"
 
 #define M_ROW 15
 #define M_COL 4
@@ -39,22 +41,32 @@ signals:
     void sendAppMap(QVariantMap msg);
 private slots:
     void initUI();
-    void initView();
     void initLayout();
+    void initViewBar();
+    void initLineBar();
+    void initButtons();
     void initDelegate();
     void initSettings();
     void saveSettings();
+    void clickViewBar();
     void clickButtons();
-    void autoInput(int r, int c);
+    void appendMaster();
+    void removeMaster();
     void recvAppMap(QVariantMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
+    QVBoxLayout *boxLayout;
     QTableWidget *view;
     QVariantMap tmpMap;
     QVariantMap config;
 
     QLineEdit *page;
     QStringList groups;
+
+    QLineEdit *lineNumb;
+    QLineEdit *lineName;
+    QLineEdit *linePass;
+    QComboBox *boxGroup;
 
 
 public slots:

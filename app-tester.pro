@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql serialport
+QT       += core gui sql serialport network
 
 CONFIG   += serialport
 
@@ -49,8 +49,16 @@ HEADERS += \
     app/typoffimp.h \
     app/boxqinput.h \
     app/boxqchart.h \
-    app/typsetall.h \
-    app/devsetkey.h
+    app/devsetrtc.h \
+    app/devbuzzer.h \
+    app/devscreen.h \
+    app/devsetcan.h \
+    app/devserial.h \
+    app/tcpsocket.h \
+    app/boxqmodel.h \
+    app/boxdouble.h \
+    app/devdriver.h \
+    app/appdefine.h
 
 SOURCES += \
     app/main.cpp \
@@ -84,5 +92,11 @@ SOURCES += \
     app/typoffimp.cpp \
     app/boxqinput.cpp \
     app/boxqchart.cpp \
-    app/typsetall.cpp \
-    app/devsetkey.cpp
+    app/devsetrtc.cpp \
+    app/devbuzzer.cpp \
+    app/devscreen.cpp \
+    app/devsetcan.cpp \
+    app/devserial.cpp \
+    app/tcpsocket.cpp \
+    app/boxqmodel.cpp \
+    app/boxdouble.cpp

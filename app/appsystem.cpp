@@ -18,12 +18,16 @@ void AppSystem::initUI()
     initLayout();
     initSystem();
     initDevice();
+    initButton();
     initDelegate();
 }
 
 void AppSystem::initLayout()
 {
-    layout = new QHBoxLayout(this);
+    layout = new QHBoxLayout;
+
+    boxLayout = new QVBoxLayout(this);
+    boxLayout->addLayout(layout);
 }
 
 void AppSystem::initSystem()
@@ -79,14 +83,33 @@ void AppSystem::initDevice()
         ctrls.append(input);
     }
     boxLayout->addStretch();
+}
+
+void AppSystem::initButton()
+{
     QHBoxLayout *btn = new QHBoxLayout;
+    boxLayout->addLayout(btn);
+#ifdef __arm__
+    btn->addWidget(new QLabel(tr("系统时间"), this));
+
+    time = new QDateTimeEdit(this);
+    time->setDisplayFormat("yyyy-MM-dd hh:mm:ss");
+    time->setFixedSize(200, 40);
+    btn->addWidget(time);
+
+    QPushButton *btnTime = new QPushButton(this);
+    btnTime->setText(tr("设置"));
+    btnTime->setFixedSize(97, 44);
+    btn->addWidget(btnTime);
+    connect(btnTime, SIGNAL(clicked(bool)), this, SLOT(setLocalTime()));
+#endif
+    btn->addStretch();
+
     QPushButton *btnSave = new QPushButton(this);
     btnSave->setText(tr("保存"));
     btnSave->setFixedSize(97, 44);
-    btn->addStretch();
     btn->addWidget(btnSave);
     connect(btnSave, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
-    boxLayout->addLayout(btn);
 }
 
 void AppSystem::initDelegate()
@@ -116,23 +139,26 @@ void AppSystem::initSettings()
 {
     for (int i=0; i < texts.size(); i++) {  // 系统配置存放在0x0020
         if (i < 5) {
-            texts.at(i)->setCurrentIndex(config[QString::number(i+0x0020)].toInt());
+            texts.at(i)->setCurrentIndex(config[QString::number(i+AddrSystem)].toInt());
         } else {
-            texts.at(i)->lineEdit()->setText(config[QString::number(i+0x0020)].toString());
+            texts.at(i)->lineEdit()->setText(config[QString::number(i+AddrSystem)].toString());
         }
     }
     for (int i=0; i < ctrls.size(); i++) {  // 本机设置存放在0x0030
         ctrls.at(i)->setText(config[QString::number(i+0x0030)].toString());
     }
+#ifdef __arm__
+    time->setDateTime(QDateTime::currentDateTime());
+#endif
 }
 
 void AppSystem::saveSettings()
 {
     for (int i=0; i < texts.size(); i++) {  // 系统配置存放在0x0020
         if (i < 5) {
-            config[QString::number(i+0x0020)] = QString::number(texts.at(i)->currentIndex());
+            config[QString::number(i+AddrSystem)] = QString::number(texts.at(i)->currentIndex());
         } else {
-            config[QString::number(i+0x0020)] = texts.at(i)->currentText();
+            config[QString::number(i+AddrSystem)] = texts.at(i)->currentText();
         }
     }
     for (int i=0; i < ctrls.size(); i++) {  // 本机设置存放在0x0030
@@ -140,13 +166,37 @@ void AppSystem::saveSettings()
     }
     config.insert("enum", Qt::Key_Save);
     emit sendAppMap(config);
+
+    QSettings *set = new QSettings("./nandflash/userinfo.txt", QSettings::IniFormat);
+    set->beginGroup("LOCAL_MACHINE");
+    set->setValue("DHCP", ctrls.at(0)->text());
+    set->setValue("DefaultGateway", ctrls.at(1)->text());
+    set->setValue("IPAddress", ctrls.at(2)->text());
+    set->setValue("SubnetMask", ctrls.at(3)->text());
+    set->endGroup();
+    set->beginGroup("NFS_SERVER");
+    set->setValue("IPAddress", ctrls.at(4)->text());
+    set->setValue("Mountpath", ctrls.at(5)->text());
+    set->endGroup();
+    set->beginGroup("USER_EXE");
+    set->setValue("Name", ctrls.at(6)->text());
+    set->setValue("Parameters", ctrls.at(7)->text());
+    set->endGroup();
+}
+
+void AppSystem::setLocalTime()
+{
+    tmpMap.insert("enum", Qt::Key_Time);
+    tmpMap.insert("time", time->dateTime());
+    emit sendAppMap(tmpMap);
+    tmpMap.clear();
 }
 
 void AppSystem::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
     case Qt::Key_Option:
-        for (int i=0x0020; i < 0x40; i++) {  // 后台信息存放在0x0020
+        for (int i=AddrSystem; i < AddrSystem+0x20; i++) {  // 后台信息存放在0x0020
             config[QString::number(i)] = msg[QString::number(i)];
         }
         break;

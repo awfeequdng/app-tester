@@ -1,3 +1,11 @@
+/*******************************************************************************
+ * Copyright [2018] <青岛艾普智能仪器有限公司>
+ * All rights reserved.
+ *
+ * version:     0.1
+ * author:      zhaonanlin
+ * brief:       型号管理界面
+*******************************************************************************/
 #ifndef TYPCONFIG_H
 #define TYPCONFIG_H
 
@@ -14,6 +22,8 @@
 #include <QPushButton>
 #include <QTableWidget>
 #include <QTableWidgetItem>
+#include <QSplitter>
+#include <QComboBox>
 
 #include <QSqlQuery>
 #include <QSqlError>
@@ -22,10 +32,10 @@
 
 #include "boxqitems.h"
 
+#include "appdefine.h"
+
 #define C_ROW 16
 #define C_COL 2
-
-const QString ConfigAddr = QString::number(0x0050);
 
 class TypConfig : public QWidget
 {
@@ -50,15 +60,14 @@ private slots:
     virtual void showEvent(QShowEvent *e);
 private:
     QTableWidget *view;
-    QVariantMap tmpMap;
     QVariantMap config;
     QLineEdit *page;
-    QLabel *curr;
-    QLineEdit *numb;
-    QLineEdit *type;
-    QStringList groups;
+    QSplitter *splitter;
     QVBoxLayout *boxLayout;
     QFrame *setFrame;
+    int isShow;
+    QStringList names;
+    QTableWidget *settings;
 };
 
 #endif // TYPCONFIG_H

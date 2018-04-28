@@ -25,7 +25,8 @@
 #include "boxqcombo.h"
 #include "boxqitems.h"
 
-#define ADDR_ACTION 0x0200
+#include "appdefine.h"
+
 #define A_ROW 16
 #define A_COL 4
 

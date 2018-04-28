@@ -28,7 +28,7 @@
 #include <QToolButton>
 #include <QStackedWidget>
 
-const int SignInAddr = 0x0040;
+#include "appdefine.h"
 
 class AppSignin : public QDialog
 {

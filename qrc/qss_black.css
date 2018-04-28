@@ -398,13 +398,13 @@ height:44px;
 subcontrol-position:center;
 }
 QTableView::indicator:enabled:unchecked {
-image:url(:/check_box_1.png);
+image:url(:/icon_check_box_1.png);
 }
 QTableView::indicator:enabled:checked {
-image:url(:/check_box_2.png);
+image:url(:/icon_check_box_2.png);
 }
 QTableView::indicator:enabled:indeterminate {
-image:url(:/check_box_1.png);
+image:url(:/icon_check_box_2.png);
 }
 /*QTreeView*/
 QTreeView {

@@ -19,6 +19,8 @@
 #include <QPushButton>
 #include <QMessageBox>
 
+#include "appdefine.h"
+
 class AppBackup : public QWidget
 {
     Q_OBJECT

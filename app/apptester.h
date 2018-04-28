@@ -33,15 +33,15 @@
 
 #define NUMS 72
 
-const QString StyleOK = "<p style='font-size:10px;color:#FFFFFF;line-height:14px;'align='left'>";
+const QString StyleOK = "<p style='font-size:10px;color:#666666;line-height:14px;'align='left'>";
 const QString StyleNG = "<p style='font-size:10px;color:#FF0000;line-height:14px;'align='left'>";
 const QString SmallOK = StyleOK + "<b>%1&nbsp;</b></p>";
 const QString SmallNG = StyleNG + "<b>%1&nbsp;</b></p>";
 
 const QString titleOK = "<p style='font-size:11pt;color:#FFFFFF;' align='left'>";
 const QString titleNG = "<p style='font-size:11pt;color:#FF0000;' align='left'>";
-const QString largeOK = "<p style='font-size:15pt;color:#00FF00;' align='center'><b>%1</b></p>";
-const QString largeNG = "<p style='font-size:15pt;color:#FF0000;' align='center'><b>%1</b></p>";
+const QString largeOK = "<p style='font-size:15pt;color:#00FF00;' align='center'>%1</p>";
+const QString largeNG = "<p style='font-size:15pt;color:#FF0000;' align='center'>%1</p>";
 
 const QString judgeOK = "<p style='font-size:64pt;color:#00FF00;'align='center'><b>%1</b></p>";
 const QString judgeNG = "<p style='font-size:64pt;color:#FF0000;'align='center'><b>%1</b></p>";
@@ -83,7 +83,6 @@ private slots:
     void pieResize();
     void dcrResize();
     void impResize();
-    void tstReisze();
     void clickButton();
     virtual void showEvent(QShowEvent *e);
 private:
@@ -117,6 +116,7 @@ private:
     QList<QLabel*> inrTexts;
 
     QTextBrowser *textDcrMD;
+    QTextBrowser *textDcrCP;
 };
 
 #endif // APPTESTER_H

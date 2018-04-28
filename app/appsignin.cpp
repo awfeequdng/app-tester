@@ -100,7 +100,7 @@ void AppSignin::initLoginBar()
     label->setOpenExternalLinks(true);
     web.append("<a style='font-size:18px;color:gray;'href=\"http://www.aipuo.com//\">联系我们");
 #else
-    web.append("<a style='font-size:18px;color:gray;'href=\"2\">关于我们");
+    web.append("<a style='font-size:18px;color:gray;'href=\"2\">联系我们");
     connect(label, SIGNAL(linkActivated(QString)), this, SLOT(clickLink(QString)));
 #endif
     web.append("</p></body></html>");
@@ -108,12 +108,9 @@ void AppSignin::initLoginBar()
     layout->addWidget(label, 1, 0, 3, 1);
 
     username = new QComboBox(this);
-    username->setEditable(true);
     username->setView(new QListView);
     username->setMinimumSize(64, 32);
     layout->addWidget(username, 1, 1, 1, 2);
-    username->lineEdit()->setPlaceholderText(tr("请输入帐户"));
-    connect(username->lineEdit(), SIGNAL(returnPressed()), this, SLOT(checkSignin()));
 
     password = new QLineEdit(this);
     password->setEchoMode(QLineEdit::Password);
@@ -239,41 +236,42 @@ void AppSignin::initApplyBar()
 void AppSignin::initSettings()
 {
     QStringList users;
-    for (int i=0x0100; i < 0x0100+0x0100; i+=4) {  // 用户信息存放在0x0100
-        users.append(config[QString::number(i)].toString());
+    QString curruser = config[QString::number(AddrSignIn)].toString();
+    users.append(curruser);
+    for (int i=AddrMaster; i < AddrMaster+0x0100; i+=4) {  // 用户信息存放在0x0100
+        if (config[QString::number(i)].toString() != curruser)
+            users.append(config[QString::number(i)].toString());
     }
     users.removeAll("");
     username->clear();
     username->addItems(users);
-
-    username->lineEdit()->setText(config[QString::number(SignInAddr)].toString());
-    if (config[QString::number(SignInAddr+0x02)].toString() == "1") {
+    if (config[QString::number(AddrSignIn+0x02)].toString() == "1") {
         autosave->setChecked(true);
-        password->setText(config[QString::number(SignInAddr+0x01)].toString());
+        password->setText(config[QString::number(AddrSignIn+0x01)].toString());
     } else {
         password->clear();
     }
-    if (config[QString::number(SignInAddr+0x03)].toString() == "1") {
+    if (config[QString::number(AddrSignIn+0x03)].toString() == "1") {
         autosign->setChecked(true);
         if (!isOk) {
-            QTimer::singleShot(500, this, SLOT(checkSignin()));
+            checkSignin();
         }
     }
 }
 
 void AppSignin::saveSettings()
 {
-    config[QString::number(SignInAddr+0x00)] = username->currentText();
-    config[QString::number(SignInAddr+0x01)] = password->text();
-    config[QString::number(SignInAddr+0x02)] = (autosave->isChecked()) ? "1" : "0";
-    config[QString::number(SignInAddr+0x03)] = (autosign->isChecked()) ? "1" : "0";
+    config[QString::number(AddrSignIn+0x00)] = username->currentText();
+    config[QString::number(AddrSignIn+0x01)] = password->text();
+    config[QString::number(AddrSignIn+0x02)] = (autosave->isChecked()) ? "1" : "0";
+    config[QString::number(AddrSignIn+0x03)] = (autosign->isChecked()) ? "1" : "0";
     config.insert("enum", Qt::Key_Save);
     emit sendAppMap(config);
 }
 
 void AppSignin::checkSignin()
 {
-    for (int i=0x0100; i < 0x0100+0x0100; i+=4) {  // 用户信息存放在0x0100
+    for (int i=AddrMaster; i < AddrMaster+0x0100; i+=4) {  // 用户信息存放在0x0100
         if (config[QString::number(i+0x00)].toString() == username->currentText()) {
             QString p = config[QString::number(i+0x01)].toString();
             if (p == password->text()) {
@@ -307,12 +305,15 @@ void AppSignin::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
     case Qt::Key_Option:
-        for (int i=SignInAddr; i < 0x0050; i++) {  // 登录信息存放在0x0050
+        for (int i=AddrSignIn; i < AddrSignIn + 0x10; i++) {  // 登录信息存放在0x0040
             config[QString::number(i)] = msg[QString::number(i)];
         }
-        for (int i=0x0100; i < 0x0200+0x0100; i++) {  // 用户信息存放在0x0100
+        for (int i=AddrMaster; i < AddrMaster+0x0100; i++) {  // 用户信息存放在0x0100
             config[QString::number(i)] = msg[QString::number(i)];
         }
+        break;
+    case Qt::Key_Enter:
+        initSettings();
         break;
     default:
         break;

@@ -1,4 +1,11 @@
-
+/*******************************************************************************
+ * Copyright [2018] <青岛艾普智能仪器有限公司>
+ * All rights reserved.
+ *
+ * version:     0.1
+ * author:      zhaonanlin
+ * brief:       测试界面
+*******************************************************************************/
 #include "apptester.h"
 
 AppTester::AppTester(QWidget *parent) : QWidget(parent)
@@ -29,17 +36,6 @@ void AppTester::initUI()
     initImpText();
     initImpWave();
     drawImpWave();
-
-    //    initTabView();
-    //    initPieView();
-
-    //    initImpView();
-    //    drawImpView();
-
-    //    initDcrView();
-    //    drawDcrView();
-
-
 }
 
 void AppTester::initSkin()
@@ -63,7 +59,7 @@ void AppTester::initLayout()
     }
 
     mLayout = new QVBoxLayout(this);
-    mLayout->setContentsMargins(0, 9, 0, 3);
+    mLayout->setContentsMargins(0, 3, 0, 3);
     mLayout->addWidget(view);
 }
 
@@ -73,9 +69,9 @@ void AppTester::initStatus()
     status->setRowCount(2);
     status->setColumnCount(4);
     status->setFixedHeight(60);
-    status->setColumnWidth(0, 48);
+    status->setColumnWidth(0, 36);
     status->setColumnWidth(1, 48);
-    status->setColumnWidth(2, 48);
+    status->setColumnWidth(2, 36);
 #if (QT_VERSION <= QT_VERSION_CHECK(5, 0, 0))
     status->horizontalHeader()->setResizeMode(3, QHeaderView::Stretch);
     status->verticalHeader()->setResizeMode(QHeaderView::Stretch);
@@ -150,10 +146,10 @@ void AppTester::initButton()
     btnConf->setMinimumSize(97, 44);
     connect(btnConf, SIGNAL(clicked(bool)), this, SLOT(clickButton()));
 
-    QLabel *btnLogo = new QLabel(this);
-    btnLogo->setPixmap(QPixmap(":/icon_aip.png"));
-    btnLogo->setScaledContents(true);
-    btnLayout->addWidget(btnLogo);
+//    QLabel *btnLogo = new QLabel(this);
+//    btnLogo->setPixmap(QPixmap(":/icon_aip.png"));
+//    btnLogo->setScaledContents(true);
+//    btnLayout->addWidget(btnLogo);
 
     btnLayout->addStretch();
 
@@ -174,11 +170,15 @@ void AppTester::initDcrWeld()
     title->setText(tt);
 
     textDcrMD = new QTextBrowser(this);
+    textDcrMD->setEnabled(false);
     textDcrMD->setStyleSheet("border:none");
     for (int i=0; i < NUMS; i++) {
         if (i !=0 && i%12 == 0)
             textDcrMD->insertHtml("<br></br>");
-        textDcrMD->insertHtml(SmallOK.arg(QString::number(1.500, 'f', 3)));
+        if (i == 12)
+            textDcrMD->insertHtml(SmallNG.arg(QString::number(1.400, 'f', 3)));
+        else
+            textDcrMD->insertHtml(SmallOK.arg(QString::number(1.400, 'f', 3)));
     }
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
@@ -199,18 +199,19 @@ void AppTester::initDcrChip()
     QLabel *title = new QLabel(this);
     title->setText(tt);
 
-    QTextBrowser *text = new QTextBrowser(this);
-    text->setStyleSheet("border:none");
+    textDcrCP = new QTextBrowser(this);
+    textDcrCP->setEnabled(false);
+    textDcrCP->setStyleSheet("border:none");
     for (int i=0; i < NUMS; i++) {
         if (i !=0 && i%12 == 0)
-            text->insertHtml("<br></br>");
-        text->insertHtml(SmallOK.arg(QString::number(0.0500, 'f', 3)));
+            textDcrCP->insertHtml("<br></br>");
+        textDcrCP->insertHtml(SmallOK.arg(QString::number(0.0500, 'f', 3)));
     }
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
     layout->setMargin(0);
     layout->addWidget(title);
-    layout->addWidget(text);
+    layout->addWidget(textDcrCP);
     layout->setStretch(1, 1);
 
     QFrame *frame = new QFrame(this);
@@ -703,24 +704,6 @@ void AppTester::impResize()
             view->hideColumn(i);
         }
     }
-}
-
-void AppTester::tstReisze()
-{
-    tt++;
-    if (tt%3 == 0) {
-        textResult->setStyleSheet("font:bold;font-size:55pt;color:#00FF00;qproperty-alignment:AlignCenter;");
-        textResult->setText("OK");
-    }
-    if (tt%3 == 1) {
-        textResult->setStyleSheet("font:bold;font-size:55pt;color:yellow;qproperty-alignment:AlignCenter;");
-        textResult->setText("ON");
-    }
-    if (tt%3 == 2) {
-        textResult->setStyleSheet("font:bold;font-size:55pt;color:red;qproperty-alignment:AlignCenter;");
-        textResult->setText("NG");
-    }
-
 }
 
 void AppTester::clickButton()

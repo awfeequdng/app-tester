@@ -17,9 +17,13 @@
 #include <QComboBox>
 #include <QGroupBox>
 #include <QLineEdit>
+#include <QSettings>
 #include <QShowEvent>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QDateTimeEdit>
+
+#include "appdefine.h"
 
 class AppSystem : public QWidget
 {
@@ -33,16 +37,20 @@ private slots:
     void initLayout();
     void initSystem();
     void initDevice();
+    void initButton();
     void initDelegate();
 
     void initSettings();
     void saveSettings();
+    void setLocalTime();
     void recvAppMap(QVariantMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
     QHBoxLayout *layout;
+    QVBoxLayout *boxLayout;
     QList<QComboBox*> texts;
     QList<QLineEdit*> ctrls;
+    QDateTimeEdit *time;
     QVariantMap tmpMap;
     QVariantMap config;
 };

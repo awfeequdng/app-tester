@@ -28,5 +28,6 @@
         <file>icon_net.png</file>
         <file>logo_aip.png</file>
         <file>icon_aip.png</file>
+        <file>icon_wifi.png</file>
     </qresource>
 </RCC>

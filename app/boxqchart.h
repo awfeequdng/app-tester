@@ -1,7 +1,14 @@
+/*******************************************************************************
+ * Copyright [2018] <青岛艾普智能仪器有限公司>
+ * All rights reserved.
+ *
+ * version:     0.1
+ * author:      zhaonanlin
+ * brief:       环形显示
+*******************************************************************************/
 #ifndef BOXQCHART_H
 #define BOXQCHART_H
 
-#include <cmath>
 #include <QRectF>
 #include <QTimer>
 #include <QLabel>
@@ -10,6 +17,8 @@
 #include <QPainter>
 #include <QPaintEvent>
 #include <QMouseEvent>
+
+#include <cmath>
 
 #define PI 3.1415926
 #define SCALE 200.0

@@ -17,6 +17,8 @@
 #include <QStringList>
 #include <QSqlDatabase>
 
+#include "appdefine.h"
+
 #define STEP 0x0010
 
 class SqlCreate : public QObject

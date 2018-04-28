@@ -35,7 +35,6 @@ void SqlRecord::initLayout()
 
 void SqlRecord::initViewBar()
 {
-
     QStringList header;
     header << tr("UUID") << tr("GUID") << tr("NUMB")
            << tr("测试日期") << tr("测试时间") << tr("测试型号") << tr("测试判定");

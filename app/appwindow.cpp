@@ -127,12 +127,38 @@ void AppWindow::initAuthor()
     initButton(tr("返回主页"), name);
 }
 
+void AppWindow::initSocket()
+{
+    TcpSocket *tcp = new TcpSocket(this);
+    connect(tcp, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    //    connect(this, SIGNAL(sendAppMap(QVariantMap)), tcp, SLOT(recvAppMap(QVariantMap)));
+
+    tmpMap.insert("hostaddr", "s.aipuo.com");
+    tmpMap.insert("hostport", "6000");
+    tmpMap.insert("devNumb", config[QString::number(AddrNumber)].toString());
+    tmpMap.insert("version", config[QString::number(AddrVerNub)].toString());
+    tcp->connectToServer(tmpMap);
+    tmpMap.clear();
+}
+
 void AppWindow::initDevice()
 {
 #ifdef __arm__
-    DevSetKey *key = new DevSetKey(this);
+    DevSerial *key = new DevSerial(this);
     connect(key, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
     connect(this, SIGNAL(sendAppMap(QVariantMap)), key, SLOT(recvAppMap(QVariantMap)));
+
+    DevSetRtc *rtc = new DevSetRtc(this);
+    connect(rtc, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    connect(this, SIGNAL(sendAppMap(QVariantMap)), rtc, SLOT(recvAppMap(QVariantMap)));
+
+    DevBuzzer *pwm = new DevBuzzer(this);
+    connect(pwm, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    connect(this, SIGNAL(sendAppMap(QVariantMap)), pwm, SLOT(recvAppMap(QVariantMap)));
+
+    DevScreen *lcd = new DevScreen(this);
+    connect(lcd, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    connect(this, SIGNAL(sendAppMap(QVariantMap)), lcd, SLOT(recvAppMap(QVariantMap)));
 #endif
 }
 
@@ -149,7 +175,6 @@ void AppWindow::initScreen()
     initBackup();
     initLogger();
     initConfig();
-    initSetAll();
     initSetDcr();
     initSetAcw();
     initSetImp();
@@ -164,9 +189,20 @@ void AppWindow::initScreen()
     readModelSet();
     initSettings();
     sendSettings();
+    initSocket();
     boxpop->hide();
-    recvAppShow("signin");
+    //    recvAppShow("signin");
     btnLayout->addStretch();
+
+    tmpMap.insert("enum", Qt::Key_Enter);
+    emit sendAppMap(tmpMap);
+    tmpMap.clear();
+
+    if (isSignin) {
+        QTimer::singleShot(500, this, SLOT(showTester()));
+    } else {
+        recvAppShow("signin");
+    }
 }
 
 void AppWindow::initSignin()
@@ -266,20 +302,6 @@ void AppWindow::initConfig()
     stack->addWidget(app);
 
     initButton(tr("型号管理"), name);
-}
-
-void AppWindow::initSetAll()
-{
-    boxpop->setText(tr("正在初始化综合配置..."));
-    wait(10);
-    QString name = "setall";
-    TypSetAll *app = new TypSetAll(this);
-    app->setObjectName(name);
-    connect(app, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
-    connect(this, SIGNAL(sendAppMap(QVariantMap)), app, SLOT(recvAppMap(QVariantMap)));
-    stack->addWidget(app);
-
-    initButton(tr("综合配置"), name);
 }
 
 void AppWindow::initSetDcr()
@@ -459,12 +481,13 @@ void AppWindow::readSettings()
         config[uuid] = parm;
     }
     query.clear();
+    config[QString::number(AddrVerNub)] = verNumb;
 }
 
 void AppWindow::readModelSet()
 {
     QSqlQuery query(QSqlDatabase::database("sqlite"));
-    QString type = config[ConfigAddr].toString();
+    QString type = config[QString::number(AddrConfig)].toString();
     qDebug() << "app read:" << type;
     query.exec(QString("select * from M_%1").arg(type));
     while (query.next()) {
@@ -483,11 +506,11 @@ void AppWindow::initSettings()
     masters.clear();  // 用户名称
     maction.clear();  // 用户权限
     for (int i=0; i < 0x0100; i+=4) {  // 查询界面组别与权限
-        masters.append(config[QString::number(i+0x0100+0x00)].toString());
-        maction.append(config[QString::number(i+0x0100+0x02)].toInt());
-        sources.append(config[QString::number(i+0x0200+0x00)].toString());
-        sgroups.append(config[QString::number(i+0x0200+0x02)].toInt());
-        saction.append(config[QString::number(i+0x0200+0x03)].toInt());
+        masters.append(config[QString::number(i+AddrMaster+0x00)].toString());
+        maction.append(config[QString::number(i+AddrMaster+0x02)].toInt());
+        sources.append(config[QString::number(i+AddrAction+0x00)].toString());
+        sgroups.append(config[QString::number(i+AddrAction+0x02)].toInt());
+        saction.append(config[QString::number(i+AddrAction+0x03)].toInt());
     }
 }
 
@@ -511,7 +534,7 @@ void AppWindow::saveSettings()
     QSqlDatabase::database(name).transaction();
     for (int i=0; i < uuids.size(); i++) {
         int uuid = uuids.at(i).toInt();
-        if (uuid < 0x0400) {
+        if (uuid < 0x0400 && uuid >= 0x0010) {
             query.prepare("replace into G_DEFAULT values(?,?)");
             query.addBindValue(uuid);
             query.addBindValue(config[QString::number(uuid)].toString());
@@ -534,7 +557,7 @@ void AppWindow::saveModelSet()
     QSqlQuery query(QSqlDatabase::database(name));
     QSqlDatabase::database(name).transaction();
     QStringList uuids = config.keys();
-    QString type = config[ConfigAddr].toString();
+    QString type = config[QString::number(AddrConfig)].toString();
     for (int i=0; i < uuids.size(); i++) {
         int uuid = uuids.at(i).toInt();
         if (uuid >= 0x0400) {
@@ -563,7 +586,7 @@ void AppWindow::showTester()
 
 bool AppWindow::checkAction(QString msg)
 {
-    QString currMaster = config[QString::number(SignInAddr)].toString();  // 当前用户
+    QString currMaster = config[QString::number(AddrSignIn)].toString();  // 当前用户
     int currAction = (isSignin) ? maction.at(masters.indexOf(currMaster)) : 4;  // 当前权限
     int currGroups = sgroups.at(sources.indexOf(msg));  // 当前界面组别
     int showAction = saction.at(sources.indexOf(msg));  // 当前界面权限
@@ -587,11 +610,12 @@ bool AppWindow::checkAction(QString msg)
     } else {
         btnFrame->hide();
     }
-
-    if (currAction <= showAction)
-        return true;
-    else
+    if (currAction > showAction)
         return false;
+    tmpMap.insert("enum", currAction < showAction ? Qt::Key_Less : Qt::Key_Equal);
+    emit sendAppMap(tmpMap);
+    tmpMap.clear();
+    return true;
 }
 
 void AppWindow::screensShow(QString msg)
@@ -678,12 +702,8 @@ void AppWindow::recvAppMap(QVariantMap msg)
         recvAppShow(msg.value("text").toString());
         break;
     case Qt::Key_Enter:
-        if (isSignin) {
-            recvAppShow("signin");
-        } else {
-            isSignin = true;
-            QTimer::singleShot(500, this, SLOT(showTester()));
-        }
+        isSignin = true;
+        QTimer::singleShot(500, this, SLOT(showTester()));
         break;
     case Qt::Key_LogOff:
         isSignin = false;
@@ -709,7 +729,7 @@ void AppWindow::recvAppMap(QVariantMap msg)
         break;
         break;
     case Qt::Key_Reload:
-        config[ConfigAddr] = msg[ConfigAddr];
+        config[QString::number(AddrConfig)] = msg[QString::number(AddrConfig)];
         saveSettings();
         readModelSet();
         initSettings();
@@ -717,23 +737,39 @@ void AppWindow::recvAppMap(QVariantMap msg)
         break;
     case Qt::Key_Stop:
         tmpMap.insert("enum", Qt::Key_View);
-        tmpMap.insert("data", "LED1");
+        tmpMap.insert("text", "LED1");
+        tmpMap.insert("data", 0);
+        emit sendAppMap(tmpMap);
+        tmpMap.clear();
+        tmpMap.insert("enum", Qt::Key_BrightnessAdjust);
+        tmpMap.insert("data", 100);
         emit sendAppMap(tmpMap);
         tmpMap.clear();
         break;
     case Qt::Key_Play:
         tmpMap.insert("enum", Qt::Key_View);
-        tmpMap.insert("data", "LEDY");
+        tmpMap.insert("text", "LEDY");
         emit sendAppMap(tmpMap);
-//        tmpMap.clear();
         wait(1000);
-        tmpMap.insert("data", "LEDG");
+        tmpMap.insert("text", "LEDG");
+        tmpMap.insert("data", 99);
         emit sendAppMap(tmpMap);
-//        tmpMap.clear();
         wait(1000);
-        tmpMap.insert("data", "LEDR");
+        tmpMap.insert("text", "LEDR");
+        tmpMap.insert("data", 0);
         emit sendAppMap(tmpMap);
         tmpMap.clear();
+
+        tmpMap.insert("enum", Qt::Key_BrightnessAdjust);
+        tmpMap.insert("data", 50);
+        emit sendAppMap(tmpMap);
+        tmpMap.clear();
+        break;
+    case Qt::Key_Time:
+        emit sendAppMap(msg);
+        break;
+    case Qt::Key_Community:
+        emit sendAppMap(msg);
         break;
     default:
         break;

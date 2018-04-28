@@ -139,7 +139,7 @@ void AppLogger::initLayout()
 
 void AppLogger::saveSettings()
 {  // 调试信息输出保存在0x001F
-    config[QString::number(0x001F)] = QString::number(combo->currentIndex());
+    config[QString::number(AddrLogger)] = QString::number(combo->currentIndex());
     config.insert("enum", Qt::Key_Save);
     emit sendAppMap(config);
 }
@@ -181,8 +181,8 @@ void AppLogger::recvAppMap(QVariantMap msg)
 {  // 调试信息输出保存在0x001F
     switch (msg.value("enum").toInt()) {
     case Qt::Key_Option:
-        config[QString::number(0x001F)] = msg[QString::number(0x001F)];
-        combo->setCurrentIndex(config[QString::number(0x001F)].toInt());
+        config[QString::number(AddrLogger)] = msg[QString::number(AddrLogger)];
+        combo->setCurrentIndex(config[QString::number(AddrLogger)].toInt());
         break;
     default:
         break;
