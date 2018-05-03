@@ -28,7 +28,9 @@ QDialog QPushButton {
 min-height:25px;
 min-width:60px;
 }
-
+QProgressDialog QDialog{
+border:2px solid gray;;
+}
 /*QTabBar*/
 QTabBar::tab {
 border:1px solid #447684;
@@ -72,6 +74,7 @@ background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #080B10,stop:1.0 #212C3F);
 QProgressBar::chunk {
 background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #506B79,stop:1.0 #0D95A6);
 }
+
 /*QPushButton*/
 QPushButton{
 font:18px "WenQuanYi Mcrio Hei";

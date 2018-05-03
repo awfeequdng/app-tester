@@ -18,7 +18,7 @@ void DevScreen::initScreen()
     fd = open("/dev/em335x_pwm1", O_RDWR);  // 打开蜂鸣器
     if (fd < 0) {
         QString tmp = tr("屏幕打开失败");
-        qDebug() << "dev show:" << tmp;
+        qDebug() << "lcd show:" << tmp;
     }
 }
 
@@ -34,11 +34,7 @@ void DevScreen::sendScreen(double duty)
     if (duty == 0)
         memset(&conf, 0, sizeof(struct pwm_config_info));
 
-    int ret = write(fd, &conf, sizeof(struct pwm_config_info));
-    if (ret <= 0) {
-        QString tmp = tr("屏幕设置失败");
-        qDebug() << "dev show:" << tmp;
-    }
+    write(fd, &conf, sizeof(struct pwm_config_info));
 }
 
 void DevScreen::recvAppMap(QVariantMap msg)

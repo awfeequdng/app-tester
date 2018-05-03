@@ -60,6 +60,7 @@ void SqlCreate::createSqlite()
     insertSqlNetwork(query);
     insertMasterInfo(query);
     insertSourceInfo(query);
+    insertModelsInfo(query);
     insertConfigInfo(query);
     insertSetAcwInfo(query);
     db.commit();
@@ -330,7 +331,7 @@ void SqlCreate::insertSourceInfo(QSqlQuery query)
     }
 }
 
-void SqlCreate::insertConfigInfo(QSqlQuery query)
+void SqlCreate::insertModelsInfo(QSqlQuery query)
 {
     int from = AddrModels;
     QStringList parm;
@@ -353,26 +354,42 @@ void SqlCreate::insertConfigInfo(QSqlQuery query)
     }
 }
 
+void SqlCreate::insertConfigInfo(QSqlQuery query)
+{
+    int from = 0x0400;
+    QStringList parm;
+    parm << "DEFAULT" << "24" << "24";
+    for (int i=parm.size(); i < STEP; i++) {
+        parm << "";
+    }
+    for (int i=0; i < parm.size(); i++) {
+        query.prepare("insert into M_DEFAULT values(?,?)");
+        query.addBindValue(from + i);
+        query.addBindValue(parm.at(i));
+        query.exec();
+    }
+}
+
 void SqlCreate::insertSetAcwInfo(QSqlQuery query)
-{  // 绝缘参数
+{  // 介电强度
     int from = 0x0460;
     QStringList parm;
     for (int i=parm.size(); i < STEP*0x01; i++) {
         parm << "";
     }
-    parm << "1" << "500" << "1" << "0" << "500" << "0";
+    parm << "1" << "" << "500" << "10" << "0" << "500" << "0" << "0";
     for (int i=parm.size(); i < STEP*0x02; i++) {
         parm << "";
     }
-    parm << "1" << "1500" << "1" << "1" << "0.1" << "0";
+    parm << "1" << "" << "1500" << "10" << "500" << "0" << "0" << "0";
     for (int i=parm.size(); i < STEP*0x03; i++) {
         parm << "";
     }
-    parm << "1" << "2500" << "1" << "1" << "0.1" << "0";
+    parm << "1" << "" << "2500" << "10" << "500" << "0" << "0" << "0";
     for (int i=parm.size(); i < STEP*0x04; i++) {
         parm << "";
     }
-    parm << "1" << "4500" << "1" << "1" << "0.1" << "0";
+    parm << "1" << "" << "4500" << "10" << "500" << "0" << "0" << "0";
     for (int i=parm.size(); i < STEP*0x05; i++) {
         parm << "";
     }

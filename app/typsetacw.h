@@ -28,6 +28,7 @@
 #include "boxqmodel.h"
 #include "boxqitems.h"
 #include "boxdouble.h"
+#include "appdefine.h"
 
 #define LL 97
 

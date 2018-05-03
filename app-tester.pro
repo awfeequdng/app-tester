@@ -58,7 +58,16 @@ HEADERS += \
     app/boxqmodel.h \
     app/boxdouble.h \
     app/devdriver.h \
-    app/appdefine.h
+    app/appdefine.h \
+    app/udpsocket.h \
+    qjson/QJsonArray.h \
+    qjson/QJsonDocument.h \
+    qjson/QJsonObject.h \
+    qjson/QJsonParseError.h \
+    qjson/QJsonParser.h \
+    qjson/QJsonRoot.h \
+    qjson/QJsonValue.h \
+    qjson/QJsonValueRef.h
 
 SOURCES += \
     app/main.cpp \
@@ -99,4 +108,12 @@ SOURCES += \
     app/devserial.cpp \
     app/tcpsocket.cpp \
     app/boxqmodel.cpp \
-    app/boxdouble.cpp
+    app/boxdouble.cpp \
+    app/udpsocket.cpp \
+    qjson/QJsonArray.cpp \
+    qjson/QJsonDocument.cpp \
+    qjson/QJsonObject.cpp \
+    qjson/QJsonParseError.cpp \
+    qjson/QJsonParser.cpp \
+    qjson/QJsonValue.cpp \
+    qjson/QJsonValueRef.cpp

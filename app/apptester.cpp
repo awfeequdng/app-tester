@@ -125,7 +125,7 @@ void AppTester::initResult()
 
 void AppTester::initQChart()
 {
-    BoxQChart *pieChart = new BoxQChart(this);
+    pieChart = new BoxQChart(this);
     connect(pieChart, SIGNAL(sendClick()), this, SLOT(pieResize()));
     view->setCellWidget(0, 2, pieChart);
 }
@@ -133,6 +133,7 @@ void AppTester::initQChart()
 void AppTester::initButton()
 {  // 按钮显示区
     QVBoxLayout *btnLayout = new QVBoxLayout;
+    btnLayout->setMargin(3);
 
     QPushButton *btnHome = new QPushButton("开机主页", this);
     btnLayout->addWidget(btnHome);
@@ -146,10 +147,13 @@ void AppTester::initButton()
     btnConf->setMinimumSize(97, 44);
     connect(btnConf, SIGNAL(clicked(bool)), this, SLOT(clickButton()));
 
-//    QLabel *btnLogo = new QLabel(this);
-//    btnLogo->setPixmap(QPixmap(":/icon_aip.png"));
-//    btnLogo->setScaledContents(true);
-//    btnLayout->addWidget(btnLogo);
+    btnPlay = new QPushButton("启动测试", this);
+    btnLayout->addWidget(btnPlay);
+    btnPlay->setMinimumSize(97, 44);
+    connect(btnPlay, SIGNAL(clicked(bool)), this, SLOT(clickStart()));
+#ifdef __arm__
+    btnPlay->hide();
+#endif
 
     btnLayout->addStretch();
 
@@ -235,7 +239,7 @@ void AppTester::initDcrDiag()
     largeLayout->setMargin(0);
     for (int i=0; i < 3; i++) {
         QLabel *text = new QLabel(largeOK.arg(tmp.at(i)), this);
-        inrTexts.append(text);
+        //        inrTexts.append(text);
         largeLayout->addWidget(text);
     }
 
@@ -297,6 +301,7 @@ void AppTester::initInrTextCG()
 
     QLabel *title = new QLabel(this);
     title->setText(tt);
+    acwTitles.append(title);
 
     QStringList tmp;
     tmp << "1.500kV" << ">500MΩ" << "OK";
@@ -304,7 +309,7 @@ void AppTester::initInrTextCG()
     datLayout->setMargin(0);
     for (int i=0; i < 3; i++) {
         QLabel *text = new QLabel(largeOK.arg(tmp.at(i)), this);
-        inrTexts.append(text);
+        acwLabels.append(text);
         datLayout->addWidget(text);
     }
 
@@ -328,6 +333,7 @@ void AppTester::initAcwTextAC()
 
     QLabel *title = new QLabel(this);
     title->setText(tt);
+    acwTitles.append(title);
 
     QStringList tmp;
     tmp << "1.500kV" << "0.300mA" << "OK";
@@ -335,7 +341,7 @@ void AppTester::initAcwTextAC()
     datLayout->setMargin(0);
     for (int i=0; i < 3; i++) {
         QLabel *text = new QLabel(largeOK.arg(tmp.at(i)), this);
-        inrTexts.append(text);
+        acwLabels.append(text);
         datLayout->addWidget(text);
     }
 
@@ -359,6 +365,7 @@ void AppTester::initAcwTextAL()
 
     QLabel *title = new QLabel(this);
     title->setText(tt);
+    acwTitles.append(title);
 
     QStringList tmp;
     tmp << "2.500kV" << "0.400mA" << "OK";
@@ -366,7 +373,7 @@ void AppTester::initAcwTextAL()
     datLayout->setMargin(0);
     for (int i=0; i < 3; i++) {
         QLabel *text = new QLabel(largeOK.arg(tmp.at(i)), this);
-        inrTexts.append(text);
+        acwLabels.append(text);
         datLayout->addWidget(text);
     }
 
@@ -390,6 +397,7 @@ void AppTester::initAcwTextLC()
 
     QLabel *title = new QLabel(this);
     title->setText(tt);
+    acwTitles.append(title);
 
     QStringList tmp;
     tmp << "4.500kV" << "0.400mA" << "OK";
@@ -397,7 +405,7 @@ void AppTester::initAcwTextLC()
     datLayout->setMargin(0);
     for (int i=0; i < 3; i++) {
         QLabel *text = new QLabel(largeOK.arg(tmp.at(i)), this);
-        inrTexts.append(text);
+        acwLabels.append(text);
         datLayout->addWidget(text);
     }
 
@@ -428,7 +436,7 @@ void AppTester::initImpText()
     largeLayout->setMargin(0);
     for (int i=0; i < 3; i++) {
         QLabel *text = new QLabel(largeOK.arg(tmp.at(i)), this);
-        inrTexts.append(text);
+        //        inrTexts.append(text);
         largeLayout->addWidget(text);
     }
 
@@ -511,13 +519,6 @@ void AppTester::setViewSize()
     view->setColumnWidth(2, this->width()*270/800);
     view->horizontalHeader()->setStretchLastSection(true);
     view->verticalHeader()->setStretchLastSection(true);
-}
-
-void AppTester::initPieView()
-{
-    //    LQPieView *pieChart = new LQPieView(this);
-    //    connect(pieChart, SIGNAL(sendClick()), this, SLOT(pieResize()));
-    //    view->setCellWidget(0, 2, pieChart);
 }
 
 void AppTester::drawDcrWave()
@@ -706,6 +707,20 @@ void AppTester::impResize()
     }
 }
 
+void AppTester::clickStart()
+{
+    if (btnPlay->text() == tr("启动测试")) {
+        btnPlay->setText(tr("停止测试"));
+        tmpMap.insert("enum", Qt::Key_Play);
+
+    } else {
+        btnPlay->setText(tr("启动测试"));
+        tmpMap.insert("enum", Qt::Key_Stop);
+    }
+    emit sendAppMap(tmpMap);
+    tmpMap.clear();
+}
+
 void AppTester::clickButton()
 {
     tmpMap.insert("enum", Qt::Key_Display);
@@ -714,9 +729,94 @@ void AppTester::clickButton()
     tmpMap.clear();
 }
 
+void AppTester::clearView()
+{
+    QStringList tmp;
+    tmp << tr("绝缘电阻") << tr("轴铁耐压") << tr("轴线耐压") << tr("线铁耐压");
+    int addr;
+    QString tt;
+    for (int i=0; i < tmp.size(); i++) {
+        addr = AddrAG + i*0x10;
+        double v = config[QString::number(addr + AddrHV)].toDouble()/1000;
+        double h = config[QString::number(addr + AddrHH)].toDouble();
+        double l = config[QString::number(addr + AddrHL)].toDouble();
+        if (i == 0) {
+            tt = titleOK + "%1&nbsp;&nbsp;DC:%2kV&nbsp;&nbsp;IR:%3MΩ</p>";
+            tt = tt.arg(tmp.at(i)).arg(QString::number(v, 'f', 3));
+            tt = tt.arg(l);
+        } else {
+            tt = titleOK + "%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;I:%3~%4mA</p>";
+            tt = tt.arg(tmp.at(i)).arg(QString::number(v, 'f', 3));
+            h /= 100;
+            l /= 100;
+            tt = tt.arg(QString::number(l, 'f', 2)).arg(QString::number(h, 'f', 2));
+        }
+        acwTitles.at(i)->setText(tt);
+        acwLabels.at(i*3 + 0)->setText(largeOK.arg("-.---kV"));
+        if (i == 0) {
+            acwLabels.at(3*i + 1)->setText(largeOK.arg("---.-MΩ"));
+        } else {
+            acwLabels.at(3*i + 1)->setText(largeOK.arg("-.---mA"));
+        }
+        acwLabels.at(3*i + 2)->setText(largeOK.arg("--"));
+    }
+}
+
+void AppTester::recvUpdate(QVariantMap msg)
+{
+    int addr = msg.value("text").toInt();
+    int t = (addr%AddrAG)/0x10;
+    double j = msg[QString::number(addr + AddrHJ)].toInt();
+    QString color = (j == 0) ? largeNG : largeOK;
+    QString judge = (j == 0) ? "NG" : "OK";
+    double v = msg[QString::number(addr + AddrHU)].toInt();
+    double r = msg[QString::number(addr + AddrHR)].toInt();
+    double d = msg[QString::number(addr + AddrHD)].toInt();
+    r *= qPow(10, -d);
+    QString volt = QString::number(v/1000, 'f', 3) + "kV";
+    QString real = QString::number(r, 'f', 3) + "mA";
+    if (t == 0) {
+        real = (r > 500) ? ">500MΩ" : (QString::number(r, 'f', 1) + "MΩ");
+    }
+    acwLabels.at(3*t + 0)->setText(color.arg(volt));
+    acwLabels.at(3*t + 1)->setText(color.arg(real));
+    acwLabels.at(3*t + 2)->setText(color.arg(judge));
+
+    QStringList keys = msg.keys();
+    keys.removeOne("enum");
+    keys.removeOne("text");
+    for (int i=0; i < keys.size(); i++) {
+        config[keys.at(i)] = msg[keys.at(i)];
+    }
+}
+
+void AppTester::recvAppMap(QVariantMap msg)
+{
+    switch (msg.value("enum").toInt()) {
+    case Qt::Key_Option:
+        config = msg;
+        pieChart->setNum(msg[QString::number(AddrSC + AddrTC)].toInt());
+        break;
+    case Qt::Key_Refresh:
+        recvUpdate(msg);
+        break;
+    case Qt::Key_WakeUp:
+        clearView();
+        break;
+    case Qt::Key_Stop:
+        break;
+    case Qt::Key_Sleep:
+        btnPlay->setText(tr("启动测试"));
+        break;
+    default:
+        break;
+    }
+}
+
 void AppTester::showEvent(QShowEvent *e)
 {
     this->setFocus();
     setViewSize();
+    clearView();
     e->accept();
 }

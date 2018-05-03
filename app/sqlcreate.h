@@ -47,6 +47,7 @@ private slots:
 
     void insertMasterInfo(QSqlQuery query);
     void insertSourceInfo(QSqlQuery query);
+    void insertModelsInfo(QSqlQuery query);
     void insertConfigInfo(QSqlQuery query);
     void insertSetAcwInfo(QSqlQuery query);
 };

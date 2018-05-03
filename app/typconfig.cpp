@@ -83,8 +83,7 @@ void TypConfig::initConfigBar()
     QStringList headers;
     headers << tr("型号编号") << tr("型号名称");
 
-    names << tr("当前型号") << tr("电枢类型") << tr("操作工位")
-          << tr("电枢片数") << tr("夹具类型")
+    names << tr("当前型号") << tr("电枢片数") << tr("夹具类型")
           << tr("选中编号") << tr("选中型号");
 
     settings = new QTableWidget(this);
@@ -164,12 +163,12 @@ void TypConfig::initButtonBar()
     btnGet->setFixedSize(97, 40);
     btnGet->setText(tr("调入"));
     btnLayout->addWidget(btnGet);
-    connect(btnGet, SIGNAL(clicked(bool)), this, SLOT(selectModelType()));
 
     QPushButton *btnSave = new QPushButton(this);
     btnSave->setFixedSize(97, 40);
     btnSave->setText(tr("保存"));
     btnLayout->addWidget(btnSave);
+    connect(btnSave, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
 
     boxLayout->addLayout(btnLayout);
 }
@@ -183,13 +182,25 @@ void TypConfig::initSettings()
         view->item(i, 0)->setText(QString("%1").arg(t-AddrModels+1, 3, 10, QChar('0')));
         view->item(i, 1)->setText(config[QString::number(t)].toString());
     }
-    int t = names.indexOf(tr("当前型号"));
-    settings->item(t, 1)->setText(config[QString::number(AddrConfig)].toString());
+    config[QString::number(AddrSC + AddrTM)] = config[QString::number(AddrConfig)];
+    for (int i=0; i < 3; i++) {
+        settings->item(i, 1)->setText(config[QString::number(AddrSC + i)].toString());
+    }
 
     if (isShow == Qt::Key_Less)
         setFrame->show();
     else
         setFrame->hide();
+}
+
+void TypConfig::saveSettings()
+{
+    for (int i=0; i < 3; i++) {
+        tmpMap[QString::number(AddrSC + i)] = settings->item(i, 1)->text();
+    }
+    tmpMap.insert("enum", Qt::Key_Option);
+    emit sendAppMap(tmpMap);
+    tmpMap.clear();
 }
 
 void TypConfig::appendModelType()
@@ -311,10 +322,13 @@ void TypConfig::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
     case Qt::Key_Option:
+        config[QString::number(AddrConfig)] = msg[QString::number(AddrConfig)];  // 当前型号
         for (int i=AddrModels; i < AddrModels+0x0100; i++) {
             config[QString::number(i)] = msg[QString::number(i)];
         }
-        config[QString::number(AddrConfig)] = msg[QString::number(AddrConfig)];  // 当前型号
+        for (int i=AddrSC; i < AddrSC + 0x10; i++) {  // 综合设置
+            config[QString::number(i)] = msg[QString::number(i)];
+        }
         break;
     case Qt::Key_Less:
     case Qt::Key_Equal:

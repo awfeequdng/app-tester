@@ -18,7 +18,7 @@ void DevBuzzer::initBuzzer()
     fd = open("/dev/em335x_pwm2", O_RDWR);  // 打开蜂鸣器
     if (fd < 0) {
         QString tmp = tr("蜂鸣器打开失败");
-        qDebug() << "dev show:" << tmp;
+        qDebug() << "pwm show:" << tmp;
     }
 }
 
@@ -26,7 +26,7 @@ void DevBuzzer::sendBuzzer(double duty)
 {
     if (fd < 0) {
         QString tmp = tr("蜂鸣器打开失败");
-        qDebug() << "dev show:" << tmp;
+        qDebug() << "pwm show:" << tmp;
         return;
     }
 
@@ -39,11 +39,7 @@ void DevBuzzer::sendBuzzer(double duty)
     if (duty == 0)
         memset(&conf, 0, sizeof(struct pwm_config_info));
 
-    int ret = write(fd, &conf, sizeof(struct pwm_config_info));
-    if (ret <= 0) {
-        QString tmp = tr("蜂鸣器设置失败");
-        qDebug() << "dev show:" << tmp;
-    }
+    write(fd, &conf, sizeof(struct pwm_config_info));
 }
 
 void DevBuzzer::recvAppMap(QVariantMap msg)

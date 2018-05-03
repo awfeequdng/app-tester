@@ -51,6 +51,7 @@ private slots:
     void initConfigBar();
     void initButtonBar();
     void initSettings();
+    void saveSettings();
     void appendModelType();
     void selectModelType();
     void deleteModelType();
@@ -60,6 +61,7 @@ private slots:
     virtual void showEvent(QShowEvent *e);
 private:
     QTableWidget *view;
+    QVariantMap tmpMap;
     QVariantMap config;
     QLineEdit *page;
     QSplitter *splitter;

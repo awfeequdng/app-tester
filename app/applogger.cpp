@@ -27,7 +27,7 @@ void outputHandle(QtMsgType type, const char* msg) {
     }
 }
 #else
-void outputHandle(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+void outputHandle(QtMsgType type, const QMessageLogContext &, const QString &msg) {
     if (!logger) {
         logger = AppLogger::instance();
     }

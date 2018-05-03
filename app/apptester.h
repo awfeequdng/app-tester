@@ -31,6 +31,8 @@
 #include "lib/qcustomplot.h"
 #include "boxqchart.h"
 
+#include "appdefine.h"
+
 #define NUMS 72
 
 const QString StyleOK = "<p style='font-size:10px;color:#666666;line-height:14px;'align='left'>";
@@ -77,13 +79,16 @@ private slots:
     void drawImpWave();
 
     void setViewSize();
-    void initPieView();
     void initHistogram();
     void drawHistogram();
     void pieResize();
     void dcrResize();
     void impResize();
+    void clickStart();
     void clickButton();
+    void clearView();
+    void recvUpdate(QVariantMap msg);
+    void recvAppMap(QVariantMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
     QTableWidget *status;
@@ -102,6 +107,7 @@ private:
     QTimer *timer;
 
     QVariantMap tmpMap;
+    QVariantMap config;
 
     QSplitter *hsplitter1;
     QSplitter *hsplitter2;
@@ -113,10 +119,15 @@ private:
 
     QSplitter *vsp1;
     int tt;
-    QList<QLabel*> inrTexts;
+    QList<QLabel*> acwLabels;
+    QList<QLabel*> acwTitles;
 
     QTextBrowser *textDcrMD;
     QTextBrowser *textDcrCP;
+
+    QPushButton *btnPlay;
+
+    BoxQChart *pieChart;
 };
 
 #endif // APPTESTER_H

@@ -16,6 +16,7 @@
 #include <QLayout>
 #include <QShowEvent>
 #include <QHideEvent>
+#include <QProgressBar>
 #include <QApplication>
 #include <QPropertyAnimation>
 
@@ -26,7 +27,8 @@ class BoxDialog : public QDialog
 public:
     explicit BoxDialog(QWidget *parent = 0);
 public slots:
-    void setText(QString text);
+    void setValue(int value);
+    void setLabelText(QString text);
 private slots:
     void initUI();
     void initAnimation();
@@ -36,9 +38,11 @@ private slots:
     virtual void hideEvent(QHideEvent *e);
     virtual void mousePressEvent(QMouseEvent *e);
 private:
+    bool isAnimation;
     int m_index;
     QLabel *logoLabel;
     QLabel *textLabel;
+    QProgressBar *boxbar;
     QPropertyAnimation *animation;
 };
 

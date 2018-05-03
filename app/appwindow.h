@@ -16,11 +16,13 @@
 #include <QPropertyAnimation>
 #include <QParallelAnimationGroup>
 
+#include "devsetcan.h"
 #include "devserial.h"
 #include "devsetrtc.h"
 #include "devbuzzer.h"
 #include "devscreen.h"
 #include "tcpsocket.h"
+#include "udpsocket.h"
 
 #include "appauthor.h"
 #include "appsignin.h"
@@ -56,47 +58,64 @@ public:
     explicit AppWindow(QWidget *parent = 0);
 signals:
     void sendAppMap(QVariantMap msg);
+    void sendUdpMap(QVariantMap msg);
 private slots:
     void initUI();
-    void initSql();
-    void initTitle();
-    void initLayout();
-    void initAuthor();
-    void initSocket();
-    void initDevice();
-    void initScreen();
-    void initSignin();
-    void initSystem();
-    void initBackup();
-    void initLogger();
-    void initMaster();
-    void initAction();
-    void initConfig();
-    void initSetDcr();
-    void initSetAcw();
-    void initSetImp();
-    void initOffDcr();
-    void initOffAcw();
-    void initOffImp();
-    void initRecord();
-    void initUpload();
-    void initSdcard();
-    void initUnqual();
-    void initTester();
+    int initTitle();
+    int initLayout();
+    int initAuthor();
+    int initDevice();
+    int initScreen();
+    int initSqlDir();
+    int initTester();
+    int initSignin();
+    int initSystem();
+    int initMaster();
+    int initAction();
+    int initBackup();
+    int initLogger();
+    int initConfig();
+    int initSetDcr();
+    int initSetAcw();
+    int initSetImp();
+    int initOffDcr();
+    int initOffAcw();
+    int initOffImp();
+    int initRecord();
+    int initUpload();
+    int initSdcard();
+    int initUnqual();
+    int readSqlite();
+    int readModels();
+    int sendSqlite();
+    int sendSignin();
+    int initSocket();
+    int initThread();
     void initButton(QString title, QString name);
     void showBoxPop(QString text, int t);
-    void readSettings();
-    void readModelSet();
-    void initSettings();
-    void sendSettings();
-    void saveSettings();
-    void saveModelSet();
+    void saveSqlite();
+    void saveModels();
     void clickButtons();
     void showTester();
     bool checkAction(QString msg);
     void screensShow(QString msg);
     void recvAppShow(QString msg);
     virtual void cloudAntimation();
+    int taskThread();
+    int taskClearData();
+    int taskCheckPlay();
+    int taskCheckSafe();
+    int taskCheckCode();
+    int taskStartView();
+    int taskStartTest();
+    int taskStartSave();
+    int taskStartBeep();
+    int taskClearBeep();
+    int testThread();
+    int testClearData();
+    int testStartSend();
+    int testStartTest();
+    void testUpdate(QVariantMap msg);
     void recvAppMap(QVariantMap msg);
     void wait(int ms);
 private:
@@ -114,10 +133,21 @@ private:
     QList<int> maction;
 
     QString verNumb;
-    BoxDialog *boxpop;
+    BoxDialog *boxbar;
     bool isSignin;
 
     int preindex;
+
+    QList<int> addrList;
+    QStringList taskList;
+    QStringList testList;
+    int currTask;
+    int currTest;
+    int taskShift;
+    int testShift;
+    int testIndex;
+    int timeOut;
+    int timeTst;
 };
 
 #endif // APPWINDOW_H

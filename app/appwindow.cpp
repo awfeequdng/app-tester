@@ -8,6 +8,11 @@
 *******************************************************************************/
 #include "appwindow.h"
 
+typedef int (AppWindow::*pClass)(void);
+QMap<QString, pClass> initMap;
+QMap<QString, pClass> taskMap;
+QMap<QString, pClass> testMap;
+
 AppWindow::AppWindow(QWidget *parent) : QMainWindow(parent)
 {
     initUI();
@@ -22,10 +27,145 @@ void AppWindow::initUI()
     QTimer::singleShot(100, this, SLOT(initScreen()));
 }
 
-void AppWindow::initSql()
+int AppWindow::initTitle()
+{
+#ifdef __arm__
+    this->setWindowFlags(Qt::FramelessWindowHint);
+#endif
+    char s_month[5];
+    static const char month_names[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
+    int month, day, year;
+
+    sscanf((__DATE__), "%s %d %d", s_month, &day, &year);
+    month = (strstr(month_names, s_month)-month_names)/3+1;
+
+    QDate dt;
+    dt.setDate(year, month, day);
+    static const QTime tt = QTime::fromString(__TIME__, "hh:mm:ss");
+
+    QDateTime t(dt, tt);
+    verNumb = QString("V-%1").arg(t.toString("yyMMdd-hhmm"));
+
+    this->setWindowTitle(tr("电枢测试仪%1").arg(verNumb));
+    return Qt::Key_Enter;
+}
+
+int AppWindow::initLayout()
+{
+    preindex = 0;
+    stack = new QStackedWidget(this);
+    btnLayout = new QVBoxLayout;
+    btnLayout->setContentsMargins(0, 9, 0, 9);
+    btnLayout->setSpacing(0);
+
+    btnFrame = new QFrame(this);
+    btnFrame->setLayout(btnLayout);
+    btnFrame->setFixedWidth(WIDTH);
+    btnFrame->hide();
+
+    QHBoxLayout *layout = new QHBoxLayout;
+    layout->setMargin(0);
+    layout->setSpacing(0);
+    layout->addWidget(btnFrame);
+    layout->addWidget(stack);
+
+    QFrame *frame = new QFrame(this);
+    frame->setLayout(layout);
+
+    this->setCentralWidget(frame);
+    this->resize(800, 600);
+    return Qt::Key_Enter;
+}
+
+int AppWindow::initAuthor()
+{
+    QString name = "author";
+    AppAuthor *app = new AppAuthor(this);
+    app->setObjectName(name);
+    connect(app, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    connect(this, SIGNAL(sendAppMap(QVariantMap)), app, SLOT(recvAppMap(QVariantMap)));
+    stack->addWidget(app);
+
+    initButton(tr("返回主页"), name);
+    return Qt::Key_Enter;
+}
+
+int AppWindow::initDevice()
+{
+#ifdef __arm__
+    DevSerial *key = new DevSerial(this);
+    connect(key, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    connect(this, SIGNAL(sendAppMap(QVariantMap)), key, SLOT(recvAppMap(QVariantMap)));
+
+    DevSetRtc *rtc = new DevSetRtc(this);
+    connect(rtc, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    connect(this, SIGNAL(sendAppMap(QVariantMap)), rtc, SLOT(recvAppMap(QVariantMap)));
+
+    DevBuzzer *pwm = new DevBuzzer(this);
+    connect(pwm, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    connect(this, SIGNAL(sendAppMap(QVariantMap)), pwm, SLOT(recvAppMap(QVariantMap)));
+
+    DevScreen *lcd = new DevScreen(this);
+    connect(lcd, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    connect(this, SIGNAL(sendAppMap(QVariantMap)), lcd, SLOT(recvAppMap(QVariantMap)));
+
+    DevSetCan *can = new DevSetCan(this);
+    connect(can, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    connect(this, SIGNAL(sendAppMap(QVariantMap)), can, SLOT(recvAppMap(QVariantMap)));
+#endif
+    return Qt::Key_Enter;
+}
+
+int AppWindow::initScreen()
+{
+    boxbar = new BoxDialog(this);
+    boxbar->setValue(0);
+    boxbar->show();
+
+    QStringList names;
+    names << tr("正在初始化数据记录") << tr("正在初始化测试界面") << tr("正在初始化登录界面");
+    initMap[names.at(names.size() - 3)] = &AppWindow::initSqlDir;
+    initMap[names.at(names.size() - 2)] = &AppWindow::initTester;
+    initMap[names.at(names.size() - 1)] = &AppWindow::initSignin;
+    names << tr("正在初始化系统设置") << tr("正在初始化用户管理") << tr("正在初始化权限管理");
+    initMap[names.at(names.size() - 3)] = &AppWindow::initSystem;
+    initMap[names.at(names.size() - 2)] = &AppWindow::initMaster;
+    initMap[names.at(names.size() - 1)] = &AppWindow::initAction;
+    names << tr("正在初始化后台设置") << tr("正在初始化调试信息") << tr("正在初始化型号管理");
+    initMap[names.at(names.size() - 3)] = &AppWindow::initBackup;
+    initMap[names.at(names.size() - 2)] = &AppWindow::initLogger;
+    initMap[names.at(names.size() - 1)] = &AppWindow::initConfig;
+    names << tr("正在初始化电阻配置") << tr("正在初始化高压配置") << tr("正在初始化匝间配置");
+    initMap[names.at(names.size() - 3)] = &AppWindow::initSetDcr;
+    initMap[names.at(names.size() - 2)] = &AppWindow::initSetAcw;
+    initMap[names.at(names.size() - 1)] = &AppWindow::initSetImp;
+    names << tr("正在初始化电阻调试") << tr("正在初始化高压调试") << tr("正在初始化匝间调试");
+    initMap[names.at(names.size() - 3)] = &AppWindow::initOffDcr;
+    initMap[names.at(names.size() - 2)] = &AppWindow::initOffAcw;
+    initMap[names.at(names.size() - 1)] = &AppWindow::initOffImp;
+    names << tr("正在初始化数据管理") << tr("正在初始化上传管理") << tr("正在初始化历史数据");
+    initMap[names.at(names.size() - 3)] = &AppWindow::initRecord;
+    initMap[names.at(names.size() - 2)] = &AppWindow::initUpload;
+    initMap[names.at(names.size() - 1)] = &AppWindow::initSdcard;
+    names << tr("正在初始化数据分析") << tr("正在读取配置数据库") << tr("正在读取型号数据库");
+    initMap[names.at(names.size() - 3)] = &AppWindow::initUnqual;
+    initMap[names.at(names.size() - 2)] = &AppWindow::readSqlite;
+    initMap[names.at(names.size() - 1)] = &AppWindow::readModels;
+    names << tr("正在分发数据库配置") << tr("正在初始化网络连接") << tr("正在初始化登录验证");
+    initMap[names.at(names.size() - 3)] = &AppWindow::sendSqlite;
+    initMap[names.at(names.size() - 2)] = &AppWindow::initSocket;
+    initMap[names.at(names.size() - 1)] = &AppWindow::sendSignin;
+    names << tr("正在初始化系统线程");
+    initMap[names.at(names.size() - 1)] = &AppWindow::initThread;
+    for (int i=0; i < names.size(); i++) {
+        showBoxPop(names.at(i), i);
+    }
+    btnLayout->addStretch();
+    return Qt::Key_Enter;
+}
+
+int AppWindow::initSqlDir()
 {  // 创建并打开数据库
-    boxpop->setText(tr("正在初始化数据库..."));
-    wait(10);
     QDir dir;
     if (!dir.exists("nandflash")) {
         dir.mkdir("nandflash");
@@ -65,150 +205,24 @@ void AppWindow::initSql()
     } else {
         qDebug() << "record:" << record.lastError();
     }
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initTitle()
+int AppWindow::initTester()
 {
-#ifdef __arm__
-    this->setWindowFlags(Qt::FramelessWindowHint);
-#endif
-    char s_month[5];
-    static const char month_names[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
-    int month, day, year;
-
-    sscanf((__DATE__), "%s %d %d", s_month, &day, &year);
-    month = (strstr(month_names, s_month)-month_names)/3+1;
-
-    QDate dt;
-    dt.setDate(year, month, day);
-    static const QTime tt = QTime::fromString(__TIME__, "hh:mm:ss");
-
-    QDateTime t(dt, tt);
-    verNumb = QString("V-%1").arg(t.toString("yyMMdd-hhmm"));
-
-    this->setWindowTitle(tr("电枢测试仪%1").arg(verNumb));
-}
-
-void AppWindow::initLayout()
-{
-    preindex = 0;
-    stack = new QStackedWidget(this);
-    btnLayout = new QVBoxLayout;
-    btnLayout->setContentsMargins(0, 9, 0, 9);
-    btnLayout->setSpacing(0);
-
-    btnFrame = new QFrame(this);
-    btnFrame->setLayout(btnLayout);
-    btnFrame->setFixedWidth(WIDTH);
-    btnFrame->hide();
-
-    QHBoxLayout *layout = new QHBoxLayout;
-    layout->setMargin(0);
-    layout->setSpacing(0);
-    layout->addWidget(btnFrame);
-    layout->addWidget(stack);
-
-    QFrame *frame = new QFrame(this);
-    frame->setLayout(layout);
-
-    this->setCentralWidget(frame);
-    this->resize(800, 600);
-}
-
-void AppWindow::initAuthor()
-{
-    QString name = "author";
-    AppAuthor *app = new AppAuthor(this);
-    app->setObjectName(name);
+    QString name = "tester";
+    AppTester *app = new AppTester(this);
+    app->setObjectName("tester");
     connect(app, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
     connect(this, SIGNAL(sendAppMap(QVariantMap)), app, SLOT(recvAppMap(QVariantMap)));
     stack->addWidget(app);
 
-    initButton(tr("返回主页"), name);
+    initButton(tr("返回测试"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initSocket()
+int AppWindow::initSignin()
 {
-    TcpSocket *tcp = new TcpSocket(this);
-    connect(tcp, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
-    //    connect(this, SIGNAL(sendAppMap(QVariantMap)), tcp, SLOT(recvAppMap(QVariantMap)));
-
-    tmpMap.insert("hostaddr", "s.aipuo.com");
-    tmpMap.insert("hostport", "6000");
-    tmpMap.insert("devNumb", config[QString::number(AddrNumber)].toString());
-    tmpMap.insert("version", config[QString::number(AddrVerNub)].toString());
-    tcp->connectToServer(tmpMap);
-    tmpMap.clear();
-}
-
-void AppWindow::initDevice()
-{
-#ifdef __arm__
-    DevSerial *key = new DevSerial(this);
-    connect(key, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
-    connect(this, SIGNAL(sendAppMap(QVariantMap)), key, SLOT(recvAppMap(QVariantMap)));
-
-    DevSetRtc *rtc = new DevSetRtc(this);
-    connect(rtc, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
-    connect(this, SIGNAL(sendAppMap(QVariantMap)), rtc, SLOT(recvAppMap(QVariantMap)));
-
-    DevBuzzer *pwm = new DevBuzzer(this);
-    connect(pwm, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
-    connect(this, SIGNAL(sendAppMap(QVariantMap)), pwm, SLOT(recvAppMap(QVariantMap)));
-
-    DevScreen *lcd = new DevScreen(this);
-    connect(lcd, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
-    connect(this, SIGNAL(sendAppMap(QVariantMap)), lcd, SLOT(recvAppMap(QVariantMap)));
-#endif
-}
-
-void AppWindow::initScreen()
-{
-    boxpop = new BoxDialog(this);
-    boxpop->show();
-    initSql();
-    initTester();
-    initSignin();
-    initSystem();
-    initMaster();
-    initAction();
-    initBackup();
-    initLogger();
-    initConfig();
-    initSetDcr();
-    initSetAcw();
-    initSetImp();
-    initOffDcr();
-    initOffAcw();
-    initOffImp();
-    initRecord();
-    initUpload();
-    initSdcard();
-    initUnqual();
-    readSettings();
-    readModelSet();
-    initSettings();
-    sendSettings();
-    initSocket();
-    boxpop->hide();
-    //    recvAppShow("signin");
-    btnLayout->addStretch();
-
-    tmpMap.insert("enum", Qt::Key_Enter);
-    emit sendAppMap(tmpMap);
-    tmpMap.clear();
-
-    if (isSignin) {
-        QTimer::singleShot(500, this, SLOT(showTester()));
-    } else {
-        recvAppShow("signin");
-    }
-}
-
-void AppWindow::initSignin()
-{
-    boxpop->setText(tr("正在初始化登录界面..."));
-    wait(10);
     isSignin = false;
     QString name = "signin";
     AppSignin *app = new AppSignin(this);
@@ -218,12 +232,11 @@ void AppWindow::initSignin()
     stack->addWidget(app);
 
     initButton(tr("用户登录"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initSystem()
+int AppWindow::initSystem()
 {
-    boxpop->setText(tr("正在初始化系统设置..."));
-    wait(10);
     QString name = "system";
     AppSystem *app = new AppSystem(this);
     app->setObjectName(name);
@@ -232,40 +245,11 @@ void AppWindow::initSystem()
     stack->addWidget(app);
 
     initButton(tr("系统设置"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initBackup()
+int AppWindow::initMaster()
 {
-    boxpop->setText(tr("正在初始化后台设置..."));
-    wait(10);
-    QString name = "backup";
-    AppBackup *app = new AppBackup(this);
-    app->setObjectName(name);
-    connect(app, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
-    connect(this, SIGNAL(sendAppMap(QVariantMap)), app, SLOT(recvAppMap(QVariantMap)));
-    stack->addWidget(app);
-
-    initButton(tr("后台管理"), name);
-}
-
-void AppWindow::initLogger()
-{
-    boxpop->setText(tr("正在初始化调试信息..."));
-    wait(10);
-    QString name = "logger";
-    AppLogger *logger = AppLogger::instance();
-    logger->setObjectName(name);
-    connect(logger, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
-    connect(this, SIGNAL(sendAppMap(QVariantMap)), logger, SLOT(recvAppMap(QVariantMap)));
-    stack->addWidget(logger);
-
-    initButton(tr("调试信息"), name);
-}
-
-void AppWindow::initMaster()
-{
-    boxpop->setText(tr("正在初始化用户管理..."));
-    wait(10);
     QString name = "master";
     AppMaster *app = new AppMaster(this);
     app->setObjectName(name);
@@ -274,12 +258,11 @@ void AppWindow::initMaster()
     stack->addWidget(app);
 
     initButton(tr("用户管理"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initAction()
+int AppWindow::initAction()
 {
-    boxpop->setText(tr("正在初始化权限管理..."));
-    wait(10);
     QString name = "action";
     AppAction *app = new AppAction(this);
     app->setObjectName(name);
@@ -288,12 +271,37 @@ void AppWindow::initAction()
     stack->addWidget(app);
 
     initButton(tr("权限管理"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initConfig()
+int AppWindow::initBackup()
 {
-    boxpop->setText(tr("正在初始化型号管理..."));
-    wait(10);
+    QString name = "backup";
+    AppBackup *app = new AppBackup(this);
+    app->setObjectName(name);
+    connect(app, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    connect(this, SIGNAL(sendAppMap(QVariantMap)), app, SLOT(recvAppMap(QVariantMap)));
+    stack->addWidget(app);
+
+    initButton(tr("后台管理"), name);
+    return Qt::Key_Enter;
+}
+
+int AppWindow::initLogger()
+{
+    QString name = "logger";
+    AppLogger *logger = AppLogger::instance();
+    logger->setObjectName(name);
+    connect(logger, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    connect(this, SIGNAL(sendAppMap(QVariantMap)), logger, SLOT(recvAppMap(QVariantMap)));
+    stack->addWidget(logger);
+
+    initButton(tr("调试信息"), name);
+    return Qt::Key_Enter;
+}
+
+int AppWindow::initConfig()
+{
     QString name = "config";
     TypConfig *app = new TypConfig(this);
     app->setObjectName(name);
@@ -302,12 +310,11 @@ void AppWindow::initConfig()
     stack->addWidget(app);
 
     initButton(tr("型号管理"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initSetDcr()
+int AppWindow::initSetDcr()
 {
-    boxpop->setText(tr("正在初始化电阻配置..."));
-    wait(10);
     QString name = "setdcr";
     TypSetDcr *app = new TypSetDcr(this);
     app->setObjectName(name);
@@ -315,12 +322,11 @@ void AppWindow::initSetDcr()
     stack->addWidget(app);
 
     initButton(tr("电阻配置"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initSetAcw()
+int AppWindow::initSetAcw()
 {
-    boxpop->setText(tr("正在初始化介电强度..."));
-    wait(10);
     QString name = "setacw";
     TypSetAcw *app = new TypSetAcw(this);
     app->setObjectName(name);
@@ -329,12 +335,11 @@ void AppWindow::initSetAcw()
     stack->addWidget(app);
 
     initButton(tr("介电强度"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initSetImp()
+int AppWindow::initSetImp()
 {
-    boxpop->setText(tr("正在初始化匝间配置..."));
-    wait(10);
     QString name = "setimp";
     TypSetImp *app = new TypSetImp(this);
     app->setObjectName(name);
@@ -342,12 +347,11 @@ void AppWindow::initSetImp()
     stack->addWidget(app);
 
     initButton(tr("匝间配置"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initOffDcr()
+int AppWindow::initOffDcr()
 {
-    boxpop->setText(tr("正在初始化电阻调试..."));
-    wait(10);
     QString name = "offdcr";
     TypOffDcr *app = new TypOffDcr(this);
     app->setObjectName(name);
@@ -355,12 +359,11 @@ void AppWindow::initOffDcr()
     stack->addWidget(app);
 
     initButton(tr("电阻调试"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initOffAcw()
+int AppWindow::initOffAcw()
 {
-    boxpop->setText(tr("正在初始化绝缘调试..."));
-    wait(10);
     QString name = "offacw";
     TypOffAcw *app = new TypOffAcw(this);
     app->setObjectName(name);
@@ -368,12 +371,11 @@ void AppWindow::initOffAcw()
     stack->addWidget(app);
 
     initButton(tr("绝缘调试"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initOffImp()
+int AppWindow::initOffImp()
 {
-    boxpop->setText(tr("正在初始化匝间调试..."));
-    wait(10);
     QString name = "offimp";
     TypOffImp *app = new TypOffImp(this);
     app->setObjectName(name);
@@ -381,12 +383,11 @@ void AppWindow::initOffImp()
     stack->addWidget(app);
 
     initButton(tr("匝间调试"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initRecord()
+int AppWindow::initRecord()
 {
-    boxpop->setText(tr("正在初始化数据管理..."));
-    wait(10);
     QString name = "record";
     SqlRecord *app = new SqlRecord(this);
     app->setObjectName(name);
@@ -394,12 +395,11 @@ void AppWindow::initRecord()
     stack->addWidget(app);
 
     initButton(tr("数据管理"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initUpload()
+int AppWindow::initUpload()
 {
-    boxpop->setText(tr("正在初始化数据上传..."));
-    wait(10);
     QString name = "upload";
     SqlUpload *app = new SqlUpload(this);
     app->setObjectName(name);
@@ -408,12 +408,11 @@ void AppWindow::initUpload()
     stack->addWidget(app);
 
     initButton(tr("数据上传"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initSdcard()
+int AppWindow::initSdcard()
 {
-    boxpop->setText(tr("正在初始化数据历史..."));
-    wait(10);
     QString name = "sdcard";
     SqlSdcard *app = new SqlSdcard(this);
     app->setObjectName(name);
@@ -421,12 +420,11 @@ void AppWindow::initSdcard()
     stack->addWidget(app);
 
     initButton(tr("数据历史"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initUnqual()
+int AppWindow::initUnqual()
 {
-    boxpop->setText(tr("正在初始化数据分析..."));
-    wait(10);
     QString name = "unqual";
     SqlUnqual *app = new SqlUnqual(this);
     app->setObjectName(name);
@@ -434,19 +432,126 @@ void AppWindow::initUnqual()
     stack->addWidget(app);
 
     initButton(tr("数据分析"), name);
+    return Qt::Key_Enter;
 }
 
-void AppWindow::initTester()
+int AppWindow::readSqlite()
 {
-    boxpop->setText(tr("正在初始化测试界面..."));
-    wait(10);
-    QString name = "tester";
-    AppTester *app = new AppTester(this);
-    app->setObjectName("tester");
-    connect(app, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
-    stack->addWidget(app);
+    QString name = "sqlite";
+    qDebug() << "app read:" << name;
+    QSqlQuery query(QSqlDatabase::database(name));
+    query.exec("select * from G_DEFAULT");
+    while (query.next()) {
+        QString uuid = query.value(0).toString();
+        QString parm = query.value(1).toString();
+        config[uuid] = parm;
+    }
+    query.clear();
+    config[QString::number(AddrVerNub)] = verNumb;
+    return Qt::Key_Enter;
+}
 
-    initButton(tr("返回测试"), name);
+int AppWindow::readModels()
+{
+    QSqlQuery query(QSqlDatabase::database("sqlite"));
+    QString type = config[QString::number(AddrConfig)].toString();
+    qDebug() << "app read:" << type;
+    query.exec(QString("select * from M_%1").arg(type));
+    while (query.next()) {
+        QString uuid = query.value(0).toString();
+        QString parm = query.value(1).toString();
+        config[uuid] = parm;
+    }
+    query.clear();
+    return Qt::Key_Enter;
+}
+
+int AppWindow::sendSqlite()
+{
+    sources.clear();  // 界面名称
+    sgroups.clear();  // 界面组别
+    saction.clear();  // 界面权限
+    masters.clear();  // 用户名称
+    maction.clear();  // 用户权限
+    for (int i=0; i < 0x0100; i+=4) {  // 查询界面组别与权限
+        masters.append(config[QString::number(i+AddrMaster+0x00)].toString());
+        maction.append(config[QString::number(i+AddrMaster+0x02)].toInt());
+        sources.append(config[QString::number(i+AddrAction+0x00)].toString());
+        sgroups.append(config[QString::number(i+AddrAction+0x02)].toInt());
+        saction.append(config[QString::number(i+AddrAction+0x03)].toInt());
+    }
+
+    config["0"] = verNumb;
+    config["1"] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    config.insert("enum", Qt::Key_Option);
+    emit sendAppMap(config);
+    config.remove("enum");
+    return Qt::Key_Enter;
+}
+
+int AppWindow::sendSignin()
+{
+    tmpMap.insert("enum", Qt::Key_Enter);
+    emit sendAppMap(tmpMap);
+    tmpMap.clear();
+
+    if (isSignin) {
+        QTimer::singleShot(500, this, SLOT(showTester()));
+    } else {
+        tmpMap.insert("enum", Qt::Key_Display);
+        tmpMap.insert("text", "signin");
+        recvAppMap(tmpMap);
+        tmpMap.clear();
+    }
+    return Qt::Key_Enter;
+}
+
+int AppWindow::initSocket()
+{
+    TcpSocket *tcp = new TcpSocket(this);
+    connect(tcp, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+
+    tmpMap.insert("hostaddr", "s.aipuo.com");
+    tmpMap.insert("hostport", "6000");
+    tmpMap.insert("devNumb", config[QString::number(AddrNumber)].toString());
+    tmpMap.insert("version", config[QString::number(AddrVerNub)].toString());
+    tcp->connectToServer(tmpMap);
+    tmpMap.clear();
+
+    UdpSocket *udp = new UdpSocket(this);
+    connect(udp, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    connect(this, SIGNAL(sendUdpMap(QVariantMap)), udp, SLOT(recvAppMap(QVariantMap)));
+    return Qt::Key_Enter;
+}
+
+int AppWindow::initThread()
+{
+    taskMap.clear();
+    taskMap["0"] = &AppWindow::taskClearData;
+    taskMap["1"] = &AppWindow::taskCheckPlay;
+    taskMap["2"] = &AppWindow::taskCheckSafe;
+    taskMap["3"] = &AppWindow::taskCheckCode;
+    taskMap["4"] = &AppWindow::taskStartView;
+    taskMap["5"] = &AppWindow::taskStartTest;
+    taskMap["6"] = &AppWindow::taskStartSave;
+    taskMap["7"] = &AppWindow::taskStartBeep;
+    taskMap["8"] = &AppWindow::taskClearBeep;
+
+    testMap.clear();
+    testMap["0"] = &AppWindow::testClearData;
+    testMap["1"] = &AppWindow::testStartSend;
+    testMap["2"] = &AppWindow::testStartTest;
+
+    addrList << AddrAG << AddrAC;
+
+    QTimer *tasks = new QTimer(this);
+    connect(tasks, SIGNAL(timeout()), this, SLOT(taskThread()));
+    tasks->start(10);
+
+    currTask = 0;
+    currTest = 0;
+
+    return Qt::Key_Enter;
 }
 
 void AppWindow::initButton(QString title, QString name)
@@ -464,69 +569,16 @@ void AppWindow::initButton(QString title, QString name)
 
 void AppWindow::showBoxPop(QString text, int t)
 {
-    boxpop->setText(text);
-    QTimer::singleShot(t, boxpop, SLOT(hide()));
-    boxpop->show();
+    boxbar->setLabelText(text);
+    wait(10);
+    (this->*initMap[text])();
+    boxbar->setValue((t+1)*100/initMap.size());
 }
 
-void AppWindow::readSettings()
+void AppWindow::saveSqlite()
 {
-    QString name = "sqlite";
-    qDebug() << "app read:" << name;
-    QSqlQuery query(QSqlDatabase::database(name));
-    query.exec("select * from G_DEFAULT");
-    while (query.next()) {
-        QString uuid = query.value(0).toString();
-        QString parm = query.value(1).toString();
-        config[uuid] = parm;
-    }
-    query.clear();
-    config[QString::number(AddrVerNub)] = verNumb;
-}
-
-void AppWindow::readModelSet()
-{
-    QSqlQuery query(QSqlDatabase::database("sqlite"));
-    QString type = config[QString::number(AddrConfig)].toString();
-    qDebug() << "app read:" << type;
-    query.exec(QString("select * from M_%1").arg(type));
-    while (query.next()) {
-        QString uuid = query.value(0).toString();
-        QString parm = query.value(1).toString();
-        config[uuid] = parm;
-    }
-    query.clear();
-}
-
-void AppWindow::initSettings()
-{
-    sources.clear();  // 界面名称
-    sgroups.clear();  // 界面组别
-    saction.clear();  // 界面权限
-    masters.clear();  // 用户名称
-    maction.clear();  // 用户权限
-    for (int i=0; i < 0x0100; i+=4) {  // 查询界面组别与权限
-        masters.append(config[QString::number(i+AddrMaster+0x00)].toString());
-        maction.append(config[QString::number(i+AddrMaster+0x02)].toInt());
-        sources.append(config[QString::number(i+AddrAction+0x00)].toString());
-        sgroups.append(config[QString::number(i+AddrAction+0x02)].toInt());
-        saction.append(config[QString::number(i+AddrAction+0x03)].toInt());
-    }
-}
-
-void AppWindow::sendSettings()
-{
-    config["0"] = verNumb;
-    config["1"] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-    config.insert("enum", Qt::Key_Option);
-    emit sendAppMap(config);
-    config.remove("enum");
-}
-
-void AppWindow::saveSettings()
-{
-    boxpop->setText(tr("正在保存参数..."));
-    boxpop->show();
+    boxbar->setLabelText(tr("正在保存数据"));
+    boxbar->show();
     wait(10);
     QString name = "sqlite";
     QSqlQuery query(QSqlDatabase::database(name));
@@ -540,18 +592,20 @@ void AppWindow::saveSettings()
             query.addBindValue(config[QString::number(uuid)].toString());
             query.exec();
         }
+        boxbar->setValue(i*100/uuids.size());
     }
     QSqlDatabase::database(name).commit();
+    boxbar->setValue(99);
     wait(500);
     query.clear();
+    boxbar->setValue(100);
     qDebug() << "app save:" << name;
-    boxpop->hide();
 }
 
-void AppWindow::saveModelSet()
+void AppWindow::saveModels()
 {
-    boxpop->setText(tr("正在保存参数..."));
-    boxpop->show();
+    boxbar->setLabelText(tr("正在保存数据"));
+    boxbar->show();
     wait(10);
     QString name = "sqlite";
     QSqlQuery query(QSqlDatabase::database(name));
@@ -568,20 +622,27 @@ void AppWindow::saveModelSet()
         }
     }
     QSqlDatabase::database(name).commit();
+    boxbar->setValue(99);
     wait(500);
     query.clear();
+    boxbar->setValue(100);
     qDebug() << "app save:" << type;
-    boxpop->hide();
 }
 
 void AppWindow::clickButtons()
 {
-    recvAppShow(sender()->objectName());
+    tmpMap.insert("enum", Qt::Key_Display);
+    tmpMap.insert("text", sender()->objectName());
+    recvAppMap(tmpMap);
+    tmpMap.clear();
 }
 
 void AppWindow::showTester()
 {
-    recvAppShow("tester");
+    tmpMap.insert("enum", Qt::Key_Display);
+    tmpMap.insert("text", "tester");
+    recvAppMap(tmpMap);
+    tmpMap.clear();
 }
 
 bool AppWindow::checkAction(QString msg)
@@ -630,6 +691,12 @@ void AppWindow::screensShow(QString msg)
             preindex = i;
             break;
         }
+    }
+    if (msg == "tester") {
+        tmpMap.insert("enum", Qt::Key_Play);
+        tmpMap.insert("text", AddrSC);
+        emit sendAppMap(tmpMap);
+        tmpMap.clear();
     }
 }
 
@@ -695,15 +762,184 @@ void AppWindow::cloudAntimation()
     group->start();
 }
 
+int AppWindow::taskThread()
+{
+    int ret = Qt::Key_Return;
+    if (taskMap.keys().contains(QString::number(currTask)))
+        ret = (this->*taskMap[QString::number(currTask)])();
+    if (ret == Qt::Key_Enter) {
+        qDebug() << "app task:" << currTask;
+        currTask++;
+        currTask = (currTask >= taskMap.size()) ? 0 : currTask;
+    }
+    return ret;
+}
+
+int AppWindow::taskClearData()
+{
+    timeOut = 0;
+    timeTst = 0;
+    currTask = 0;
+    currTest = 0;
+    testIndex = addrList.at(0);
+    taskShift = Qt::Key_Sleep;
+    testShift = Qt::Key_Sleep;
+    return Qt::Key_Enter;
+}
+
+int AppWindow::taskCheckPlay()
+{
+    int ret = Qt::Key_Return;
+    if (taskShift == Qt::Key_Play) {
+        if (stack->currentWidget()->objectName() != "tester") {
+            taskClearData();
+        } else {
+            ret = Qt::Key_Enter;
+        }
+    }
+    return ret;
+}
+
+int AppWindow::taskCheckSafe()
+{
+    return Qt::Key_Enter;
+}
+
+int AppWindow::taskCheckCode()
+{
+    return Qt::Key_Enter;
+}
+
+int AppWindow::taskStartView()
+{
+    tmpMap.insert("enum", Qt::Key_View);
+    tmpMap.insert("text", "LEDY");
+    emit sendAppMap(tmpMap);
+    tmpMap.insert("enum", Qt::Key_WakeUp);
+    emit sendAppMap(tmpMap);
+    tmpMap.clear();
+    return Qt::Key_Enter;
+}
+
+int AppWindow::taskStartTest()
+{
+    int ret = testThread();
+    return ret;
+}
+
+int AppWindow::taskStartSave()
+{
+    return Qt::Key_Enter;
+}
+
+int AppWindow::taskStartBeep()
+{
+    tmpMap.insert("enum", Qt::Key_View);
+    tmpMap.insert("text", "LEDG");
+    tmpMap.insert("data", 100);
+    emit sendAppMap(tmpMap);
+    return Qt::Key_Enter;
+}
+
+int AppWindow::taskClearBeep()
+{
+    int ret = Qt::Key_Return;
+    timeOut++;
+    int t = config[QString::number(AddrTimeOK)].toDouble()*100;
+    if (timeOut > t) {
+        timeOut = 0;
+        ret = Qt::Key_Enter;
+        tmpMap.insert("enum", Qt::Key_View);
+        tmpMap.insert("text", "LEDG");
+        tmpMap.insert("data", 0);
+        emit sendAppMap(tmpMap);
+        tmpMap.insert("enum", Qt::Key_Sleep);
+        emit sendAppMap(tmpMap);
+        tmpMap.clear();
+    }
+    return ret;
+}
+
+int AppWindow::testThread()
+{
+    int ret = Qt::Key_Return;
+    if (testMap.keys().contains(QString::number(currTest))) {
+        if ((this->*testMap[QString::number(currTest)])() == Qt::Key_Enter) {
+            qDebug() << "app test:" << currTest;
+            currTest++;
+            currTest = (currTest >= testMap.size()) ? 0 : currTest;
+            if (currTest == 0) {
+                int r = addrList.indexOf(testIndex);
+                if (r + 1 == addrList.size()) {
+                    ret = Qt::Key_Enter;
+                } else {
+                    testIndex = addrList.at(r+1);
+                }
+            }
+        }
+    }
+    return ret;
+}
+
+int AppWindow::testClearData()
+{
+    testShift = Qt::Key_Sleep;
+    timeTst = 0;
+    return Qt::Key_Enter;
+}
+
+int AppWindow::testStartSend()
+{
+    tmpMap.insert("enum", Qt::Key_Play);
+    tmpMap.insert("text", testIndex);
+    emit sendAppMap(tmpMap);
+    tmpMap.clear();
+    return Qt::Key_Enter;
+}
+
+int AppWindow::testStartTest()
+{
+    //    return Qt::Key_Enter;
+    int ret = Qt::Key_Return;
+    if (testShift == Qt::Key_Enter) {
+        ret = Qt::Key_Enter;
+    }
+    return ret;
+}
+
+void AppWindow::testUpdate(QVariantMap msg)
+{
+#ifdef __arm__
+    emit sendUdpMap(msg);
+#endif
+    emit sendAppMap(msg);
+    if (msg[QString::number(msg.value("text").toInt() + AddrHS)].toInt() == 0)
+        testShift = Qt::Key_Enter;
+    QStringList keys = msg.keys();
+    keys.removeOne("enum");
+    keys.removeOne("text");
+    for (int i=0; i < keys.size(); i++) {
+        config[keys.at(i)] = msg[keys.at(i)];
+    }
+}
+
 void AppWindow::recvAppMap(QVariantMap msg)
 {
+#ifndef __arm__
+    switch (msg.value("enum").toInt()) {
+    case Qt::Key_Refresh:
+        break;
+    default:
+        emit sendUdpMap(msg);
+        break;
+    }
+#endif
     switch (msg.value("enum").toInt()) {
     case Qt::Key_Display:
         recvAppShow(msg.value("text").toString());
         break;
     case Qt::Key_Enter:
         isSignin = true;
-        QTimer::singleShot(500, this, SLOT(showTester()));
         break;
     case Qt::Key_LogOff:
         isSignin = false;
@@ -714,56 +950,38 @@ void AppWindow::recvAppMap(QVariantMap msg)
         for (int i=0; i < msg.keys().size(); i++) {
             config[msg.keys().at(i)] = msg[msg.keys().at(i)];
         }
-        saveSettings();
-        initSettings();
-        sendSettings();
+        saveSqlite();
+        sendSqlite();
         break;
     case Qt::Key_Option:
         msg.remove("enum");
         for (int i=0; i < msg.keys().size(); i++) {
             config[msg.keys().at(i)] = msg[msg.keys().at(i)];
         }
-        saveModelSet();
-        initSettings();
-        sendSettings();
+        saveModels();
+        sendSqlite();
         break;
         break;
     case Qt::Key_Reload:
         config[QString::number(AddrConfig)] = msg[QString::number(AddrConfig)];
-        saveSettings();
-        readModelSet();
-        initSettings();
-        sendSettings();
+        saveSqlite();
+        readModels();
+        sendSqlite();
         break;
     case Qt::Key_Stop:
+        taskClearData();
         tmpMap.insert("enum", Qt::Key_View);
         tmpMap.insert("text", "LED1");
         tmpMap.insert("data", 0);
         emit sendAppMap(tmpMap);
         tmpMap.clear();
-        tmpMap.insert("enum", Qt::Key_BrightnessAdjust);
-        tmpMap.insert("data", 100);
-        emit sendAppMap(tmpMap);
-        tmpMap.clear();
+        //        tmpMap.insert("enum", Qt::Key_BrightnessAdjust);
+        //        tmpMap.insert("data", 100);
+        //        emit sendAppMap(tmpMap);
+        //        tmpMap.clear();
         break;
     case Qt::Key_Play:
-        tmpMap.insert("enum", Qt::Key_View);
-        tmpMap.insert("text", "LEDY");
-        emit sendAppMap(tmpMap);
-        wait(1000);
-        tmpMap.insert("text", "LEDG");
-        tmpMap.insert("data", 99);
-        emit sendAppMap(tmpMap);
-        wait(1000);
-        tmpMap.insert("text", "LEDR");
-        tmpMap.insert("data", 0);
-        emit sendAppMap(tmpMap);
-        tmpMap.clear();
-
-        tmpMap.insert("enum", Qt::Key_BrightnessAdjust);
-        tmpMap.insert("data", 50);
-        emit sendAppMap(tmpMap);
-        tmpMap.clear();
+        taskShift = Qt::Key_Play;
         break;
     case Qt::Key_Time:
         emit sendAppMap(msg);
@@ -771,6 +989,8 @@ void AppWindow::recvAppMap(QVariantMap msg)
     case Qt::Key_Community:
         emit sendAppMap(msg);
         break;
+    case Qt::Key_Refresh:
+        testUpdate(msg);
     default:
         break;
     }

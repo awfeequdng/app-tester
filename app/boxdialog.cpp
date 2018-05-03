@@ -15,7 +15,15 @@ BoxDialog::BoxDialog(QWidget *parent) :
     initAnimation();
 }
 
-void BoxDialog::setText(QString text)
+void BoxDialog::setValue(int value)
+{
+    boxbar->setValue(value);
+    isAnimation = false;
+    if (value == 100)
+        this->hide();
+}
+
+void BoxDialog::setLabelText(QString text)
 {
     textLabel->setText(text);
     qDebug() << "box show:" << text;
@@ -23,9 +31,11 @@ void BoxDialog::setText(QString text)
 
 void BoxDialog::initUI()
 {
+    isAnimation = true;
     logoLabel = new QLabel(this);
-    logoLabel->setFixedSize(64, 64);
+    logoLabel->setFixedSize(113, 57);
     logoLabel->setScaledContents(true);
+    logoLabel->setPixmap(QPixmap(":/icon_aip.png"));
 
     QHBoxLayout *ll = new QHBoxLayout;
     ll->addStretch();
@@ -39,11 +49,14 @@ void BoxDialog::initUI()
     hh->addWidget(textLabel);
     hh->addStretch();
 
+    boxbar = new QProgressBar(this);
+
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->addLayout(ll);
     layout->addLayout(hh);
+    layout->addWidget(boxbar);
 
-    this->setMinimumSize(200, 100);
+    this->setMinimumSize(240, 64);
     this->setStyleSheet("QDialog{border:2px solid gray;}");
 }
 
@@ -75,7 +88,10 @@ void BoxDialog::setPixmap(const int index)
 
 void BoxDialog::showEvent(QShowEvent *e)
 {
-    animation->start();
+    if (isAnimation) {
+        logoLabel->setFixedSize(64, 64);
+        animation->start();
+    }
     int x = (this->parentWidget()->width() - this->width())/2 + this->parentWidget()->x();
     int y = (this->parentWidget()->height() - this->height())/2 + this->parentWidget()->y();
     this->move(x, y);

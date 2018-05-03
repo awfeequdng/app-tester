@@ -9,6 +9,7 @@
 #ifndef DEVSETCAN_H
 #define DEVSETCAN_H
 
+#include <qmath.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,8 +30,12 @@
 #include <arpa/inet.h>
 
 #include <QDebug>
+#include <QQueue>
+#include <QTimer>
 #include <QObject>
 #include <QVariant>
+
+#include "appdefine.h"
 
 class DevSetCan : public QObject
 {
@@ -43,10 +48,28 @@ private slots:
     void initDevPort();
     bool readDevPort();
     bool sendDevPort(can_frame can);
+    void getStatus();
+    void getVerNum();
+    void setStatus(int addr);
+    void readAll();
+    void sendAll();
+    void saveAll();
+    void thread();
+    void recvOne(int id, QByteArray msg);
+    void sendConfig();
+    void sendThread();
+    void sendUpdate();
     void recvAppMap(QVariantMap msg);
+
 private:
     int fd;
     can_frame frame;
+    QQueue<QVariantMap> sender;
+    QQueue<QVariantMap> recver;
+    QVariantMap config;
+    QVariantMap tmpMap;
+    QTimer *timer;
+    int currAddr;
 };
 
 #endif // DEVSETCAN_H
