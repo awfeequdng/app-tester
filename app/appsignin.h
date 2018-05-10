@@ -9,7 +9,6 @@
 #ifndef APPSIGNIN_H
 #define APPSIGNIN_H
 
-#include <QTimer>
 #include <QDebug>
 #include <QLabel>
 #include <QLayout>

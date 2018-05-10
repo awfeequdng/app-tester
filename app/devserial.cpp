@@ -97,7 +97,7 @@ void DevSerial::clickButton(int id)
 void DevSerial::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_View:
+    case Qt::Key_Call:
         if (!msg.value("text").isNull())
             com->write(msg.value("text").toByteArray());
         break;

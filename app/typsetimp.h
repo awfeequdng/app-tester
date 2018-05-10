@@ -31,6 +31,8 @@
 
 #include "lib/qcustomplot.h"
 
+#include "appdefine.h"
+
 #define PI 3.1415926
 
 class TypSetImp : public QWidget
@@ -48,12 +50,21 @@ private slots:
     void initButtons();
     void drawImpWave();
     void initDelegate();
+    void initSettings();
+    void saveSettings();
+    void waveUpdate();
+    void recvUpdate(QVariantMap msg);
+    void recvAppMap(QVariantMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
     QVBoxLayout *boxLayout;
     QCustomPlot *impView;
-    QTableView *inrView;
-    BoxQModel *mInrView;
+    QCPGraph *impLine;
+    QTableView *view;
+    BoxQModel *mView;
+    QVariantMap tmpMap;
+    QVariantMap config;
+    QList<int> impWave;
 };
 
 #endif // TYPSETIMP_H

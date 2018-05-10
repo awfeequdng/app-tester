@@ -70,7 +70,7 @@ void TypConfig::initViewBar()
 
 void TypConfig::initConfigBar()
 {
-    isShow = Qt::Key_Equal;
+    isShow = Qt::Key_Meta;
     setFrame = new QFrame(this);
     splitter->addWidget(setFrame);
     splitter->setStretchFactor(1, 1);
@@ -182,9 +182,9 @@ void TypConfig::initSettings()
         view->item(i, 0)->setText(QString("%1").arg(t-AddrModels+1, 3, 10, QChar('0')));
         view->item(i, 1)->setText(config[QString::number(t)].toString());
     }
-    config[QString::number(AddrSC + AddrTM)] = config[QString::number(AddrConfig)];
+    config[QString::number(AddrConfig + AddrSkewTM)] = config[QString::number(AddrTpName)];
     for (int i=0; i < 3; i++) {
-        settings->item(i, 1)->setText(config[QString::number(AddrSC + i)].toString());
+        settings->item(i, 1)->setText(config[QString::number(AddrConfig + i)].toString());
     }
 
     if (isShow == Qt::Key_Less)
@@ -196,9 +196,9 @@ void TypConfig::initSettings()
 void TypConfig::saveSettings()
 {
     for (int i=0; i < 3; i++) {
-        tmpMap[QString::number(AddrSC + i)] = settings->item(i, 1)->text();
+        tmpMap[QString::number(AddrConfig + i)] = settings->item(i, 1)->text();
     }
-    tmpMap.insert("enum", Qt::Key_Option);
+    tmpMap.insert("enum", Qt::Key_Save);
     emit sendAppMap(tmpMap);
     tmpMap.clear();
 }
@@ -233,7 +233,7 @@ void TypConfig::appendModelType()
     }
 
     QString name = "sqlite";
-    QString c_name = config[QString::number(AddrConfig)].toString();
+    QString c_name = config[QString::number(AddrTpName)].toString();
     QSqlQuery query(QSqlDatabase::database(name));
     QSqlDatabase::database(name).transaction();
     query.exec(tr("create table M_%1 as select * from M_%2").arg(t_name).arg(c_name));
@@ -255,8 +255,8 @@ void TypConfig::selectModelType()
     if (t_name.isEmpty())
         return;
 
-    config.insert("enum", Qt::Key_Reload);
-    config[QString::number(AddrConfig)] = t_name;
+    config.insert("enum", Qt::Key_Word);
+    config[QString::number(AddrTpName)] = t_name;
     emit sendAppMap(config);
 
     initSettings();
@@ -272,7 +272,7 @@ void TypConfig::deleteModelType()
     if (t_name.isEmpty())
         return;
 
-    QString c_name = config[QString::number(AddrConfig)].toString();
+    QString c_name = config[QString::number(AddrTpName)].toString();
     if (t_name == c_name) {
         QMessageBox::warning(this, tr("警告"), tr("不能删除当前型号"), QMessageBox::Ok);
         return;
@@ -321,17 +321,17 @@ void TypConfig::clickViewBar()
 void TypConfig::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_Option:
-        config[QString::number(AddrConfig)] = msg[QString::number(AddrConfig)];  // 当前型号
+    case Qt::Key_Copy:
+        config[QString::number(AddrTpName)] = msg[QString::number(AddrTpName)];  // 当前型号
         for (int i=AddrModels; i < AddrModels+0x0100; i++) {
             config[QString::number(i)] = msg[QString::number(i)];
         }
-        for (int i=AddrSC; i < AddrSC + 0x10; i++) {  // 综合设置
+        for (int i=AddrConfig; i < AddrConfig + 0x10; i++) {  // 综合设置
             config[QString::number(i)] = msg[QString::number(i)];
         }
         break;
     case Qt::Key_Less:
-    case Qt::Key_Equal:
+    case Qt::Key_Meta:
         isShow = msg.value("enum").toInt();
         break;
     default:

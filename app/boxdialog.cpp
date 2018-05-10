@@ -32,15 +32,15 @@ void BoxDialog::setLabelText(QString text)
 void BoxDialog::initUI()
 {
     isAnimation = true;
-    logoLabel = new QLabel(this);
-    logoLabel->setFixedSize(113, 57);
-    logoLabel->setScaledContents(true);
-    logoLabel->setPixmap(QPixmap(":/icon_aip.png"));
+//    logoLabel = new QLabel(this);
+//    logoLabel->setFixedSize(113, 57);
+//    logoLabel->setScaledContents(true);
+//    logoLabel->setPixmap(QPixmap(":/icon_aip.png"));
 
-    QHBoxLayout *ll = new QHBoxLayout;
-    ll->addStretch();
-    ll->addWidget(logoLabel);
-    ll->addStretch();
+//    QHBoxLayout *ll = new QHBoxLayout;
+//    ll->addStretch();
+//    ll->addWidget(logoLabel);
+//    ll->addStretch();
 
     textLabel = new QLabel(this);
 
@@ -52,12 +52,13 @@ void BoxDialog::initUI()
     boxbar = new QProgressBar(this);
 
     QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->addLayout(ll);
-    layout->addLayout(hh);
+    layout->addStretch();
     layout->addWidget(boxbar);
+    layout->addLayout(hh);
+    layout->addStretch();
 
-    this->setMinimumSize(240, 64);
-    this->setStyleSheet("QDialog{border:2px solid gray;}");
+    this->setMinimumSize(240, 96);
+//    this->setStyleSheet("backgroud:#191919;QDialog{border:2px solid gray;}");
 }
 
 void BoxDialog::initAnimation()

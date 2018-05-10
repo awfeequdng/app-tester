@@ -214,7 +214,7 @@ void TcpSocket::recvSocketConnected()
 {
     display(tr("TCP连接成功"));
 
-    tmpMap.insert("enum", Qt::Key_Community);
+    tmpMap.insert("enum", Qt::Key_WLAN);
     emit sendAppMap(tmpMap);
     tmpMap.clear();
 

@@ -10,7 +10,7 @@
 
 UdpSocket::UdpSocket(QObject *parent) : QUdpSocket(parent)
 {
-    hostAddr = "192.168.1.53";
+    hostAddr = "192.168.1.179";
     hostPort = 6000;
     initSocket();
 }
@@ -26,7 +26,7 @@ void UdpSocket::initSocket()
 #endif
     connect(this, SIGNAL(readyRead()), this, SLOT(readReady()));
     QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(saveAll()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(recvAll()));
     timer->start(10);
 }
 
@@ -35,68 +35,84 @@ void UdpSocket::readReady()
     while (this->hasPendingDatagrams()) {
         tmpByte.resize(this->pendingDatagramSize());
         this->readDatagram(tmpByte.data(), tmpByte.size(), &recvAddr, &recvPort);
-        //        qDebug() << "udp recv:" << tmpByte;
         recver.append(tmpByte);
         tmpByte.clear();
     }
 }
 
-void UdpSocket::saveAll()
+void UdpSocket::recvAll()
 {
-    if (recver.isEmpty())
-        return;
-    for (int i=0; i < 10; i++) {
-        tmpMap = QJsonDocument::fromJson(recver.dequeue()).object().toVariantMap();
-        QString show = QString("%1").arg(tmpMap.value("enum").toInt(), 8, 16, QChar('0')).toUpper();
-        qDebug() << "udp recv:" << show;
-        recvUdpMap(tmpMap);
-        tmpMap.clear();
-        if (recver.isEmpty())
-            break;
+    while (!recver.isEmpty()) {
+        recvUdpXml(recver.dequeue());
     }
 }
 
-void UdpSocket::writeBytes(QVariantMap msg)
+void UdpSocket::sendAll()
 {
-    QByteArray dat = QJsonDocument::fromVariant(msg).toJson();
-    this->writeDatagram(dat, hostAddr, hostPort);
-    QString show = QString("%1").arg(msg.value("enum").toInt(), 8, 16, QChar('0')).toUpper();
-    qDebug() << "udp send:" << show;
-    this->waitForBytesWritten();
+    while (!sender.isEmpty()) {
+        QByteArray msg = sender.dequeue();
+//        qDebug() << "udp send:" << msg;
+        this->writeDatagram(msg, hostAddr, hostPort);
+        this->waitForBytesWritten();
+    }
 }
 
-void UdpSocket::recvUdpMap(QVariantMap msg)
+void UdpSocket::recvUdpXml(QByteArray dat)
 {
-    switch (msg.value("enum").toInt()) {
-    case Qt::Key_Option:
-        config = msg;
-        break;
-    case Qt::Key_Enter:
+    QDomDocument docs;
+    if (docs.setContent(dat)) {
+        QDomNode root = docs.firstChild();
+        QDomNode node = root.firstChild();
+        while (!node.isNull()) {
+            tmpMap[node.nodeName().remove(0, 1)] = node.toElement().text();
+            node = node.nextSibling();
+        }
+    }
+//    qDebug() << "udp recv:" << dat;
+    if (tmpMap.value("enum").toInt() == Qt::Key_Game) {
         hostAddr = recvAddr;
         hostPort = recvPort;
-        break;
-    case Qt::Key_Play:
-        break;
-    default:
-        break;
     }
-    emit sendAppMap(msg);
+    emit sendAppMap(tmpMap);
+    tmpMap.clear();
+}
+
+void UdpSocket::sendUdpXml(QVariantMap dat)
+{
+    QStringList keys = dat.keys();
+    QDomDocument doc;
+    QDomElement root;
+    root = doc.createElement("xml");
+    doc.appendChild(root);
+    for (int t=0; t < keys.size(); t++) {
+        if (!dat.value(keys.at(t)).toString().isEmpty()) {
+            QDomElement element = doc.createElement("_" + keys.at(t));
+            QDomText text = doc.createTextNode(dat.value(keys.at(t)).toString());
+            element.appendChild(text);
+            root.appendChild(element);
+        }
+    }
+    QByteArray msg = doc.toByteArray();
+    sender.append(msg);
 }
 
 void UdpSocket::recvAppMap(QVariantMap msg)
 {
-#ifndef __arm__
-    emit writeBytes(msg);
-#else
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_Option:
+    case Qt::Key_Copy:
         config = msg;
         break;
-    case Qt::Key_Refresh:
-        emit writeBytes(msg);
+    case Qt::Key_Plus:
+        recvAll();
+        sendAll();
+        break;
+    case Qt::Key_News:
+        sendUdpXml(msg);
         break;
     default:
+#ifndef __arm__
+        sendUdpXml(msg);
+#endif
         break;
     }
-#endif
 }

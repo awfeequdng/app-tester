@@ -25,6 +25,7 @@ void AppWindow::initUI()
     initLayout();
     initAuthor();
     QTimer::singleShot(100, this, SLOT(initScreen()));
+//    this->setWindowFlags(Qt::FramelessWindowHint);
 }
 
 int AppWindow::initTitle()
@@ -45,9 +46,10 @@ int AppWindow::initTitle()
 
     QDateTime t(dt, tt);
     verNumb = QString("V-%1").arg(t.toString("yyMMdd-hhmm"));
+    qDebug() << "app data:" << verNumb;
 
     this->setWindowTitle(tr("电枢测试仪%1").arg(verNumb));
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initLayout()
@@ -74,7 +76,7 @@ int AppWindow::initLayout()
 
     this->setCentralWidget(frame);
     this->resize(800, 600);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initAuthor()
@@ -87,7 +89,7 @@ int AppWindow::initAuthor()
     stack->addWidget(app);
 
     initButton(tr("返回主页"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initDevice()
@@ -113,7 +115,7 @@ int AppWindow::initDevice()
     connect(can, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
     connect(this, SIGNAL(sendAppMap(QVariantMap)), can, SLOT(recvAppMap(QVariantMap)));
 #endif
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initScreen()
@@ -161,7 +163,7 @@ int AppWindow::initScreen()
         showBoxPop(names.at(i), i);
     }
     btnLayout->addStretch();
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initSqlDir()
@@ -205,7 +207,7 @@ int AppWindow::initSqlDir()
     } else {
         qDebug() << "record:" << record.lastError();
     }
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initTester()
@@ -218,7 +220,7 @@ int AppWindow::initTester()
     stack->addWidget(app);
 
     initButton(tr("返回测试"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initSignin()
@@ -232,7 +234,7 @@ int AppWindow::initSignin()
     stack->addWidget(app);
 
     initButton(tr("用户登录"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initSystem()
@@ -245,7 +247,7 @@ int AppWindow::initSystem()
     stack->addWidget(app);
 
     initButton(tr("系统设置"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initMaster()
@@ -258,7 +260,7 @@ int AppWindow::initMaster()
     stack->addWidget(app);
 
     initButton(tr("用户管理"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initAction()
@@ -271,7 +273,7 @@ int AppWindow::initAction()
     stack->addWidget(app);
 
     initButton(tr("权限管理"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initBackup()
@@ -284,7 +286,7 @@ int AppWindow::initBackup()
     stack->addWidget(app);
 
     initButton(tr("后台管理"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initLogger()
@@ -297,7 +299,7 @@ int AppWindow::initLogger()
     stack->addWidget(logger);
 
     initButton(tr("调试信息"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initConfig()
@@ -310,7 +312,7 @@ int AppWindow::initConfig()
     stack->addWidget(app);
 
     initButton(tr("型号管理"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initSetDcr()
@@ -322,7 +324,7 @@ int AppWindow::initSetDcr()
     stack->addWidget(app);
 
     initButton(tr("电阻配置"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initSetAcw()
@@ -335,7 +337,7 @@ int AppWindow::initSetAcw()
     stack->addWidget(app);
 
     initButton(tr("介电强度"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initSetImp()
@@ -344,10 +346,11 @@ int AppWindow::initSetImp()
     TypSetImp *app = new TypSetImp(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    connect(this, SIGNAL(sendAppMap(QVariantMap)), app, SLOT(recvAppMap(QVariantMap)));
     stack->addWidget(app);
 
     initButton(tr("匝间配置"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initOffDcr()
@@ -359,7 +362,7 @@ int AppWindow::initOffDcr()
     stack->addWidget(app);
 
     initButton(tr("电阻调试"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initOffAcw()
@@ -371,7 +374,7 @@ int AppWindow::initOffAcw()
     stack->addWidget(app);
 
     initButton(tr("绝缘调试"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initOffImp()
@@ -383,7 +386,7 @@ int AppWindow::initOffImp()
     stack->addWidget(app);
 
     initButton(tr("匝间调试"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initRecord()
@@ -395,7 +398,7 @@ int AppWindow::initRecord()
     stack->addWidget(app);
 
     initButton(tr("数据管理"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initUpload()
@@ -408,7 +411,7 @@ int AppWindow::initUpload()
     stack->addWidget(app);
 
     initButton(tr("数据上传"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initSdcard()
@@ -420,7 +423,7 @@ int AppWindow::initSdcard()
     stack->addWidget(app);
 
     initButton(tr("数据历史"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initUnqual()
@@ -432,7 +435,7 @@ int AppWindow::initUnqual()
     stack->addWidget(app);
 
     initButton(tr("数据分析"), name);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::readSqlite()
@@ -448,13 +451,13 @@ int AppWindow::readSqlite()
     }
     query.clear();
     config[QString::number(AddrVerNub)] = verNumb;
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::readModels()
 {
     QSqlQuery query(QSqlDatabase::database("sqlite"));
-    QString type = config[QString::number(AddrConfig)].toString();
+    QString type = config[QString::number(AddrTpName)].toString();
     qDebug() << "app read:" << type;
     query.exec(QString("select * from M_%1").arg(type));
     while (query.next()) {
@@ -463,7 +466,7 @@ int AppWindow::readModels()
         config[uuid] = parm;
     }
     query.clear();
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::sendSqlite()
@@ -483,27 +486,27 @@ int AppWindow::sendSqlite()
 
     config["0"] = verNumb;
     config["1"] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-    config.insert("enum", Qt::Key_Option);
+    config.insert("enum", Qt::Key_Copy);
     emit sendAppMap(config);
     config.remove("enum");
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::sendSignin()
 {
-    tmpMap.insert("enum", Qt::Key_Enter);
+    tmpMap.insert("enum", Qt::Key_Game);
     emit sendAppMap(tmpMap);
     tmpMap.clear();
 
     if (isSignin) {
         QTimer::singleShot(500, this, SLOT(showTester()));
     } else {
-        tmpMap.insert("enum", Qt::Key_Display);
+        tmpMap.insert("enum", Qt::Key_View);
         tmpMap.insert("text", "signin");
         recvAppMap(tmpMap);
         tmpMap.clear();
     }
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initSocket()
@@ -519,9 +522,9 @@ int AppWindow::initSocket()
     tmpMap.clear();
 
     UdpSocket *udp = new UdpSocket(this);
-    connect(udp, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    connect(udp, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvUdpMap(QVariantMap)));
     connect(this, SIGNAL(sendUdpMap(QVariantMap)), udp, SLOT(recvAppMap(QVariantMap)));
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::initThread()
@@ -542,8 +545,6 @@ int AppWindow::initThread()
     testMap["1"] = &AppWindow::testStartSend;
     testMap["2"] = &AppWindow::testStartTest;
 
-    addrList << AddrAG << AddrAC;
-
     QTimer *tasks = new QTimer(this);
     connect(tasks, SIGNAL(timeout()), this, SLOT(taskThread()));
     tasks->start(10);
@@ -551,7 +552,14 @@ int AppWindow::initThread()
     currTask = 0;
     currTest = 0;
 
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
+}
+
+int AppWindow::getNextItem()
+{
+    int r = addrList.indexOf(testIndex) + 1;
+    r = (r >= addrList.size()) ? 0 : addrList.at(r);
+    return r;
 }
 
 void AppWindow::initButton(QString title, QString name)
@@ -611,7 +619,7 @@ void AppWindow::saveModels()
     QSqlQuery query(QSqlDatabase::database(name));
     QSqlDatabase::database(name).transaction();
     QStringList uuids = config.keys();
-    QString type = config[QString::number(AddrConfig)].toString();
+    QString type = config[QString::number(AddrTpName)].toString();
     for (int i=0; i < uuids.size(); i++) {
         int uuid = uuids.at(i).toInt();
         if (uuid >= 0x0400) {
@@ -631,7 +639,7 @@ void AppWindow::saveModels()
 
 void AppWindow::clickButtons()
 {
-    tmpMap.insert("enum", Qt::Key_Display);
+    tmpMap.insert("enum", Qt::Key_View);
     tmpMap.insert("text", sender()->objectName());
     recvAppMap(tmpMap);
     tmpMap.clear();
@@ -639,7 +647,7 @@ void AppWindow::clickButtons()
 
 void AppWindow::showTester()
 {
-    tmpMap.insert("enum", Qt::Key_Display);
+    tmpMap.insert("enum", Qt::Key_View);
     tmpMap.insert("text", "tester");
     recvAppMap(tmpMap);
     tmpMap.clear();
@@ -673,7 +681,7 @@ bool AppWindow::checkAction(QString msg)
     }
     if (currAction > showAction)
         return false;
-    tmpMap.insert("enum", currAction < showAction ? Qt::Key_Less : Qt::Key_Equal);
+    tmpMap.insert("enum", currAction < showAction ? Qt::Key_Less : Qt::Key_Meta);
     emit sendAppMap(tmpMap);
     tmpMap.clear();
     return true;
@@ -693,8 +701,8 @@ void AppWindow::screensShow(QString msg)
         }
     }
     if (msg == "tester") {
-        tmpMap.insert("enum", Qt::Key_Play);
-        tmpMap.insert("text", AddrSC);
+        tmpMap.insert("enum", Qt::Key_Send);
+        tmpMap.insert("text", AddrConfig);
         emit sendAppMap(tmpMap);
         tmpMap.clear();
     }
@@ -764,10 +772,15 @@ void AppWindow::cloudAntimation()
 
 int AppWindow::taskThread()
 {
-    int ret = Qt::Key_Return;
+    tmpMap.insert("enum", Qt::Key_Plus);
+    emit sendUdpMap(tmpMap);
+    emit sendAppMap(tmpMap);
+    tmpMap.clear();
+
+    int ret = Qt::Key_Meta;
     if (taskMap.keys().contains(QString::number(currTask)))
         ret = (this->*taskMap[QString::number(currTask)])();
-    if (ret == Qt::Key_Enter) {
+    if (ret == Qt::Key_Away) {
         qDebug() << "app task:" << currTask;
         currTask++;
         currTask = (currTask >= taskMap.size()) ? 0 : currTask;
@@ -781,20 +794,21 @@ int AppWindow::taskClearData()
     timeTst = 0;
     currTask = 0;
     currTest = 0;
-    testIndex = addrList.at(0);
-    taskShift = Qt::Key_Sleep;
-    testShift = Qt::Key_Sleep;
-    return Qt::Key_Enter;
+    taskShift = Qt::Key_Meta;
+    testShift = Qt::Key_Meta;
+    testIndex = 0;
+    return Qt::Key_Away;
 }
 
 int AppWindow::taskCheckPlay()
 {
-    int ret = Qt::Key_Return;
+    int ret = Qt::Key_Meta;
     if (taskShift == Qt::Key_Play) {
         if (stack->currentWidget()->objectName() != "tester") {
             taskClearData();
         } else {
-            ret = Qt::Key_Enter;
+            ret = Qt::Key_Away;
+            t.restart();
         }
     }
     return ret;
@@ -802,23 +816,28 @@ int AppWindow::taskCheckPlay()
 
 int AppWindow::taskCheckSafe()
 {
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::taskCheckCode()
 {
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::taskStartView()
 {
-    tmpMap.insert("enum", Qt::Key_View);
+    tmpMap.insert("enum", Qt::Key_Call);
     tmpMap.insert("text", "LEDY");
     emit sendAppMap(tmpMap);
-    tmpMap.insert("enum", Qt::Key_WakeUp);
-    emit sendAppMap(tmpMap);
-    tmpMap.clear();
-    return Qt::Key_Enter;
+    addrList.clear();
+    QList<int> tmp;
+    tmp << AddrHighAG << AddrHighAC << AddrHighAL << AddrHighLC << AddrSetIMP;
+    for (int i=0; i < tmp.size(); i++) {
+        if (config[QString::number(tmp.at(i))].toInt() == 1)
+            addrList.append(tmp.at(i));
+    }
+    testIndex = getNextItem();
+    return Qt::Key_Away;
 }
 
 int AppWindow::taskStartTest()
@@ -829,31 +848,29 @@ int AppWindow::taskStartTest()
 
 int AppWindow::taskStartSave()
 {
-    return Qt::Key_Enter;
+    qDebug() <<"app time:" << t.elapsed() << "ms";
+    return Qt::Key_Away;
 }
 
 int AppWindow::taskStartBeep()
 {
-    tmpMap.insert("enum", Qt::Key_View);
+    tmpMap.insert("enum", Qt::Key_Call);
     tmpMap.insert("text", "LEDG");
-    tmpMap.insert("data", 100);
+    tmpMap.insert("beep", 100);
     emit sendAppMap(tmpMap);
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::taskClearBeep()
 {
-    int ret = Qt::Key_Return;
+    int ret = Qt::Key_Meta;
     timeOut++;
     int t = config[QString::number(AddrTimeOK)].toDouble()*100;
     if (timeOut > t) {
         timeOut = 0;
-        ret = Qt::Key_Enter;
-        tmpMap.insert("enum", Qt::Key_View);
-        tmpMap.insert("text", "LEDG");
-        tmpMap.insert("data", 0);
-        emit sendAppMap(tmpMap);
-        tmpMap.insert("enum", Qt::Key_Sleep);
+        ret = Qt::Key_Away;
+        tmpMap.insert("enum", Qt::Key_Call);
+        tmpMap.insert("beep", 0);
         emit sendAppMap(tmpMap);
         tmpMap.clear();
     }
@@ -862,19 +879,17 @@ int AppWindow::taskClearBeep()
 
 int AppWindow::testThread()
 {
-    int ret = Qt::Key_Return;
+    int ret = Qt::Key_Meta;
     if (testMap.keys().contains(QString::number(currTest))) {
-        if ((this->*testMap[QString::number(currTest)])() == Qt::Key_Enter) {
+        if ((this->*testMap[QString::number(currTest)])() == Qt::Key_Away) {
             qDebug() << "app test:" << currTest;
             currTest++;
-            currTest = (currTest >= testMap.size()) ? 0 : currTest;
+            currTest = (currTest >= testMap.size()) ? 0 : currTest;  // 测试流程
             if (currTest == 0) {
-                int r = addrList.indexOf(testIndex);
-                if (r + 1 == addrList.size()) {
-                    ret = Qt::Key_Enter;
-                } else {
-                    testIndex = addrList.at(r+1);
-                }
+                testIndex = getNextItem();
+                if (testIndex == 0)
+                    ret = Qt::Key_Away;
+                qDebug() << "test thread" << testIndex;
             }
         }
     }
@@ -883,102 +898,103 @@ int AppWindow::testThread()
 
 int AppWindow::testClearData()
 {
-    testShift = Qt::Key_Sleep;
+    testShift = Qt::Key_Meta;
     timeTst = 0;
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::testStartSend()
 {
+    qDebug() <<"app time:" << t.elapsed() << "ms" << testIndex;
     tmpMap.insert("enum", Qt::Key_Play);
     tmpMap.insert("text", testIndex);
     emit sendAppMap(tmpMap);
     tmpMap.clear();
-    return Qt::Key_Enter;
+    return Qt::Key_Away;
 }
 
 int AppWindow::testStartTest()
 {
-    //    return Qt::Key_Enter;
-    int ret = Qt::Key_Return;
-    if (testShift == Qt::Key_Enter) {
-        ret = Qt::Key_Enter;
+    int ret = Qt::Key_Meta;
+    if (testShift == Qt::Key_Away) {
+        ret = Qt::Key_Away;
     }
     return ret;
 }
 
 void AppWindow::testUpdate(QVariantMap msg)
 {
+    t.restart();
 #ifdef __arm__
     emit sendUdpMap(msg);
 #endif
+    qDebug() << "udp time:" << t.elapsed();
+    t.restart();
     emit sendAppMap(msg);
-    if (msg[QString::number(msg.value("text").toInt() + AddrHS)].toInt() == 0)
-        testShift = Qt::Key_Enter;
-    QStringList keys = msg.keys();
-    keys.removeOne("enum");
-    keys.removeOne("text");
-    for (int i=0; i < keys.size(); i++) {
-        config[keys.at(i)] = msg[keys.at(i)];
+    qDebug() << "tst time:" << t.elapsed();
+    t.restart();
+    int addr = msg.value("text").toInt();
+    if (msg[QString::number(addr + AddrSkewHS)].toInt() == 0)
+        testShift = Qt::Key_Away;
+    qDebug() << "app time:" << t.elapsed();
+}
+
+void AppWindow::recvUdpMap(QVariantMap msg)
+{
+    switch (msg.value("enum").toInt()) {
+    case Qt::Key_News:
+#ifndef __arm__
+        testUpdate(msg);
+#endif
+        break;
+    default:
+        recvAppMap(msg);
+        break;
     }
 }
 
 void AppWindow::recvAppMap(QVariantMap msg)
 {
 #ifndef __arm__
-    switch (msg.value("enum").toInt()) {
-    case Qt::Key_Refresh:
-        break;
-    default:
-        emit sendUdpMap(msg);
-        break;
-    }
+    emit sendUdpMap(msg);
 #endif
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_Display:
+    case Qt::Key_View:
         recvAppShow(msg.value("text").toString());
         break;
-    case Qt::Key_Enter:
+    case Qt::Key_Game:
         isSignin = true;
         break;
-    case Qt::Key_LogOff:
+    case Qt::Key_Back:  // 登出
         isSignin = false;
         recvAppShow("signin");
         break;
-    case Qt::Key_Save:
+    case Qt::Key_Save:  // 保存参数
         msg.remove("enum");
         for (int i=0; i < msg.keys().size(); i++) {
             config[msg.keys().at(i)] = msg[msg.keys().at(i)];
         }
-        saveSqlite();
-        sendSqlite();
-        break;
-    case Qt::Key_Option:
-        msg.remove("enum");
-        for (int i=0; i < msg.keys().size(); i++) {
-            config[msg.keys().at(i)] = msg[msg.keys().at(i)];
+        if (msg.keys().first().toInt() < AddrConfig) {
+            saveSqlite();
         }
-        saveModels();
+        if (msg.keys().last().toInt() > AddrConfig) {
+            saveModels();
+        }
         sendSqlite();
         break;
-        break;
-    case Qt::Key_Reload:
-        config[QString::number(AddrConfig)] = msg[QString::number(AddrConfig)];
+    case Qt::Key_Word:  // 调入参数
+        config[QString::number(AddrTpName)] = msg[QString::number(AddrTpName)];
         saveSqlite();
         readModels();
         sendSqlite();
         break;
-    case Qt::Key_Stop:
+    case Qt::Key_Stop:  // 停止测试
         taskClearData();
-        tmpMap.insert("enum", Qt::Key_View);
+        tmpMap.insert("enum", Qt::Key_Call);
         tmpMap.insert("text", "LED1");
-        tmpMap.insert("data", 0);
+        tmpMap.insert("beep", 0);
         emit sendAppMap(tmpMap);
         tmpMap.clear();
-        //        tmpMap.insert("enum", Qt::Key_BrightnessAdjust);
-        //        tmpMap.insert("data", 100);
-        //        emit sendAppMap(tmpMap);
-        //        tmpMap.clear();
         break;
     case Qt::Key_Play:
         taskShift = Qt::Key_Play;
@@ -986,11 +1002,18 @@ void AppWindow::recvAppMap(QVariantMap msg)
     case Qt::Key_Time:
         emit sendAppMap(msg);
         break;
-    case Qt::Key_Community:
+    case Qt::Key_WLAN:
         emit sendAppMap(msg);
         break;
-    case Qt::Key_Refresh:
+    case Qt::Key_Call:
+        emit sendAppMap(msg);
+        break;
+    case Qt::Key_News:
         testUpdate(msg);
+        break;
+    case Qt::Key_Send:  // 下发配置
+        emit sendAppMap(msg);
+        break;
     default:
         break;
     }

@@ -236,7 +236,10 @@ void AppSignin::initApplyBar()
 void AppSignin::initSettings()
 {
     QStringList users;
-    QString curruser = config[QString::number(AddrSignIn)].toString();
+    QString curruser = config[QString::number(AddrSignIn + AddrSkewSU)].toString();
+    QString currpass = config[QString::number(AddrSignIn + AddrSkewSP)].toString();
+    QString currsave = config[QString::number(AddrSignIn + AddrSkewSS)].toString();
+    QString currauto = config[QString::number(AddrSignIn + AddrSkewSA)].toString();
     users.append(curruser);
     for (int i=AddrMaster; i < AddrMaster+0x0100; i+=4) {  // 用户信息存放在0x0100
         if (config[QString::number(i)].toString() != curruser)
@@ -245,13 +248,13 @@ void AppSignin::initSettings()
     users.removeAll("");
     username->clear();
     username->addItems(users);
-    if (config[QString::number(AddrSignIn+0x02)].toString() == "1") {
+    if (currsave == "1") {
         autosave->setChecked(true);
-        password->setText(config[QString::number(AddrSignIn+0x01)].toString());
+        password->setText(currpass);
     } else {
         password->clear();
     }
-    if (config[QString::number(AddrSignIn+0x03)].toString() == "1") {
+    if (currauto == "1") {
         autosign->setChecked(true);
         if (!isOk) {
             checkSignin();
@@ -261,32 +264,34 @@ void AppSignin::initSettings()
 
 void AppSignin::saveSettings()
 {
-    config[QString::number(AddrSignIn+0x00)] = username->currentText();
-    config[QString::number(AddrSignIn+0x01)] = password->text();
-    config[QString::number(AddrSignIn+0x02)] = (autosave->isChecked()) ? "1" : "0";
-    config[QString::number(AddrSignIn+0x03)] = (autosign->isChecked()) ? "1" : "0";
-    config.insert("enum", Qt::Key_Save);
-    emit sendAppMap(config);
+    tmpMap.insert(QString::number(AddrSignIn + AddrSkewSU), username->currentText());
+    tmpMap.insert(QString::number(AddrSignIn + AddrSkewSP), password->text());
+    tmpMap.insert(QString::number(AddrSignIn + AddrSkewSS), (autosave->isChecked()) ? "1" : "0");
+    tmpMap.insert(QString::number(AddrSignIn + AddrSkewSA), (autosign->isChecked()) ? "1" : "0");
+    tmpMap.insert("enum", Qt::Key_Save);
+    emit sendAppMap(tmpMap);
+    tmpMap.clear();
 }
 
 void AppSignin::checkSignin()
 {
     for (int i=AddrMaster; i < AddrMaster+0x0100; i+=4) {  // 用户信息存放在0x0100
-        if (config[QString::number(i+0x00)].toString() == username->currentText()) {
-            QString p = config[QString::number(i+0x01)].toString();
-            if (p == password->text()) {
+        QString curruser = config[QString::number(i+AddrSkewMU)].toString();
+        QString currpass = config[QString::number(i+AddrSkewMP)].toString();
+        if (curruser == username->currentText()) {
+            if (currpass == password->text()) {
                 QString t = QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss");
-                config[QString::number(i+0x03)] = t;
+                config[QString::number(i + AddrSkewMT)] = t;
                 stack->setCurrentIndex(3);
                 saveSettings();
-                tmpMap.insert("enum", Qt::Key_Enter);
+                tmpMap.insert("enum", Qt::Key_Game);
                 emit sendAppMap(tmpMap);
                 tmpMap.clear();
                 isOk = true;
             } else {
                 QMessageBox::warning(this, tr("警告"), tr("密码错误"), QMessageBox::Ok);
-                break;
             }
+            break;
         }
     }
 }
@@ -295,7 +300,7 @@ void AppSignin::clickLink(QString msg)
 {
     stack->setCurrentIndex(msg.toInt());
     if (sender()->objectName() == "logoff") {
-        tmpMap.insert("enum", Qt::Key_LogOff);
+        tmpMap.insert("enum", Qt::Key_Back);
         emit sendAppMap(tmpMap);
         tmpMap.clear();
     }
@@ -304,7 +309,7 @@ void AppSignin::clickLink(QString msg)
 void AppSignin::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_Option:
+    case Qt::Key_Copy:
         for (int i=AddrSignIn; i < AddrSignIn + 0x10; i++) {  // 登录信息存放在0x0040
             config[QString::number(i)] = msg[QString::number(i)];
         }
@@ -312,7 +317,7 @@ void AppSignin::recvAppMap(QVariantMap msg)
             config[QString::number(i)] = msg[QString::number(i)];
         }
         break;
-    case Qt::Key_Enter:
+    case Qt::Key_Game:
         initSettings();
         break;
     default:

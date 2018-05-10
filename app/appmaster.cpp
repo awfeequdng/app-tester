@@ -285,7 +285,7 @@ void AppMaster::removeMaster()
 void AppMaster::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_Option:
+    case Qt::Key_Copy:
         for (int i=AddrMaster; i < AddrMaster+0x0100; i++) {  // 用户信息存放在0x0100
             config[QString::number(i)] = msg[QString::number(i)];
         }

@@ -38,72 +38,44 @@ void TypSetImp::initLayout()
 void TypSetImp::initViewBar()
 {
     QStringList headers;
-    headers << tr("测试") << tr("匝间测试") << tr("峰值电压V") << tr("冲击间隔")
-            << tr("冲击次数") << tr("合格上限") << tr("采样方式");
+    headers << tr("测试") << tr("匝间测试") << tr("峰值电压V") << tr("冲击次数")
+            << tr("合格上限") << tr("合格下限") << tr("电压补偿") << tr("冲击间隔");
 
     QStringList names;
     names << tr("匝间测试");
 
-    mInrView = new BoxQModel(this);
-    mInrView->setRowCount(names.size());
-    mInrView->setColumnCount(headers.size());
-    mInrView->setHorizontalHeaderLabels(headers);
+    mView = new BoxQModel(this);
+    mView->setRowCount(names.size());
+    mView->setColumnCount(headers.size());
+    mView->setHorizontalHeaderLabels(headers);
 
     for (int i=0; i < names.size(); i++) {
         for (int j=0; j < headers.size(); j++) {
-            mInrView->setData(mInrView->index(i, j), "", Qt::DisplayRole);
+            mView->setData(mView->index(i, j), "", Qt::DisplayRole);
         }
-        mInrView->item(i, 0)->setCheckable(true);
-        mInrView->item(i, 1)->setText(names.at(i));
+        mView->item(i, 0)->setCheckable(true);
+        mView->item(i, 1)->setText(names.at(i));
     }
     //    connect(mView, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(autoInput()));
 
-    inrView = new QTableView(this);
-    inrView->setFixedHeight(80);
-    inrView->setModel(mInrView);
-    inrView->verticalHeader()->hide();
-    inrView->horizontalHeader()->setFixedHeight(30);
+    view = new QTableView(this);
+    view->setFixedHeight(80);
+    view->setModel(mView);
+    view->verticalHeader()->hide();
+    view->horizontalHeader()->setFixedHeight(30);
 #if (QT_VERSION <= QT_VERSION_CHECK(5, 0, 0))
-    inrView->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
-    inrView->verticalHeader()->setResizeMode(QHeaderView::Stretch);
-    inrView->horizontalHeader()->setResizeMode(0, QHeaderView::Fixed);
+    view->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
+    view->verticalHeader()->setResizeMode(QHeaderView::Stretch);
+    view->horizontalHeader()->setResizeMode(0, QHeaderView::Fixed);
 #else
-    inrView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    inrView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    inrView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+    view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    view->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
 #endif
-    inrView->setColumnWidth(0, 56);
-    inrView->setEditTriggers(QAbstractItemView::AllEditTriggers);
+    view->setColumnWidth(0, 56);
+    view->setEditTriggers(QAbstractItemView::AllEditTriggers);
 
-    boxLayout->addWidget(inrView);
-
-//    QGroupBox *box = new QGroupBox(this);
-//    boxLayout->addWidget(box);
-
-//    QVBoxLayout *layout = new QVBoxLayout;
-//    box->setLayout(layout);
-
-//    QCheckBox *imp = new QCheckBox(this);
-//    imp->setText(tr("匝间测试"));
-//    layout->addWidget(imp);
-
-////    layout->addStretch();
-
-//    QStringList tmp;
-//    tmp << tr("峰值电压") << tr("冲击间隔") << tr("合格上限") << tr("采样方式");
-//    QStringList unit;
-//    unit << "V" << "次" << "%" << "";
-
-//    for (int i=0; i < tmp.size(); i++) {
-//        QHBoxLayout *bLayout = new QHBoxLayout;
-//        bLayout->addWidget(new QLabel(tmp.at(i), this));
-//        QLineEdit *line = new QLineEdit(this);
-//        line->setFixedHeight(40);
-//        bLayout->addWidget(line);
-//        bLayout->addWidget(new QLabel(unit.at(i), this));
-//        bLayout->addStretch();
-//        layout->addLayout(bLayout);
-//    }
+    boxLayout->addWidget(view);
 }
 
 void TypSetImp::initWaveBar()
@@ -137,6 +109,8 @@ void TypSetImp::initWaveBar()
     impView->xAxis->setTickLabelColor(Qt::white);
     impView->xAxis->setLabelColor(Qt::white);
     impView->xAxis->setTickLabelColor(Qt::white);
+
+    impLine = impView->addGraph();
 }
 
 void TypSetImp::initButtons()
@@ -147,42 +121,142 @@ void TypSetImp::initButtons()
 
     layout->addStretch();
 
-    QPushButton *btnGet = new QPushButton(this);
-    btnGet->setFixedSize(97, 40);
-    btnGet->setText(tr("采样"));
-    layout->addWidget(btnGet);
-//    connect(btnGet, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
+    QPushButton *btnWave = new QPushButton(this);
+    btnWave->setFixedSize(97, 40);
+    btnWave->setText(tr("采样"));
+    layout->addWidget(btnWave);
+    connect(btnWave, SIGNAL(clicked(bool)), this, SLOT(waveUpdate()));
 
-    QPushButton *save = new QPushButton(this);
-    save->setFixedSize(97, 40);
-    save->setText(tr("保存"));
-    layout->addWidget(save);
-//    connect(save, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
+    QPushButton *btnSave = new QPushButton(this);
+    btnSave->setFixedSize(97, 40);
+    btnSave->setText(tr("保存"));
+    layout->addWidget(btnSave);
+    connect(btnSave, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
 }
 
 void TypSetImp::drawImpWave()
 {
-    QCPGraph *graph = impView->addGraph();
-    graph->setPen(QPen(Qt::green, 2));
-    QVector<double> x(100), y(100);
-
-    for (int i=0; i < 100; i++) {
-        x[i] = i;
-        y[i] = 50+50*sin(PI*i/24)*(100-i)/100;
+    impLine->setPen(QPen(Qt::green, 2));
+    if (impWave.isEmpty()) {
+        QVector<double> x(1), y(1);
+        x[0] = -1;
+        y[0] = -1;
+        impLine->setData(x, y);
+    } else {
+        QVector<double> x(400), y(400);
+        for (int i=0; i < 400; i++) {
+            x[i] = i;
+            y[i] = impWave.at(i)*100/0x0400;
+        }
+        impLine->setData(x, y);
     }
-    graph->setData(x, y);
     impView->replot();
 }
 
 void TypSetImp::initDelegate()
 {
-    inrView->setItemDelegateForColumn(0, new BoxQItems);
-    inrView->setItemDelegateForColumn(1, new BoxQItems);
+    view->setItemDelegateForColumn(0, new BoxQItems);
+    view->setItemDelegateForColumn(1, new BoxQItems);
+}
+
+void TypSetImp::initSettings()
+{
+    QString addr;
+    addr = QString::number(AddrSetIMP + AddrSkewIC);  // 测试
+    Qt::CheckState s = config[addr] == "1" ? Qt::Checked : Qt::Unchecked;
+    mView->item(0, AddrSkewIC)->setCheckState(s);
+
+    addr = QString::number(AddrSetIMP + AddrSkewIV);  // 电压
+    mView->item(0, AddrSkewIV)->setText(config[addr].toString());
+
+    addr = QString::number(AddrSetIMP + AddrSkewIT);  // 次数
+    mView->item(0, AddrSkewIT)->setText(config[addr].toString());
+
+    addr = QString::number(AddrSetIMP + AddrSkewIH);  // 上限
+    mView->item(0, AddrSkewIH)->setText(config[addr].toString());
+
+    addr = QString::number(AddrSetIMP + AddrSkewIL);  // 下限
+    mView->item(0, AddrSkewIL)->setText(config[addr].toString());
+
+    addr = QString::number(AddrSetIMP + AddrSkewIO);  // 补偿
+    mView->item(0, AddrSkewIO)->setText(config[addr].toString());
+
+    addr = QString::number(AddrSetIMP + AddrSkewIB);  // 间隔
+    mView->item(0, AddrSkewIB)->setText(config[addr].toString());
+}
+
+void TypSetImp::saveSettings()
+{
+    QString addr;
+    addr = QString::number(AddrSetIMP + AddrSkewIC);  // 测试
+    config[addr] = mView->item(0, AddrSkewIC)->checkState() == Qt::Checked ? 1 : 0;
+
+    addr = QString::number(AddrSetIMP + AddrSkewIV);  // 电压
+    config[addr] = mView->item(0, AddrSkewIV)->text();
+
+    addr = QString::number(AddrSetIMP + AddrSkewIT);  // 次数
+    config[addr] = mView->item(0, AddrSkewIT)->text();
+
+    addr = QString::number(AddrSetIMP + AddrSkewIH);  // 上限
+    config[addr] = mView->item(0, AddrSkewIH)->text();
+
+    addr = QString::number(AddrSetIMP + AddrSkewIL);  // 下限
+    config[addr] = mView->item(0, AddrSkewIL)->text();
+
+    addr = QString::number(AddrSetIMP + AddrSkewIO);  // 补偿
+    config[addr] = mView->item(0, AddrSkewIO)->text();
+
+    addr = QString::number(AddrSetIMP + AddrSkewIB);  // 间隔
+    config[addr] = mView->item(0, AddrSkewIB)->text();
+
+    config.insert("enum", Qt::Key_Save);
+    emit sendAppMap(config);
+}
+
+void TypSetImp::waveUpdate()
+{
+    tmpMap.insert("enum", Qt::Key_Send);
+    tmpMap.insert("text", AddrConfig);
+    emit sendAppMap(tmpMap);
+    tmpMap.insert("text", AddrSetIMP);
+    emit sendAppMap(tmpMap);
+    tmpMap.clear();
+}
+
+void TypSetImp::recvUpdate(QVariantMap msg)
+{
+    int addr = msg.value("text").toInt();
+    if (addr == AddrSetIMP) {
+        impWave.clear();
+        for (int i=0; i < 400; i++) {
+            impWave.append(msg[QString::number(AddrWaveTP + i)].toInt());
+        }
+        drawImpWave();
+    }
+}
+
+void TypSetImp::recvAppMap(QVariantMap msg)
+{
+    switch (msg.value("enum").toInt()) {
+    case Qt::Key_Copy:
+        for (int i=AddrSetIMP; i < AddrSetIMP + 0x0010; i++) {  // 匝间参数存放在0x04B0
+            config[QString::number(i)] = msg[QString::number(i)];
+        }
+        break;
+    case Qt::Key_News:
+        if (this->isHidden())
+            break;
+        recvUpdate(msg);
+        break;
+    default:
+        break;
+    }
 }
 
 void TypSetImp::showEvent(QShowEvent *e)
 {
     this->setFocus();
+    initSettings();
     e->accept();
 }
 

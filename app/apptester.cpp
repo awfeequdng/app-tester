@@ -35,7 +35,6 @@ void AppTester::initUI()
     initAcwTextLC();
     initImpText();
     initImpWave();
-    drawImpWave();
 }
 
 void AppTester::initSkin()
@@ -66,19 +65,23 @@ void AppTester::initLayout()
 void AppTester::initStatus()
 {
     status = new QTableWidget(this);
-    status->setRowCount(2);
+    status->setRowCount(3);
     status->setColumnCount(4);
-    status->setFixedHeight(60);
+
+#if (QT_VERSION <= QT_VERSION_CHECK(5, 0, 0))
     status->setColumnWidth(0, 36);
     status->setColumnWidth(1, 48);
     status->setColumnWidth(2, 36);
-#if (QT_VERSION <= QT_VERSION_CHECK(5, 0, 0))
     status->horizontalHeader()->setResizeMode(3, QHeaderView::Stretch);
-    status->verticalHeader()->setResizeMode(QHeaderView::Stretch);
+    status->verticalHeader()->setResizeMode(2, QHeaderView::Stretch);
 #else
+    status->setColumnWidth(0, 42);
+    status->setColumnWidth(1, 52);
+    status->setColumnWidth(2, 42);
     status->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
-    status->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    status->verticalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
 #endif
+    status->setSpan(2, 0, 1, 3);
     status->horizontalHeader()->setVisible(false);
     status->verticalHeader()->setVisible(false);
 
@@ -112,22 +115,22 @@ void AppTester::initStatus()
 void AppTester::initWorker()
 {  // 工位显示区
     textWorker = new QLabel(this);
-    vLayout->addWidget(textWorker);
+    status->setCellWidget(2, 0, textWorker);
     textWorker->setText(judgeON.arg("左"));
 }
 
 void AppTester::initResult()
 {  // 总结果显示区
     textResult = new QLabel(this);
-    vLayout->addWidget(textResult);
-    textResult->setText(judgeOK.arg("OK"));
+    status->setCellWidget(2, 3, textResult);
+    textResult->setText(judgeOK);
 }
 
 void AppTester::initQChart()
 {
-    pieChart = new BoxQChart(this);
-    connect(pieChart, SIGNAL(sendClick()), this, SLOT(pieResize()));
-    view->setCellWidget(0, 2, pieChart);
+    boxChart = new BoxQChart(this);
+    connect(boxChart, SIGNAL(sendClick()), this, SLOT(boxResize()));
+    view->setCellWidget(0, 2, boxChart);
 }
 
 void AppTester::initButton()
@@ -148,11 +151,19 @@ void AppTester::initButton()
     connect(btnConf, SIGNAL(clicked(bool)), this, SLOT(clickButton()));
 
     btnPlay = new QPushButton("启动测试", this);
-    btnLayout->addWidget(btnPlay);
     btnPlay->setMinimumSize(97, 44);
     connect(btnPlay, SIGNAL(clicked(bool)), this, SLOT(clickStart()));
+
+    QLabel *btnLogo = new QLabel(this);
+    btnLogo->setPixmap(QPixmap(":/icon_aip.png"));
+    btnLogo->setScaledContents(true);
+
 #ifdef __arm__
     btnPlay->hide();
+    btnLayout->addWidget(btnLogo);
+#else
+    btnLayout->addWidget(btnPlay);
+    btnLogo->hide();
 #endif
 
     btnLayout->addStretch();
@@ -270,7 +281,7 @@ void AppTester::initDcrWave()
 {
     dcrView = new QCustomPlot(this);
     connect(dcrView, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(dcrResize()));
-    dcrView->setBackground(QBrush(QColor(25, 25, 25))); //设置背景色
+    dcrView->setBackground(QBrush(QColor("#191919"))); //设置背景色
     dcrView->xAxis->grid()->setPen(Qt::NoPen);
     dcrView->yAxis->grid()->setPen(QPen(Qt::darkGreen, 1, Qt::DotLine));
     dcrView->xAxis->setTicks(false);
@@ -283,7 +294,6 @@ void AppTester::initDcrWave()
     dcrView->yAxis->setBasePen(Qt::NoPen);
     dcrView->xAxis2->setBasePen(Qt::NoPen);
     dcrView->yAxis2->setBasePen(Qt::NoPen);
-    dcrView->xAxis->setRange(0, 24);
     dcrView->yAxis->setRange(0, 103);
 
     dcrView->xAxis->setTickLabelColor(Qt::white);
@@ -295,130 +305,102 @@ void AppTester::initDcrWave()
 
 void AppTester::initInrTextCG()
 {
-    QString tt = titleOK + "%1&nbsp;&nbsp;DC:%2kV&nbsp;&nbsp;IR:%3MΩ</p>";
-    tt = tt.arg("绝缘电阻");
-    tt = tt.arg(QString::number(0.5, 'f', 3)).arg(QString::number(500, 'f', 0));
-
-    QLabel *title = new QLabel(this);
-    title->setText(tt);
-    acwTitles.append(title);
-
-    QStringList tmp;
-    tmp << "1.500kV" << ">500MΩ" << "OK";
-    QHBoxLayout *datLayout = new QHBoxLayout;
-    datLayout->setMargin(0);
-    for (int i=0; i < 3; i++) {
-        QLabel *text = new QLabel(largeOK.arg(tmp.at(i)), this);
-        acwLabels.append(text);
-        datLayout->addWidget(text);
-    }
+    QFrame *frame = new QFrame(this);
+    view->setCellWidget(1, 0, frame);
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
     layout->setMargin(0);
-    layout->addWidget(title);
-    layout->addLayout(datLayout);
-    layout->setStretch(1, 1);
-
-    QFrame *frame = new QFrame(this);
     frame->setLayout(layout);
-    view->setCellWidget(1, 0, frame);
+
+    QLabel *title = new QLabel(this);
+    layout->addWidget(title);
+    acwTitles.append(title);
+
+    QHBoxLayout *large = new QHBoxLayout;
+    layout->addLayout(large);
+    layout->setStretch(1, 1);
+    large->setMargin(0);
+    for (int i=0; i < 3; i++) {
+        QLabel *text = new QLabel(this);
+        acwLabels.append(text);
+        large->addWidget(text);
+    }
 }
 
 void AppTester::initAcwTextAC()
 {
-    QString tt = titleOK + "%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;I:%3~%4mA</p>";
-    tt = tt.arg("轴铁耐压").arg(QString::number(1.5, 'f', 3));
-    tt = tt.arg(QString::number(0.01, 'f', 2)).arg(QString::number(0.5, 'f', 2));
-
-    QLabel *title = new QLabel(this);
-    title->setText(tt);
-    acwTitles.append(title);
-
-    QStringList tmp;
-    tmp << "1.500kV" << "0.300mA" << "OK";
-    QHBoxLayout *datLayout = new QHBoxLayout;
-    datLayout->setMargin(0);
-    for (int i=0; i < 3; i++) {
-        QLabel *text = new QLabel(largeOK.arg(tmp.at(i)), this);
-        acwLabels.append(text);
-        datLayout->addWidget(text);
-    }
+    QFrame *frame = new QFrame(this);
+    view->setCellWidget(2, 0, frame);
 
     QVBoxLayout *layout = new QVBoxLayout;
-    layout->setMargin(0);
     layout->setSpacing(0);
-    layout->addWidget(title);
-    layout->addLayout(datLayout);
-    layout->setStretch(1, 1);
-
-    QFrame *frame = new QFrame(this);
+    layout->setMargin(0);
     frame->setLayout(layout);
-    view->setCellWidget(2, 0, frame);
+
+    QLabel *title = new QLabel(this);
+    layout->addWidget(title);
+    acwTitles.append(title);
+
+    QHBoxLayout *large = new QHBoxLayout;
+    layout->addLayout(large);
+    layout->setStretch(1, 1);
+    large->setMargin(0);
+    for (int i=0; i < 3; i++) {
+        QLabel *text = new QLabel(this);
+        acwLabels.append(text);
+        large->addWidget(text);
+    }
 }
 
 void AppTester::initAcwTextAL()
 {
-    QString tt = titleOK + "%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;I:%3~%4mA</p>";
-    tt = tt.arg("轴线耐压").arg(QString::number(2.5, 'f', 3));
-    tt = tt.arg(QString::number(0.01, 'f', 2)).arg(QString::number(0.5, 'f', 2));
-
-    QLabel *title = new QLabel(this);
-    title->setText(tt);
-    acwTitles.append(title);
-
-    QStringList tmp;
-    tmp << "2.500kV" << "0.400mA" << "OK";
-    QHBoxLayout *datLayout = new QHBoxLayout;
-    datLayout->setMargin(0);
-    for (int i=0; i < 3; i++) {
-        QLabel *text = new QLabel(largeOK.arg(tmp.at(i)), this);
-        acwLabels.append(text);
-        datLayout->addWidget(text);
-    }
+    QFrame *frame = new QFrame(this);
+    view->setCellWidget(3, 0, frame);
 
     QVBoxLayout *layout = new QVBoxLayout;
-    layout->setMargin(0);
     layout->setSpacing(0);
-    layout->addWidget(title);
-    layout->addLayout(datLayout);
-    layout->setStretch(1, 1);
-
-    QFrame *frame = new QFrame(this);
+    layout->setMargin(0);
     frame->setLayout(layout);
-    view->setCellWidget(3, 0, frame);
+
+    QLabel *title = new QLabel(this);
+    layout->addWidget(title);
+    acwTitles.append(title);
+
+    QHBoxLayout *large = new QHBoxLayout;
+    layout->addLayout(large);
+    layout->setStretch(1, 1);
+    large->setMargin(0);
+    for (int i=0; i < 3; i++) {
+        QLabel *text = new QLabel(this);
+        acwLabels.append(text);
+        large->addWidget(text);
+    }
 }
 
 void AppTester::initAcwTextLC()
 {
-    QString tt = titleOK + "%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;I:%3~%4mA</p>";
-    tt = tt.arg("线铁耐压").arg(QString::number(4.5, 'f', 3));
-    tt = tt.arg(QString::number(0.01, 'f', 2)).arg(QString::number(0.5, 'f', 2));
-
-    QLabel *title = new QLabel(this);
-    title->setText(tt);
-    acwTitles.append(title);
-
-    QStringList tmp;
-    tmp << "4.500kV" << "0.400mA" << "OK";
-    QHBoxLayout *datLayout = new QHBoxLayout;
-    datLayout->setMargin(0);
-    for (int i=0; i < 3; i++) {
-        QLabel *text = new QLabel(largeOK.arg(tmp.at(i)), this);
-        acwLabels.append(text);
-        datLayout->addWidget(text);
-    }
+    QFrame *frame = new QFrame(this);
+    view->setCellWidget(4, 0, frame);
 
     QVBoxLayout *layout = new QVBoxLayout;
-    layout->setMargin(0);
     layout->setSpacing(0);
-    layout->addWidget(title);
-    layout->addLayout(datLayout);
-    layout->setStretch(1, 1);
-
-    QFrame *frame = new QFrame(this);
+    layout->setMargin(0);
     frame->setLayout(layout);
-    view->setCellWidget(4, 0, frame);
+
+    QLabel *title = new QLabel(this);
+    layout->addWidget(title);
+    acwTitles.append(title);
+
+    QHBoxLayout *large = new QHBoxLayout;
+    layout->addLayout(large);
+    layout->setStretch(1, 1);
+    large->setMargin(0);
+    for (int i=0; i < 3; i++) {
+        QLabel *text = new QLabel(this);
+        acwLabels.append(text);
+        large->addWidget(text);
+    }
 }
 
 void AppTester::initImpText()
@@ -428,6 +410,7 @@ void AppTester::initImpText()
     tt = tt.arg(QString::number(12, 'f', 2));
 
     QLabel *title = new QLabel(this);
+    impTitles.append(title);
     title->setText(tt);
 
     QStringList tmp;
@@ -436,7 +419,7 @@ void AppTester::initImpText()
     largeLayout->setMargin(0);
     for (int i=0; i < 3; i++) {
         QLabel *text = new QLabel(largeOK.arg(tmp.at(i)), this);
-        //        inrTexts.append(text);
+        impLabels.append(text);
         largeLayout->addWidget(text);
     }
 
@@ -465,7 +448,7 @@ void AppTester::initImpWave()
 {
     impView = new QCustomPlot(this);
     connect(impView, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(impResize()));
-    impView->setBackground(QBrush(QColor(25, 25, 25))); //设置背景色
+    impView->setBackground(QBrush(QColor("#191919"))); //设置背景色
     impView->xAxis->grid()->setPen(Qt::NoPen);
     impView->yAxis->grid()->setPen(QPen(Qt::darkGreen, 1, Qt::DotLine));
     impView->xAxis->setTicks(false);
@@ -478,27 +461,34 @@ void AppTester::initImpWave()
     impView->yAxis->setBasePen(Qt::NoPen);
     impView->xAxis2->setBasePen(Qt::NoPen);
     impView->yAxis2->setBasePen(Qt::NoPen);
-    impView->xAxis->setRange(0, 100);
+    impView->xAxis->setRange(0, 400);
     impView->yAxis->setRange(0, 103);
 
     impView->xAxis->setTickLabelColor(Qt::white);
     impView->xAxis->setLabelColor(Qt::white);
     impView->xAxis->setTickLabelColor(Qt::white);
 
+    impLine = impView->addGraph();
+
     view->setCellWidget(6, 0, impView);
 }
 
 void AppTester::drawImpWave()
 {
-    QCPGraph *graph = impView->addGraph();
-    graph->setPen(QPen(Qt::green, 2));
-    QVector<double> x(100), y(100);
-
-    for (int i=0; i < 100; i++) {
-        x[i] = i;
-        y[i] = 50+50*sin(PI*i/24)*(100-i)/100;
+    impLine->setPen(QPen(Qt::green, 2));
+    if (impWave.isEmpty()) {
+        QVector<double> x(1), y(1);
+        x[0] = -1;
+        y[0] = -1;
+        impLine->setData(x, y);
+    } else {
+        QVector<double> x(400), y(400);
+        for (int i=0; i < 400; i++) {
+            x[i] = i;
+            y[i] = impWave.at(i)*100/0x0400;
+        }
+        impLine->setData(x, y);
     }
-    graph->setData(x, y);
     impView->replot();
 }
 
@@ -514,8 +504,8 @@ void AppTester::setViewSize()
     }
     view->setRowHeight(5, 96);
     view->setRowHeight(0, 160);
-    view->setColumnWidth(0, this->width()*270/800);
-    view->setColumnWidth(1, this->width()*130/800);
+    view->setColumnWidth(0, this->width()*280/800);
+    view->setColumnWidth(1, this->width()*120/800);
     view->setColumnWidth(2, this->width()*270/800);
     view->horizontalHeader()->setStretchLastSection(true);
     view->verticalHeader()->setStretchLastSection(true);
@@ -523,31 +513,34 @@ void AppTester::setViewSize()
 
 void AppTester::drawDcrWave()
 {
+    dcrView->clearGraphs();
     QCPGraph *graph1 = dcrView->addGraph();
     graph1->setPen(QPen(Qt::green, 2));
     QCPGraph *graph2 = dcrView->addGraph();
     graph2->setPen(QPen(Qt::white, 1));
     QCPGraph *graph3 = dcrView->addGraph();
     graph3->setPen(QPen(Qt::white, 1));
-    QVector<double> x1(24), y1(24);
-    QVector<double> x2(24), y2(24);
-    QVector<double> x3(24), y3(24);
+    int c = config[QString::number(AddrConfig + AddrSkewTC)].toInt();
+    QVector<double> x1(c), y1(c), y2(c), y3(c);
 
-    for (int i=0; i < 24; i++) {
+    int t = qMin(4, qMax(1, c/12));
+
+    for (int i=0; i < c; i++) {
         x1[i] = i;
         if (i % 2 == 0) {
-            y1[i] = 50-i;
-            y2[i] = 64-i;
-            y3[i] = 36-i;
+            y1[i] = 50-i/t;
+            y2[i] = 54-i/t;
+            y3[i] = 46-i/t;
         } else {
-            y1[i] = 75-i;
-            y2[i] = 89-i;
-            y3[i] = 61-i;
+            y1[i] = 55-i/t;
+            y2[i] = 59-i/t;
+            y3[i] = 51-i/t;
         }
     }
     graph1->setData(x1, y1);
     graph2->setData(x1, y2);
     graph3->setData(x1, y3);
+    dcrView->xAxis->setRange(0, c-1);
     dcrView->replot();
 }
 
@@ -632,7 +625,7 @@ void AppTester::drawHistogram()
     histogram->replot();
 }
 
-void AppTester::pieResize()
+void AppTester::boxResize()
 {
     if (view->isRowHidden(1)) {
         for (int i=0; i < 7; i++) {
@@ -723,7 +716,7 @@ void AppTester::clickStart()
 
 void AppTester::clickButton()
 {
-    tmpMap.insert("enum", Qt::Key_Display);
+    tmpMap.insert("enum", Qt::Key_View);
     tmpMap.insert("text", sender()->objectName());
     emit sendAppMap(tmpMap);
     tmpMap.clear();
@@ -736,77 +729,147 @@ void AppTester::clearView()
     int addr;
     QString tt;
     for (int i=0; i < tmp.size(); i++) {
-        addr = AddrAG + i*0x10;
-        double v = config[QString::number(addr + AddrHV)].toDouble()/1000;
-        double h = config[QString::number(addr + AddrHH)].toDouble();
-        double l = config[QString::number(addr + AddrHL)].toDouble();
+        addr = AddrHighAG + i*0x10;
+        double v = config[QString::number(addr + AddrSkewHV)].toDouble()/1000;
+        double h = config[QString::number(addr + AddrSkewHH)].toDouble();
+        double l = config[QString::number(addr + AddrSkewHL)].toDouble();
         if (i == 0) {
-            tt = titleOK + "%1&nbsp;&nbsp;DC:%2kV&nbsp;&nbsp;IR:%3MΩ</p>";
+            tt = titleOK + "&nbsp;&nbsp;%1&nbsp;&nbsp;DC:%2kV&nbsp;&nbsp;IR:%3MΩ</p>";
             tt = tt.arg(tmp.at(i)).arg(QString::number(v, 'f', 3));
             tt = tt.arg(l);
         } else {
-            tt = titleOK + "%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;I:%3~%4mA</p>";
+            tt = titleOK + "&nbsp;&nbsp;%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;I:%3~%4mA</p>";
             tt = tt.arg(tmp.at(i)).arg(QString::number(v, 'f', 3));
             h /= 100;
             l /= 100;
             tt = tt.arg(QString::number(l, 'f', 2)).arg(QString::number(h, 'f', 2));
         }
         acwTitles.at(i)->setText(tt);
-        acwLabels.at(i*3 + 0)->setText(largeOK.arg("-.---kV"));
+        QString color = (config[QString::number(addr)].toInt() == 1) ? largeOK : largeON;
+        acwLabels.at(i*3 + 0)->setText(color.arg("-.---kV"));
         if (i == 0) {
-            acwLabels.at(3*i + 1)->setText(largeOK.arg("---.-MΩ"));
+            acwLabels.at(3*i + 1)->setText(color.arg("---.-MΩ"));
         } else {
-            acwLabels.at(3*i + 1)->setText(largeOK.arg("-.---mA"));
+            acwLabels.at(3*i + 1)->setText(color.arg("-.---mA"));
         }
-        acwLabels.at(3*i + 2)->setText(largeOK.arg("--"));
+        acwLabels.at(3*i + 2)->setText(color.arg("--"));
+    }
+    if (1) {
+        double v = config[QString::number(AddrSetIMP + AddrSkewIV)].toDouble()/1000;
+        double h = config[QString::number(AddrSetIMP + AddrSkewIH)].toDouble();
+
+        tt = titleOK + "&nbsp;&nbsp;%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;&lt;%3%</p>";
+        tt = tt.arg("匝间测试").arg(QString::number(v, 'f', 3));
+        tt = tt.arg(QString::number(h, 'f', 2));
+        impTitles.at(0)->setText(tt);
+        QString color = (config[QString::number(AddrSetIMP)].toInt() == 1) ? largeOK : largeON;
+        impLabels.at(0)->setText(color.arg("-.---kV"));
+        impLabels.at(1)->setText(color.arg("-.---%"));
+        impLabels.at(2)->setText(color.arg("--"));
+
+        impWave.clear();
+        drawImpWave();
+    }
+    status->item(0, 1)->setText(config[QString::number(AddrSignIn)].toString());
+    status->item(0, 3)->setText(config[QString::number(AddrTpName)].toString());
+    tmpMap.insert("text", 0);
+    boxChart->setNews(tmpMap);
+    tmpMap.clear();
+}
+
+void AppTester::recvAppLed(QVariantMap msg)
+{
+    if (msg.value("text").toString() == "LEDY") {
+        clearView();
+        btnPlay->setText(tr("停止测试"));
+        textResult->setText(judgeON.arg("ON"));
+#ifdef __arm__
+        view->setEnabled(false);
+#endif
+    } else {
+        view->setEnabled(true);
+        btnPlay->setText(tr("启动测试"));
+    }
+    if (msg.value("text").toString() == "LEDG") {
+        textResult->setText(judgeOK);
+    }
+    if (msg.value("text").toString() == "LEDR") {
+        textResult->setText(judgeNG);
     }
 }
 
 void AppTester::recvUpdate(QVariantMap msg)
 {
+    boxChart->setNews(msg);
     int addr = msg.value("text").toInt();
-    int t = (addr%AddrAG)/0x10;
-    double j = msg[QString::number(addr + AddrHJ)].toInt();
-    QString color = (j == 0) ? largeNG : largeOK;
-    QString judge = (j == 0) ? "NG" : "OK";
-    double v = msg[QString::number(addr + AddrHU)].toInt();
-    double r = msg[QString::number(addr + AddrHR)].toInt();
-    double d = msg[QString::number(addr + AddrHD)].toInt();
-    r *= qPow(10, -d);
-    QString volt = QString::number(v/1000, 'f', 3) + "kV";
-    QString real = QString::number(r, 'f', 3) + "mA";
-    if (t == 0) {
-        real = (r > 500) ? ">500MΩ" : (QString::number(r, 'f', 1) + "MΩ");
-    }
-    acwLabels.at(3*t + 0)->setText(color.arg(volt));
-    acwLabels.at(3*t + 1)->setText(color.arg(real));
-    acwLabels.at(3*t + 2)->setText(color.arg(judge));
+    if (addr >= AddrHighAG && addr < AddrHighAG + 0x40) {
+        int t = (addr%AddrHighAG)/0x10;
+        double j = msg[QString::number(addr + AddrSkewHJ)].toInt();
+        QString color = (j == 0) ? largeNG : largeOK;
+        QString judge = (j == 0) ? "NG" : "OK";
+        double v = msg[QString::number(addr + AddrSkewHU)].toInt();
+        double r = msg[QString::number(addr + AddrSkewHR)].toInt();
+        double d = msg[QString::number(addr + AddrSkewHD)].toInt();
+        r *= qPow(10, -d);
+        QString volt = QString::number(v/1000, 'f', 3) + "kV";
+        QString real = QString::number(r, 'f', 3) + "mA";
+        if (t == 0) {
+            real = (r > 500) ? ">500MΩ" : (QString::number(r, 'f', 1) + "MΩ");
+        }
+        acwLabels.at(3*t + 0)->setText(color.arg(volt));
+        acwLabels.at(3*t + 1)->setText(color.arg(real));
+        acwLabels.at(3*t + 2)->setText(color.arg(judge));
 
-    QStringList keys = msg.keys();
-    keys.removeOne("enum");
-    keys.removeOne("text");
-    for (int i=0; i < keys.size(); i++) {
-        config[keys.at(i)] = msg[keys.at(i)];
+        QStringList keys = msg.keys();
+        keys.removeOne("enum");
+        keys.removeOne("text");
+        for (int i=0; i < keys.size(); i++) {
+            config[keys.at(i)] = msg[keys.at(i)];
+        }
+    }
+    if (addr == AddrSetIMP) {
+        int t = 0;
+        double j = msg[QString::number(addr + AddrSkewHJ)].toInt();
+        QString color = (j == 0) ? largeNG : largeOK;
+        QString judge = (j == 0) ? "NG" : "OK";
+        double v = msg[QString::number(addr + AddrSkewHU)].toInt();
+        double r = msg[QString::number(addr + AddrSkewHR)].toInt();
+
+        QString volt = QString::number(v/1000, 'f', 3) + "kV";
+        QString real = QString::number(r, 'f', 3) + "%";
+
+        impLabels.at(3*t + 0)->setText(color.arg(volt));
+        impLabels.at(3*t + 1)->setText(color.arg(real));
+        impLabels.at(3*t + 2)->setText(color.arg(judge));
+        impWave.clear();
+        for (int i=0; i < 400; i++) {
+            impWave.append(msg[QString::number(AddrWaveTP + i)].toInt());
+        }
+        drawImpWave();
     }
 }
 
 void AppTester::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_Option:
+    case Qt::Key_Copy:
         config = msg;
-        pieChart->setNum(msg[QString::number(AddrSC + AddrTC)].toInt());
+        boxChart->setNum(msg[QString::number(AddrConfig + AddrSkewTC)].toInt());
         break;
-    case Qt::Key_Refresh:
+    case Qt::Key_News:
+        if (this->isHidden())
+            break;
         recvUpdate(msg);
         break;
-    case Qt::Key_WakeUp:
-        clearView();
+    case Qt::Key_Call:
+        recvAppLed(msg);
+        break;
+    case Qt::Key_Play:
         break;
     case Qt::Key_Stop:
         break;
-    case Qt::Key_Sleep:
-        btnPlay->setText(tr("启动测试"));
+    case Qt::Key_Plus:
+        boxChart->setStr(QTime::currentTime().toString("hh:mm"));
         break;
     default:
         break;
@@ -816,6 +879,7 @@ void AppTester::recvAppMap(QVariantMap msg)
 void AppTester::showEvent(QShowEvent *e)
 {
     this->setFocus();
+    drawDcrWave();
     setViewSize();
     clearView();
     e->accept();

@@ -195,7 +195,7 @@ void AppSystem::setLocalTime()
 void AppSystem::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_Option:
+    case Qt::Key_Copy:
         for (int i=AddrSystem; i < AddrSystem+0x20; i++) {  // 后台信息存放在0x0020
             config[QString::number(i)] = msg[QString::number(i)];
         }

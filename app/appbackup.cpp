@@ -82,7 +82,7 @@ void AppBackup::saveSettings()
 void AppBackup::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_Option:
+    case Qt::Key_Copy:
         for (int i=AddrBackup; i < AddrBackup + 0x10; i++) {  // 后台信息存放在0x0010
             config[QString::number(i)] = msg[QString::number(i)];
         }

@@ -15,12 +15,12 @@ SqlExport::SqlExport(QObject *parent) : QObject(parent)
 void SqlExport::recvSqlMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_Enter:
+    case Qt::Key_Game:
         config = msg;
         if (exportFile() == -1) {
             tmpMap.insert("enum", QMessageBox::Abort);
         } else {
-            tmpMap.insert("enum", Qt::Key_Display);
+            tmpMap.insert("enum", Qt::Key_View);
         }
         emit sendSqlMap(tmpMap);
         tmpMap.clear();

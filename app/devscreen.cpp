@@ -34,13 +34,14 @@ void DevScreen::sendScreen(double duty)
     if (duty == 0)
         memset(&conf, 0, sizeof(struct pwm_config_info));
 
-    write(fd, &conf, sizeof(struct pwm_config_info));
+    int ret = write(fd, &conf, sizeof(struct pwm_config_info));
+    qDebug() << "lcd paly:" << ret << duty;
 }
 
 void DevScreen::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_BrightnessAdjust:
+    case Qt::Key_Call:
         if (!msg.value("data").isNull()) {
             sendScreen(msg.value("data").toDouble());
         }

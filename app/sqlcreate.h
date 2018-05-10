@@ -50,6 +50,7 @@ private slots:
     void insertModelsInfo(QSqlQuery query);
     void insertConfigInfo(QSqlQuery query);
     void insertSetAcwInfo(QSqlQuery query);
+    void insertSetImpInfo(QSqlQuery query);
 };
 
 #endif // SQLCREATE_H

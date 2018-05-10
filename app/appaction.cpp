@@ -157,7 +157,7 @@ void AppAction::clickButtons()
 void AppAction::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_Option:
+    case Qt::Key_Copy:
         for (int i=AddrAction; i < AddrAction+0x0100; i++) {
             config[QString::number(i)] = msg[QString::number(i)];
         }

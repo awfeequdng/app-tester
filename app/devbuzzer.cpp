@@ -39,15 +39,16 @@ void DevBuzzer::sendBuzzer(double duty)
     if (duty == 0)
         memset(&conf, 0, sizeof(struct pwm_config_info));
 
-    write(fd, &conf, sizeof(struct pwm_config_info));
+    int ret = write(fd, &conf, sizeof(struct pwm_config_info));
+     qDebug() << "pwm paly:" << ret << duty;
 }
 
 void DevBuzzer::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_View:
-        if (!msg.value("data").isNull()) {
-            sendBuzzer(msg.value("data").toDouble());
+    case Qt::Key_Call:
+        if (!msg.value("beep").isNull()) {
+            sendBuzzer(msg.value("beep").toDouble());
         }
         break;
     default:

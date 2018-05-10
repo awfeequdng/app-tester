@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql serialport network
+QT       += core gui sql serialport network xml
 
 CONFIG   += serialport
 
@@ -59,15 +59,7 @@ HEADERS += \
     app/boxdouble.h \
     app/devdriver.h \
     app/appdefine.h \
-    app/udpsocket.h \
-    qjson/QJsonArray.h \
-    qjson/QJsonDocument.h \
-    qjson/QJsonObject.h \
-    qjson/QJsonParseError.h \
-    qjson/QJsonParser.h \
-    qjson/QJsonRoot.h \
-    qjson/QJsonValue.h \
-    qjson/QJsonValueRef.h
+    app/udpsocket.h
 
 SOURCES += \
     app/main.cpp \
@@ -109,11 +101,4 @@ SOURCES += \
     app/tcpsocket.cpp \
     app/boxqmodel.cpp \
     app/boxdouble.cpp \
-    app/udpsocket.cpp \
-    qjson/QJsonArray.cpp \
-    qjson/QJsonDocument.cpp \
-    qjson/QJsonObject.cpp \
-    qjson/QJsonParseError.cpp \
-    qjson/QJsonParser.cpp \
-    qjson/QJsonValue.cpp \
-    qjson/QJsonValueRef.cpp
+    app/udpsocket.cpp

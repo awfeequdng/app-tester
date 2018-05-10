@@ -31,9 +31,9 @@
 
 #include <QDebug>
 #include <QQueue>
-#include <QTimer>
 #include <QObject>
 #include <QVariant>
+#include <QElapsedTimer>
 
 #include "appdefine.h"
 
@@ -49,18 +49,18 @@ private slots:
     bool readDevPort();
     bool sendDevPort(can_frame can);
     void getStatus();
-    void getVerNum();
-    void setStatus(int addr);
-    void readAll();
-    void sendAll();
-    void saveAll();
-    void thread();
-    void recvOne(int id, QByteArray msg);
-    void sendConfig();
-    void sendThread();
-    void sendUpdate();
+    void getAllDat();
+    void putAllDat();
+    void updateAll();
+    void sampleImp();
+    void configImp();
+    void selectImp();
+    void updateImp(int id, QByteArray msg);
+    void configAcw();
+    void selectAcw();
+    void updateAcw(QByteArray msg);
+    void updateDat();
     void recvAppMap(QVariantMap msg);
-
 private:
     int fd;
     can_frame frame;
@@ -68,8 +68,10 @@ private:
     QQueue<QVariantMap> recver;
     QVariantMap config;
     QVariantMap tmpMap;
-    QTimer *timer;
     int currAddr;
+    QList<int>wave;
+    QElapsedTimer t;
+    int timeOut;
 };
 
 #endif // DEVSETCAN_H

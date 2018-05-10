@@ -12,10 +12,6 @@ DevSetCan::DevSetCan(QObject *parent) : QObject(parent)
 {
     initDevPort();
     getStatus();
-    getVerNum();
-    timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(thread()));
-    timer->start(10);
 }
 
 void DevSetCan::initDevPort()
@@ -61,13 +57,15 @@ void DevSetCan::initDevPort()
         qDebug() << "can show:" << tmp;
         return;
     }
-    struct can_filter rfilter[3];      //  rfilter 记录总数
+    struct can_filter rfilter[4];      //  rfilter 记录总数
     rfilter[0].can_id = 0x41;           // 电阻板ID
     rfilter[0].can_mask = CAN_SFF_MASK;
     rfilter[1].can_id = 0x61;           // 绝缘板ID
     rfilter[1].can_mask = CAN_SFF_MASK;
     rfilter[2].can_id = 0x81;           // 匝间板ID
     rfilter[2].can_mask = CAN_SFF_MASK;
+    rfilter[3].can_id = 0x481;           // 匝间板ID
+    rfilter[3].can_mask = CAN_SFF_MASK;
     qDebug() << setsockopt(fd, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
 }
 
@@ -124,6 +122,7 @@ bool DevSetCan::sendDevPort(can_frame can)
 
 void DevSetCan::getStatus()
 {
+    currAddr = 0;
     QList<int> ids;
     ids << 0x0022 << 0x0023 << 0x0024;
     for (int i=0; i < ids.size(); i++) {
@@ -132,12 +131,6 @@ void DevSetCan::getStatus()
         sender.append(tmpMap);
         tmpMap.clear();
     }
-}
-
-void DevSetCan::getVerNum()
-{
-    QList<int> ids;
-    ids << 0x0022 << 0x0023 << 0x0024;
     for (int i=0; i < ids.size(); i++) {
         tmpMap.insert("index", ids.at(i));
         tmpMap.insert("data", QByteArray::fromHex("08"));
@@ -146,17 +139,7 @@ void DevSetCan::getVerNum()
     }
 }
 
-void DevSetCan::setStatus(int addr)
-{
-    currAddr = addr;
-    if (addr == AddrSC) {
-        sendConfig();
-        return;
-    }
-    sendThread();
-}
-
-void DevSetCan::readAll()
+void DevSetCan::getAllDat()
 {
     while (readDevPort()) {
         QByteArray msg;
@@ -173,7 +156,7 @@ void DevSetCan::readAll()
     }
 }
 
-void DevSetCan::sendAll()
+void DevSetCan::putAllDat()
 {
     while (!sender.isEmpty()) {
         tmpMap = sender.dequeue();
@@ -191,83 +174,124 @@ void DevSetCan::sendAll()
     }
 }
 
-void DevSetCan::saveAll()
+void DevSetCan::updateAll()
 {
-    if (recver.isEmpty())
-        return;
-    for (int i=0; i < 10; i++) {
+    timeOut++;
+    for (int i=0; i < 100; i++) {
+        if (recver.isEmpty())
+            break;
         tmpMap = recver.dequeue();
         int id = tmpMap.value("index").toInt();
         QByteArray msg = tmpMap.value("data").toByteArray();
         tmpMap.clear();
         if (msg.size() < 2)
             continue;
-        recvOne(id, msg);
-        if (recver.isEmpty())
+        switch (id) {
+        case 0x0061:
+            updateAcw(msg);
             break;
+        case 0x0081:
+        case 0x0481:
+            updateImp(id, msg);
+            break;
+        default:
+            break;
+        }
     }
 }
 
-void DevSetCan::thread()
+void DevSetCan::sampleImp()
 {
-    sendAll();
-    readAll();
-    saveAll();
+    QByteArray msg = QByteArray::fromHex("0101130001");  // 匝间采样
+    tmpMap.insert("index", 0x0024);
+    tmpMap.insert("data", msg);
+    sender.append(tmpMap);
+    tmpMap.clear();
 }
 
-void DevSetCan::recvOne(int id, QByteArray msg)
+void DevSetCan::configImp()
 {
-    quint8 cmd = 0;
-    quint8 num = 0;
-    if (id == 0x0061) {
-        cmd = quint8(msg.at(0));
-        num = quint8(msg.at(1));
+    QByteArray msg = QByteArray::fromHex("0300010201F41107");
+    int v = config[QString::number(AddrSetIMP + AddrSkewIV)].toInt();  // 电压
+    int c = config[QString::number(AddrSetIMP + AddrSkewIT)].toInt();  // 次数
+    msg[4] = v/256;
+    msg[5] = v%256;
+    msg[6] = ((v/1000+1) << 4) + c;  // 档位+次数
+    tmpMap.insert("index", 0x0024);
+    tmpMap.insert("data", msg);
+    sender.append(tmpMap);
+}
+
+void DevSetCan::selectImp()
+{
+    QByteArray msg = QByteArray::fromHex("0100130001");  // 匝间采样
+    tmpMap.insert("index", 0x0024);
+    tmpMap.insert("data", msg);
+    sender.append(tmpMap);
+    tmpMap.clear();
+    config[QString::number(currAddr + AddrSkewHS)] = 1;
+}
+
+void DevSetCan::updateImp(int id, QByteArray msg)
+{
+    if (id == 0x0081) {
+        quint8 cmd = quint8(msg.at(0));
+        quint8 num = quint8(msg.at(1));
         if (cmd == 0x00) {
-            config[QString::number(currAddr + AddrHS)] = num;
+            config[QString::number(AddrSetIMP + AddrSkewIS)] = num;
+            updateDat();
         }
-        if (cmd == 0x01) {
-            config[QString::number(currAddr + AddrHU)] = quint8(msg.at(1))*256 + (quint8)msg.at(2);
-            config[QString::number(currAddr + AddrHR)] = quint8(msg.at(3))*256 + (quint8)msg.at(4);
-            config[QString::number(currAddr + AddrHD)] = quint8(msg.at(5));
-            double r = quint8(msg.at(3))*256 + (quint8)msg.at(4);
-            r *= qPow(10, -quint8(msg.at(5)));
-            double h = config[QString::number(currAddr + AddrHH)].toDouble();
-            double l = config[QString::number(currAddr + AddrHL)].toDouble();
-            h = (currAddr == AddrAG) ? h : h/100;
-            l = (currAddr == AddrAG) ? l : l/100;
-            if (h == 0) {
-                config[QString::number(currAddr + AddrHJ)] = (r > l) ? 1 : 0;
-            } else {
-                config[QString::number(currAddr + AddrHJ)] = (r > l && r < h) ? 1 : 0;
+        if (cmd == 0x02) {
+            int v = quint8(msg.at(4))*256 + (quint8)msg.at(5);
+            config[QString::number(AddrSetIMP + AddrSkewIU)] = v;
+            config[QString::number(AddrSetIMP + AddrSkewIG)] = quint8(msg.at(2));
+            config[QString::number(AddrSetIMP + AddrSkewIF)] = quint8(msg.at(3));
+        }
+        if (cmd == 0x03) {
+            if (num == 0xFF) {
+                for (int i=0; i < wave.size(); i++) {
+                    config[QString::number(AddrWaveTP + i)] = wave.at(i);
+                }
+                wave.clear();
             }
         }
-        sendUpdate();
+    }
+    if (id == 0x0481) {
+        for (int i=0; i < 4; i++) {
+            wave.append(quint8(msg.at(i*2+0))*256 + quint8(msg.at(i*2+1)));
+        }
     }
 }
 
-void DevSetCan::sendConfig()
+void DevSetCan::configAcw()
 {
     int v = 0;
     int t = 0;
     QByteArray msg;
     for (int i=0; i < 4; i++) {
         if (i == 0) {
-            msg = QByteArray::fromHex("0300048000FFFF00");
-        } else {
-            msg = QByteArray::fromHex("0301058000FFFF32");
-            msg[1] = i;
+            msg = QByteArray::fromHex("0300040001000400");
+        }
+        if (i == 1) {
+            msg = QByteArray::fromHex("0301050001000200");
+        }
+        if (i == 2) {
+            msg = QByteArray::fromHex("0302050001000400");
+        }
+        if (i == 3) {
+            msg = QByteArray::fromHex("0303050002000400");
         }
         tmpMap.insert("index", 0x0023);
         tmpMap.insert("data", msg);
         sender.append(tmpMap);
 
         if (i == 0) {
-            msg = QByteArray::fromHex("040001F4000A01F4");
+            msg = QByteArray::fromHex("040001F4000A0000");
         } else {
             msg = QByteArray::fromHex("040001F4000A0000");
         }
-        v = config[QString::number(AddrAG + i*0x10 + AddrHV)].toInt();
-        t = config[QString::number(AddrAG + i*0x10 + AddrHT)].toInt();
+        v = config[QString::number(AddrHighAG + i*0x10 + AddrSkewHV)].toInt();
+        t = config[QString::number(AddrHighAG + i*0x10 + AddrSkewHT)].toInt();
         msg[1] = i;
         msg[2] = v/256;
         msg[3] = v%256;
@@ -289,51 +313,112 @@ void DevSetCan::sendConfig()
     }
 }
 
-void DevSetCan::sendThread()
+void DevSetCan::selectAcw()
 {
-    int index;
+    int index = 0;
     QByteArray msg;
     switch (currAddr) {
-    case AddrAG:
+    case AddrHighAG:
         index = 0x0023;
-        msg = QByteArray::fromHex("0104001300");  // 启动绝缘
+        msg = QByteArray::fromHex("0104001100");  // 启动绝缘
         break;
-    case AddrAC:
+    case AddrHighAC:
         index = 0x0023;
-        msg = QByteArray::fromHex("0105001301");  // 启动交耐
+        msg = QByteArray::fromHex("0105001101");  // 启动交耐
+        break;
+    case AddrHighAL:
+        index = 0x0023;
+        msg = QByteArray::fromHex("0105001102");  // 启动交耐
+        break;
+    case AddrHighLC:
+        index = 0x0023;
+        msg = QByteArray::fromHex("0105001103");  // 启动交耐
         break;
     default:
         break;
     }
-    if (msg.isEmpty())
-        return;
-
+    timeOut = 0;
     tmpMap.insert("index", index);
     tmpMap.insert("data", msg);
     sender.append(tmpMap);
     tmpMap.clear();
-    config[QString::number(currAddr + AddrHS)] = 1;
+    config[QString::number(currAddr + AddrSkewHS)] = 1;
 }
 
-void DevSetCan::sendUpdate()
+void DevSetCan::updateAcw(QByteArray msg)
 {
-    for (int i=currAddr; i < currAddr+0x10; i++) {
+    quint8 cmd = quint8(msg.at(0));
+    quint8 num = quint8(msg.at(1));
+    if (cmd == 0x00) {
+        config[QString::number(currAddr + AddrSkewHS)] = num;
+        updateDat();
+    }
+    if (cmd == 0x01) {
+        config[QString::number(currAddr + AddrSkewHU)] = quint8(msg.at(1))*256 + (quint8)msg.at(2);
+        config[QString::number(currAddr + AddrSkewHR)] = quint8(msg.at(3))*256 + (quint8)msg.at(4);
+        config[QString::number(currAddr + AddrSkewHD)] = quint8(msg.at(5));
+        double r = quint8(msg.at(3))*256 + (quint8)msg.at(4);
+        r *= qPow(10, -quint8(msg.at(5)));
+        double h = config[QString::number(currAddr + AddrSkewHH)].toDouble();
+        double l = config[QString::number(currAddr + AddrSkewHL)].toDouble();
+        h = (currAddr == AddrHighAG) ? h : h/100;
+        l = (currAddr == AddrHighAG) ? l : l/100;
+        if (h == 0) {
+            config[QString::number(currAddr + AddrSkewHJ)] = (r > l) ? 1 : 0;
+        } else {
+            config[QString::number(currAddr + AddrSkewHJ)] = (r > l && r < h) ? 1 : 0;
+        }
+        updateDat();
+    }
+}
+
+void DevSetCan::updateDat()
+{
+    t.restart();
+    for (int i=AddrConfig; i < AddrConfig+0x0100; i++) {
         tmpMap[QString::number(i)] = config[QString::number(i)];
     }
-    tmpMap.insert("enum", Qt::Key_Refresh);
+    for (int i=0; i < 400; i++) {
+        tmpMap[QString::number(AddrWaveTP + i)] = config[QString::number(AddrWaveTP + i)];
+    }
+    qDebug() << "can copy:" << t.elapsed();
+    t.restart();
+    tmpMap.insert("enum", Qt::Key_News);
     tmpMap.insert("text", currAddr);
     emit sendAppMap(tmpMap);
     tmpMap.clear();
+    qDebug() << "can time:" << t.elapsed();
 }
 
 void DevSetCan::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_Option:
+    case Qt::Key_Copy:
         config = msg;
         break;
-    case Qt::Key_Play:
-        setStatus(msg.value("text").toInt());
+    case Qt::Key_Play:  // 启动测试
+        currAddr = msg.value("text").toInt();
+        if (currAddr >= AddrHighAG && currAddr <= AddrHighLC) {
+            selectAcw();
+        }
+        if (currAddr == AddrSetIMP) {
+            selectImp();
+        }
+        break;
+    case Qt::Key_Send:  // 下发配置/采样
+        currAddr = msg.value("text").toInt();
+        if (currAddr == AddrConfig) {
+            configAcw();
+            configImp();
+        }
+        if (currAddr == AddrSetIMP) {
+            sampleImp();
+        }
+        break;
+    case Qt::Key_Plus:
+        getAllDat();
+        putAllDat();
+        updateAll();
         break;
     default:
         break;

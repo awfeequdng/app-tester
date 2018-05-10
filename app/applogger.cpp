@@ -180,7 +180,7 @@ void AppLogger::changeHandle(int t)
 void AppLogger::recvAppMap(QVariantMap msg)
 {  // 调试信息输出保存在0x001F
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_Option:
+    case Qt::Key_Copy:
         config[QString::number(AddrLogger)] = msg[QString::number(AddrLogger)];
         combo->setCurrentIndex(config[QString::number(AddrLogger)].toInt());
         break;

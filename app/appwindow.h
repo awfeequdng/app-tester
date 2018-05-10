@@ -91,6 +91,7 @@ private slots:
     int sendSignin();
     int initSocket();
     int initThread();
+    int getNextItem();
     void initButton(QString title, QString name);
     void showBoxPop(QString text, int t);
     void saveSqlite();
@@ -116,6 +117,7 @@ private slots:
     int testStartSend();
     int testStartTest();
     void testUpdate(QVariantMap msg);
+    void recvUdpMap(QVariantMap msg);
     void recvAppMap(QVariantMap msg);
     void wait(int ms);
 private:
@@ -148,6 +150,7 @@ private:
     int testIndex;
     int timeOut;
     int timeTst;
+    QElapsedTimer t;
 };
 
 #endif // APPWINDOW_H

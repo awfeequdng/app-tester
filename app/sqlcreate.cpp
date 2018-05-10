@@ -63,6 +63,7 @@ void SqlCreate::createSqlite()
     insertModelsInfo(query);
     insertConfigInfo(query);
     insertSetAcwInfo(query);
+    insertSetImpInfo(query);
     db.commit();
 
     query.clear();
@@ -163,7 +164,7 @@ void SqlCreate::insertSignInfo(QSqlQuery query)
 
 void SqlCreate::insertTypeInfo(QSqlQuery query)
 {  // 当前型号
-    int from = AddrConfig;
+    int from = AddrTpName;
     QStringList parm;
     parm << tr("DEFAULT");
     for (int i=parm.size(); i < STEP; i++) {
@@ -394,7 +395,24 @@ void SqlCreate::insertSetAcwInfo(QSqlQuery query)
         parm << "";
     }
 
-    for (int i=0; i < STEP*0x05; i++) {
+    for (int i=0; i < parm.size(); i++) {
+        query.prepare("insert into M_DEFAULT values(?,?)");
+        query.addBindValue(from + i);
+        query.addBindValue(parm.at(i));
+        query.exec();
+    }
+}
+
+void SqlCreate::insertSetImpInfo(QSqlQuery query)
+{
+    int from = AddrSetIMP;
+    QStringList parm;
+    parm << "1" << "" << "500" << "1" << "10" << "10" << "0" << "1";
+    for (int i=parm.size(); i < STEP; i++) {
+        parm << "";
+    }
+
+    for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into M_DEFAULT values(?,?)");
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));

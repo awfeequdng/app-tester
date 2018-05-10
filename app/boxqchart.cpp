@@ -10,13 +10,9 @@
 
 BoxQChart::BoxQChart(QWidget *parent) : QLabel(parent)
 {
+    m_lenth = 0;
+    m_timer = 0;
     m_count = 24;
-    m_title = "电枢";
-    m_units = "s";
-    QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(setClock()));
-    timer->start(5000);
-    setClock();
 }
 
 void BoxQChart::setNum(int num)
@@ -28,7 +24,21 @@ void BoxQChart::setNum(int num)
 void BoxQChart::setStr(QString text)
 {
     m_title = text;
+    if (m_timer%500) {
+        this->update();
+    }
+    m_timer++;
+}
+
+void BoxQChart::setNews(QVariantMap msg)
+{
+    QList<int> t;
+    t << AddrHighAG << AddrHighAC << AddrHighAL << AddrHighLC << AddrSetIMP;
+
+    int addr = t.indexOf(msg.value("text").toInt());
+    m_lenth = (addr + 1) * m_count / t.size();
     this->update();
+
 }
 
 void BoxQChart::mouseReleaseEvent(QMouseEvent *e)
@@ -64,22 +74,15 @@ void BoxQChart::drawPie(QPainter *painter)
 
     painter->setPen(QPen(Qt::transparent));
     for (int i=0; i < m_count; i++) {
-        if (t/10%m_count == m_count-i-1) {
-            painter->setBrush(QBrush(QColor(Qt::green)));
+        if (i < m_lenth) {
+            painter->setBrush(QBrush(QColor("#2C8EE3")));
         } else {
             painter->setBrush(QBrush(QColor(Qt::darkYellow)));
         }
-        if (i == m_count-12) {
-            painter->setBrush(QBrush(QColor(Qt::red)));
-        }
-        int ttt = 3;
-        if (m_count > 24)
-            ttt = 2;
-        if (m_count > 36)
-            ttt = 1;
+        int t = qMin(3, qMax(1, (5 - m_count/12)));
         painter->drawPie(-radius, -radius, radius << 1, radius << 1,
-                         int(startAngle*16), int((angle-ttt)*16));
-        startAngle += angle;
+                         int(startAngle*16), int((angle-t)*16));
+        startAngle -= angle;
     }
     painter->restore();
 }
@@ -88,7 +91,10 @@ void BoxQChart::drawCrown(QPainter *painter)
 { // 内圈圆形
     painter->save();
     int radius = SCALE*32/100;
-    painter->setBrush(QBrush(QColor(19, 19, 19, 255)));
+    if (m_count < 12) {
+        radius = SCALE*28/100;
+    }
+    painter->setBrush(QBrush(QColor("#191919")));
     painter->setPen(Qt::NoPen);
     painter->drawEllipse(-radius, -radius, radius << 1, radius << 1);
     painter->restore();
@@ -101,6 +107,9 @@ void BoxQChart::drawScaleNum(QPainter *painter)
     double deltaRad = 2 * PI / m_count;
     double sina, cosa;
     int radius = SCALE*28/100;
+    if (m_count < 12) {
+        radius = SCALE*24/100;
+    }
     int x, y;
     QFontMetricsF fm(this->font());
     double w, h, tmpVal;
@@ -128,31 +137,13 @@ void BoxQChart::drawScaleNum(QPainter *painter)
     painter->restore();
 }
 
-void BoxQChart::drawClock(QPainter *painter)
-{
-    painter->save();
-    int radius = SCALE*12/100;
-    double startAngle = 90;
-    painter->setPen(QPen(Qt::transparent));
-    painter->setBrush(QBrush(QColor(Qt::darkGreen)));
-    painter->drawPie(-radius, -radius, radius << 1, radius << 1,
-                     int(startAngle*16), int(-(30*t/100)*16));
-    painter->restore();
-}
-
-void BoxQChart::setClock()
-{
-    m_title = QTime::currentTime().toString("hh:mm");
-    this->update();
-}
-
 void BoxQChart::drawTitle(QPainter *painter)
 {
     painter->save();
     painter->setPen(Qt::white);
     QString str(m_title); //显示仪表的功能
     QFont font = painter->font();
-    font.setPixelSize(28);
+    font.setPixelSize(24);
     painter->setFont(font);
     QFontMetricsF fm(painter->font());
     double w = fm.size(Qt::TextSingleLine, str).width();

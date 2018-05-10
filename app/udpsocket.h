@@ -14,12 +14,7 @@
 #include <QObject>
 #include <QUdpSocket>
 #include <QMessageBox>
-
-#include "qjson/QJsonArray.h"
-#include "qjson/QJsonObject.h"
-#include "qjson/QJsonDocument.h"
-
-#define TIME_OUT 1000
+#include <QtXml/QDomDocument>
 
 class UdpSocket : public QUdpSocket
 {
@@ -28,12 +23,14 @@ public:
     explicit UdpSocket(QObject *parent = 0);
 signals:
     void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QMap<int, QString> msg);
 private slots:
     void initSocket();
     void readReady();
-    void saveAll();
-    void writeBytes(QVariantMap msg);
-    void recvUdpMap(QVariantMap msg);
+    void recvAll();
+    void sendAll();
+    void recvUdpXml(QByteArray dat);
+    void sendUdpXml(QVariantMap msg);
     void recvAppMap(QVariantMap msg);
 private:
     quint16 hostPort;
@@ -45,6 +42,7 @@ private:
     QVariantMap config;
     QQueue<QByteArray> sender;
     QQueue<QByteArray> recver;
+    QMap<int, QString> tmpMsg;
 };
 
 #endif // UDPSOCKET_H

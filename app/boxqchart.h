@@ -21,6 +21,8 @@
 
 #include <cmath>
 
+#include "appdefine.h"
+
 #define PI 3.1415926
 #define SCALE 200.0
 
@@ -34,6 +36,7 @@ signals:
 public:
     void setNum(int num);
     void setStr(QString text);
+    void setNews(QVariantMap msg);
 protected:
     void mouseReleaseEvent(QMouseEvent *e);
     void paintEvent(QPaintEvent *event);
@@ -41,15 +44,11 @@ protected:
     void drawCrown(QPainter *painter);
     void drawTitle(QPainter *painter);
     void drawScaleNum(QPainter *painter);
-    void drawClock(QPainter *painter);
-private slots:
-    void setClock();
 private:
-    QString m_units;
     QString m_title;
     int m_count;
-    QTimer *m_updateTimer;
-    int t;
+    int m_timer;
+    int m_lenth;
 };
 
 #endif // BOXQCHART_H

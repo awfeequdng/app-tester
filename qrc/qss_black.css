@@ -2,13 +2,13 @@
 QMainWindow {
 font:14px "WenQuanYi Mcrio Hei";
 color:white;
-background:#121922
+background:#191919
 }
 /*QWidget*/
 QWidget {
 font:15px "WenQuanYi Mcrio Hei";
 color:white;
-background:#121922;
+background:#191919;
 }
 QWidget:focus {
 outline:none;
@@ -17,12 +17,12 @@ outline:none;
 QFrame {
 font:14px "WenQuanYi Mcrio Hei";
 color:white;
-background:#121922;
+background:#191919;
 }
 /*QDialog*/
 QDialog {
 color:white;
-background:#121922
+background:#191919
 }
 QDialog QPushButton {
 min-height:25px;
@@ -78,16 +78,18 @@ background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #506B79,stop:1.0 #0D95A6);
 /*QPushButton*/
 QPushButton{
 font:18px "WenQuanYi Mcrio Hei";
-border:none;
+border:1px solid #11223F;
 border-radius:5px;
 padding:5px;
-background:#005270;
+background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #5B5F5F,stop:0.5 #0C2436,stop:1 #27405A);
 }
 QPushButton::hover{
-background:#2C8EE3;
+border-color:#11505C;
+background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #758385,stop:0.5 #122C39,stop:1 #0E7788);
 }
 QPushButton::pressed{
-background:#2C8EE3;
+border-color:#11505C;
+background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #969B9C,stop:0.5 #16354B,stop:1 #244F76);
 }
 QPushButton:disabled{
 color:gray;
@@ -102,16 +104,13 @@ QPushButton:flat:hover{
 border-left: 15px solid #2C8EE3;
 background:#005270;
 }
-
 QPushButton:flat:checked{
 border-left: 15px solid #2C8EE3;
 background:#005270;
 }
-
 QPushButton:flat:pressed{
 background:#005270;
 }
-
 QPushButton:flat:disabled{
 color:gray;
 }
@@ -360,7 +359,7 @@ QListView {
 font:15pt;
 border:1px solid #447684;
 gridline-color:#447684;
-background:#121922;
+background:#191919;
 }
 QListView::item:hover {
 color:white;
@@ -385,7 +384,7 @@ background-color:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #353B43,stop:1 #151A
 QTableView {
 border:1px solid #447684;
 gridline-color:#447684;
-background:#080B10;
+background:transparent;
 }
 QTableView::item:hover {
 color:white;

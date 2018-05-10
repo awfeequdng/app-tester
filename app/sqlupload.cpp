@@ -114,7 +114,7 @@ void SqlUpload::saveSettings()
 void SqlUpload::recvAppMap(QVariantMap msg)
 {
     switch (msg.value("enum").toInt()) {
-    case Qt::Key_Option:
+    case Qt::Key_Copy:
         for (int i=0; i < 0x10; i++) {  // 上传配置存放在0x0120~0x012F
             config[QString::number(i+0x00E0)] = msg[QString::number(i+0x00E0)];
         }
