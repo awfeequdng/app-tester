@@ -24,17 +24,18 @@
 #include <QVariant>
 #include <QDateTime>
 
+#include "appdefine.h"
+
 class DevSetRtc : public QObject
 {
     Q_OBJECT
 public:
     explicit DevSetRtc(QObject *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
 private slots:
     void initDevRtc();
     void saveDevRtc(QDateTime t);
-    void recvAppMap(QVariantMap msg);
+    void recvAppMsg(QTmpMap msg);
 private:
     int fd;
 };

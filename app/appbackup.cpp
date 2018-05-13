@@ -92,6 +92,18 @@ void AppBackup::recvAppMap(QVariantMap msg)
     }
 }
 
+void AppBackup::recvAppMsg(QTmpMap msg)
+{
+    int c = msg.value(AddrEnum).toInt();
+    switch (c) {
+    case Qt::Key_Copy:
+        tmpSet = msg;
+        break;
+    default:
+        break;
+    }
+}
+
 void AppBackup::showEvent(QShowEvent *e)
 {
     this->setFocus();

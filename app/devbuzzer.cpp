@@ -43,13 +43,13 @@ void DevBuzzer::sendBuzzer(double duty)
      qDebug() << "pwm paly:" << ret << duty;
 }
 
-void DevBuzzer::recvAppMap(QVariantMap msg)
+void DevBuzzer::recvAppMsg(QTmpMap msg)
 {
-    switch (msg.value("enum").toInt()) {
+    int c = msg.value(AddrEnum).toInt();
+    switch (c) {
     case Qt::Key_Call:
-        if (!msg.value("beep").isNull()) {
-            sendBuzzer(msg.value("beep").toDouble());
-        }
+        if (!msg.value(AddrBeep).isNull())
+            sendBuzzer(msg.value(AddrBeep).toDouble());
         break;
     default:
         break;

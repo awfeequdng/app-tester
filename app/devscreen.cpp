@@ -38,13 +38,13 @@ void DevScreen::sendScreen(double duty)
     qDebug() << "lcd paly:" << ret << duty;
 }
 
-void DevScreen::recvAppMap(QVariantMap msg)
+void DevScreen::recvAppMsg(QTmpMap msg)
 {
-    switch (msg.value("enum").toInt()) {
+    int c = msg.value(AddrEnum).toInt();
+    switch (c) {
     case Qt::Key_Call:
-        if (!msg.value("data").isNull()) {
-            sendScreen(msg.value("data").toDouble());
-        }
+        if (!msg.value(AddrRate).isNull())
+            sendScreen(msg.value(AddrRate).toDouble());
         break;
     default:
         break;

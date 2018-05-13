@@ -28,13 +28,16 @@
 #include <QTableWidgetItem>
 #include <QListView>
 
+#include "appdefine.h"
+#include "typconfig.h"
+
 class TypSetDcr : public QWidget
 {
     Q_OBJECT
 public:
     explicit TypSetDcr(QWidget *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initUI();
     void initLayout();
@@ -44,21 +47,25 @@ private slots:
     void initDiagBar();
     void initViewBar();
     void initButtons();
+    void initSettings();
+    void saveSettings();
     void clickButtons();
+    void recvAppMsg(QTmpMap msg);
+    virtual void showEvent(QShowEvent *e);
 private:
     QVBoxLayout *boxLayout;
-    QVariantMap config;
-
     QCheckBox *boxTemp;
     QCheckBox *boxWeld;
     QCheckBox *boxChip;
     QCheckBox *boxDiag;
     QDoubleSpinBox *boxTime;
-    QDoubleSpinBox *tempMax;
-    QDoubleSpinBox *meldMax;
-    QDoubleSpinBox *chipMax;
-    QDoubleSpinBox *diagMax;
-    QDoubleSpinBox *diagMin;
+    QDoubleSpinBox *maxTemp;
+    QDoubleSpinBox *maxWeld;
+    QDoubleSpinBox *maxChip;
+    QDoubleSpinBox *maxDiag;
+    QDoubleSpinBox *minDiag;
+    QTmpMap tmpSet;
+    QTmpMap tmpMsg;
 };
 
 #endif // TYPSETDCR_H

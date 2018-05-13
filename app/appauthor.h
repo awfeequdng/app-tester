@@ -19,13 +19,15 @@
 
 #include "appdefine.h"
 
+
+
 class AppAuthor : public QWidget
 {
     Q_OBJECT
 public:
     explicit AppAuthor(QWidget *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initUI();
     void initSkin();
@@ -33,11 +35,11 @@ private slots:
     void initTitleBar();
     void initButtonBar();
     void clickButton();
-    void recvAppMap(QVariantMap msg);
+    void recvAppMsg(QTmpMap msg);
 private:
     QLabel *tcpStat;
     QLabel *version;
-    QVariantMap tmpMap;
+    QTmpMap tmpMap;
     QHBoxLayout *topLayout;
     QHBoxLayout *btnLayout;
 };

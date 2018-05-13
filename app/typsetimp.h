@@ -32,6 +32,18 @@
 #include "lib/qcustomplot.h"
 
 #include "appdefine.h"
+#include "typconfig.h"
+
+const int AddrIMPSC = 0x00;  // 测试
+const int AddrIMPSN = 0x01;  // 名称
+const int AddrIMPSV = 0x02;  // 电压
+const int AddrIMPST = 0x03;  // 次数
+const int AddrIMPSH = 0x04;  // 上限
+const int AddrIMPSL = 0x05;  // 下限
+const int AddrIMPSO = 0x06;  // 补偿
+const int AddrIMPSA = 0x07;  // 间隔
+const int AddrIMPSG = 0x08;
+const int AddrIMPSF = 0x09;
 
 #define PI 3.1415926
 
@@ -41,7 +53,7 @@ class TypSetImp : public QWidget
 public:
     explicit TypSetImp(QWidget *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initUI();
     void initLayout();
@@ -53,8 +65,9 @@ private slots:
     void initSettings();
     void saveSettings();
     void waveUpdate();
-    void recvUpdate(QVariantMap msg);
-    void recvAppMap(QVariantMap msg);
+    int calc();
+    void recvUpdate(QTmpMap msg);
+    void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
     QVBoxLayout *boxLayout;
@@ -62,9 +75,14 @@ private:
     QCPGraph *impLine;
     QTableView *view;
     BoxQModel *mView;
-    QVariantMap tmpMap;
-    QVariantMap config;
+    QLabel *text;
+    QList<int> tmpWave;
     QList<int> impWave;
+    int min;
+    int minb;
+    int prev;
+    QTmpMap tmpSet;
+    QTmpMap tmpMsg;
 };
 
 #endif // TYPSETIMP_H

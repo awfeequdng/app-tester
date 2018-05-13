@@ -236,14 +236,18 @@ void AppSignin::initApplyBar()
 void AppSignin::initSettings()
 {
     QStringList users;
-    QString curruser = config[QString::number(AddrSignIn + AddrSkewSU)].toString();
-    QString currpass = config[QString::number(AddrSignIn + AddrSkewSP)].toString();
-    QString currsave = config[QString::number(AddrSignIn + AddrSkewSS)].toString();
-    QString currauto = config[QString::number(AddrSignIn + AddrSkewSA)].toString();
+    int c = tmpSet[AddrUser].toInt();  // 用户存储地址
+    int r = tmpSet[AddrCurr].toInt();  // 当前用户地址
+    int a = tmpSet[AddrAuto].toInt();  // 自动登录配置
+
+    QString curruser = tmpSet[r + AddrName].toString();
+    QString currpass = tmpSet[r + AddrPass].toString();
+    QString currsave = tmpSet[r + AddrSave].toString();
+
     users.append(curruser);
-    for (int i=AddrMaster; i < AddrMaster+0x0100; i+=4) {  // 用户信息存放在0x0100
-        if (config[QString::number(i)].toString() != curruser)
-            users.append(config[QString::number(i)].toString());
+    for (int i=c; i < c + 95; i+=5) {
+        if (tmpSet[i].toString() != curruser)
+            users.append(tmpSet[i].toString());
     }
     users.removeAll("");
     username->clear();
@@ -254,7 +258,7 @@ void AppSignin::initSettings()
     } else {
         password->clear();
     }
-    if (currauto == "1") {
+    if (a == 1) {
         autosign->setChecked(true);
         if (!isOk) {
             checkSignin();
@@ -264,35 +268,29 @@ void AppSignin::initSettings()
 
 void AppSignin::saveSettings()
 {
-    tmpMap.insert(QString::number(AddrSignIn + AddrSkewSU), username->currentText());
-    tmpMap.insert(QString::number(AddrSignIn + AddrSkewSP), password->text());
-    tmpMap.insert(QString::number(AddrSignIn + AddrSkewSS), (autosave->isChecked()) ? "1" : "0");
-    tmpMap.insert(QString::number(AddrSignIn + AddrSkewSA), (autosign->isChecked()) ? "1" : "0");
-    tmpMap.insert("enum", Qt::Key_Save);
-    emit sendAppMap(tmpMap);
-    tmpMap.clear();
+    isOk = true;
+    tmpSet[AddrSign] = 1;
+    int r = tmpSet[AddrCurr].toInt();
+    tmpSet[0 + AddrAuto] = autosign->isChecked() ? 1 : 0;
+    tmpSet[r + AddrSave] = autosave->isChecked() ? 1 : 0;
+    tmpSet[r + AddrLast] = QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss");
+    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    emit sendAppMsg(tmpSet);
+
+    tmpMsg.insert(AddrEnum, Qt::Key_Game);
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
 }
 
 void AppSignin::checkSignin()
 {
-    for (int i=AddrMaster; i < AddrMaster+0x0100; i+=4) {  // 用户信息存放在0x0100
-        QString curruser = config[QString::number(i+AddrSkewMU)].toString();
-        QString currpass = config[QString::number(i+AddrSkewMP)].toString();
-        if (curruser == username->currentText()) {
-            if (currpass == password->text()) {
-                QString t = QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss");
-                config[QString::number(i + AddrSkewMT)] = t;
-                stack->setCurrentIndex(3);
-                saveSettings();
-                tmpMap.insert("enum", Qt::Key_Game);
-                emit sendAppMap(tmpMap);
-                tmpMap.clear();
-                isOk = true;
-            } else {
-                QMessageBox::warning(this, tr("警告"), tr("密码错误"), QMessageBox::Ok);
-            }
-            break;
-        }
+    int r = tmpSet[AddrCurr].toInt();
+    QString currpass = tmpSet[r + AddrPass].toString();
+    if (currpass == password->text()) {
+        stack->setCurrentIndex(3);
+        saveSettings();
+    } else {
+        QMessageBox::warning(this, tr("警告"), tr("密码错误"), QMessageBox::Ok);
     }
 }
 
@@ -300,22 +298,18 @@ void AppSignin::clickLink(QString msg)
 {
     stack->setCurrentIndex(msg.toInt());
     if (sender()->objectName() == "logoff") {
-        tmpMap.insert("enum", Qt::Key_Back);
-        emit sendAppMap(tmpMap);
-        tmpMap.clear();
+        tmpMsg.insert(AddrEnum, Qt::Key_Back);
+        emit sendAppMsg(tmpMsg);
+        tmpMsg.clear();
     }
 }
 
-void AppSignin::recvAppMap(QVariantMap msg)
+void AppSignin::recvAppMsg(QTmpMap msg)
 {
-    switch (msg.value("enum").toInt()) {
+    int c = msg.value(AddrEnum).toInt();
+    switch (c) {
     case Qt::Key_Copy:
-        for (int i=AddrSignIn; i < AddrSignIn + 0x10; i++) {  // 登录信息存放在0x0040
-            config[QString::number(i)] = msg[QString::number(i)];
-        }
-        for (int i=AddrMaster; i < AddrMaster+0x0100; i++) {  // 用户信息存放在0x0100
-            config[QString::number(i)] = msg[QString::number(i)];
-        }
+        tmpSet = msg;
         break;
     case Qt::Key_Game:
         initSettings();

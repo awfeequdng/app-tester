@@ -103,10 +103,6 @@ void AppTester::initStatus()
     layout->addWidget(status);
     layout->addStretch();
 
-    vLayout = new QHBoxLayout;
-    vLayout->setMargin(0);
-    layout->addLayout(vLayout);
-
     QFrame *box = new QFrame(this);
     box->setLayout(layout);
     view->setCellWidget(0, 0, box);
@@ -476,7 +472,7 @@ void AppTester::initImpWave()
 void AppTester::drawImpWave()
 {
     impLine->setPen(QPen(Qt::green, 2));
-    if (impWave.isEmpty()) {
+    if (tmpWave.isEmpty()) {
         QVector<double> x(1), y(1);
         x[0] = -1;
         y[0] = -1;
@@ -485,7 +481,7 @@ void AppTester::drawImpWave()
         QVector<double> x(400), y(400);
         for (int i=0; i < 400; i++) {
             x[i] = i;
-            y[i] = impWave.at(i)*100/0x0400;
+            y[i] = tmpWave.at(i)*100/0x0400;
         }
         impLine->setData(x, y);
     }
@@ -513,35 +509,35 @@ void AppTester::setViewSize()
 
 void AppTester::drawDcrWave()
 {
-    dcrView->clearGraphs();
-    QCPGraph *graph1 = dcrView->addGraph();
-    graph1->setPen(QPen(Qt::green, 2));
-    QCPGraph *graph2 = dcrView->addGraph();
-    graph2->setPen(QPen(Qt::white, 1));
-    QCPGraph *graph3 = dcrView->addGraph();
-    graph3->setPen(QPen(Qt::white, 1));
-    int c = config[QString::number(AddrConfig + AddrSkewTC)].toInt();
-    QVector<double> x1(c), y1(c), y2(c), y3(c);
+    //    dcrView->clearGraphs();
+    //    QCPGraph *graph1 = dcrView->addGraph();
+    //    graph1->setPen(QPen(Qt::green, 2));
+    //    QCPGraph *graph2 = dcrView->addGraph();
+    //    graph2->setPen(QPen(Qt::white, 1));
+    //    QCPGraph *graph3 = dcrView->addGraph();
+    //    graph3->setPen(QPen(Qt::white, 1));
+    //    int c = config[QString::number(AddrModel + AddrDCRSC)].toInt();
+    //    QVector<double> x1(c), y1(c), y2(c), y3(c);
 
-    int t = qMin(4, qMax(1, c/12));
+    //    int t = qMin(4, qMax(1, c/12));
 
-    for (int i=0; i < c; i++) {
-        x1[i] = i;
-        if (i % 2 == 0) {
-            y1[i] = 50-i/t;
-            y2[i] = 54-i/t;
-            y3[i] = 46-i/t;
-        } else {
-            y1[i] = 55-i/t;
-            y2[i] = 59-i/t;
-            y3[i] = 51-i/t;
-        }
-    }
-    graph1->setData(x1, y1);
-    graph2->setData(x1, y2);
-    graph3->setData(x1, y3);
-    dcrView->xAxis->setRange(0, c-1);
-    dcrView->replot();
+    //    for (int i=0; i < c; i++) {
+    //        x1[i] = i;
+    //        if (i % 2 == 0) {
+    //            y1[i] = 50-i/t;
+    //            y2[i] = 54-i/t;
+    //            y3[i] = 46-i/t;
+    //        } else {
+    //            y1[i] = 55-i/t;
+    //            y2[i] = 59-i/t;
+    //            y3[i] = 51-i/t;
+    //        }
+    //    }
+    //    graph1->setData(x1, y1);
+    //    graph2->setData(x1, y2);
+    //    graph3->setData(x1, y3);
+    //    dcrView->xAxis->setRange(0, c-1);
+    //    dcrView->replot();
 }
 
 void AppTester::initHistogram()
@@ -704,48 +700,46 @@ void AppTester::clickStart()
 {
     if (btnPlay->text() == tr("启动测试")) {
         btnPlay->setText(tr("停止测试"));
-        tmpMap.insert("enum", Qt::Key_Play);
-
+        tmpMsg.insert(AddrEnum, Qt::Key_Play);
     } else {
         btnPlay->setText(tr("启动测试"));
-        tmpMap.insert("enum", Qt::Key_Stop);
+        tmpMsg.insert(AddrEnum, Qt::Key_Stop);
     }
-    emit sendAppMap(tmpMap);
-    tmpMap.clear();
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
 }
 
 void AppTester::clickButton()
 {
-    tmpMap.insert("enum", Qt::Key_View);
-    tmpMap.insert("text", sender()->objectName());
-    emit sendAppMap(tmpMap);
-    tmpMap.clear();
+    tmpMsg.insert(AddrEnum, Qt::Key_View);
+    tmpMsg.insert(AddrText, sender()->objectName());
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
 }
 
 void AppTester::clearView()
 {
-    QStringList tmp;
-    tmp << tr("绝缘电阻") << tr("轴铁耐压") << tr("轴线耐压") << tr("线铁耐压");
-    int addr;
     QString tt;
-    for (int i=0; i < tmp.size(); i++) {
-        addr = AddrHighAG + i*0x10;
-        double v = config[QString::number(addr + AddrSkewHV)].toDouble()/1000;
-        double h = config[QString::number(addr + AddrSkewHH)].toDouble();
-        double l = config[QString::number(addr + AddrSkewHL)].toDouble();
+    for (int i=0; i < 4; i++) {
+        int r = tmpSet[AddrACWS1 + i].toInt();  // 高压配置地址
+        double c = tmpSet[r + AddrACWSC].toDouble();
+        double v = tmpSet[r + AddrACWSV].toDouble()/1000;
+        double h = tmpSet[r + AddrACWSH].toDouble();
+        double l = tmpSet[r + AddrACWSL].toDouble();
+        QString n = tmpSet[r + AddrACWSN].toString();
+        h = (i == 0) ? h : h/100;
+        l = (i == 0) ? l : l/100;
         if (i == 0) {
             tt = titleOK + "&nbsp;&nbsp;%1&nbsp;&nbsp;DC:%2kV&nbsp;&nbsp;IR:%3MΩ</p>";
-            tt = tt.arg(tmp.at(i)).arg(QString::number(v, 'f', 3));
+            tt = tt.arg(n).arg(QString::number(v, 'f', 3));
             tt = tt.arg(l);
         } else {
             tt = titleOK + "&nbsp;&nbsp;%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;I:%3~%4mA</p>";
-            tt = tt.arg(tmp.at(i)).arg(QString::number(v, 'f', 3));
-            h /= 100;
-            l /= 100;
+            tt = tt.arg(n).arg(QString::number(v, 'f', 3));
             tt = tt.arg(QString::number(l, 'f', 2)).arg(QString::number(h, 'f', 2));
         }
         acwTitles.at(i)->setText(tt);
-        QString color = (config[QString::number(addr)].toInt() == 1) ? largeOK : largeON;
+        QString color = (c == 1) ? largeOK : largeON;
         acwLabels.at(i*3 + 0)->setText(color.arg("-.---kV"));
         if (i == 0) {
             acwLabels.at(3*i + 1)->setText(color.arg("---.-MΩ"));
@@ -755,31 +749,37 @@ void AppTester::clearView()
         acwLabels.at(3*i + 2)->setText(color.arg("--"));
     }
     if (1) {
-        double v = config[QString::number(AddrSetIMP + AddrSkewIV)].toDouble()/1000;
-        double h = config[QString::number(AddrSetIMP + AddrSkewIH)].toDouble();
+        int r = tmpSet[AddrIMPS1].toInt();  // 匝间配置地址
+        double c = tmpSet[r + AddrACWSC].toDouble();
+        double v = tmpSet[r + AddrACWSV].toDouble()/1000;
+        double h = tmpSet[r + AddrACWSH].toDouble();
+        QString n = tmpSet[r + AddrACWSN].toString();
+
 
         tt = titleOK + "&nbsp;&nbsp;%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;&lt;%3%</p>";
-        tt = tt.arg("匝间测试").arg(QString::number(v, 'f', 3));
+        tt = tt.arg(n).arg(QString::number(v, 'f', 3));
         tt = tt.arg(QString::number(h, 'f', 2));
         impTitles.at(0)->setText(tt);
-        QString color = (config[QString::number(AddrSetIMP)].toInt() == 1) ? largeOK : largeON;
+        QString color = (c == 1) ? largeOK : largeON;
         impLabels.at(0)->setText(color.arg("-.---kV"));
         impLabels.at(1)->setText(color.arg("-.---%"));
         impLabels.at(2)->setText(color.arg("--"));
 
-        impWave.clear();
+        tmpWave.clear();
         drawImpWave();
     }
-    status->item(0, 1)->setText(config[QString::number(AddrSignIn)].toString());
-    status->item(0, 3)->setText(config[QString::number(AddrTpName)].toString());
-    tmpMap.insert("text", 0);
-    boxChart->setNews(tmpMap);
-    tmpMap.clear();
+    status->item(0, 1)->setText(tmpSet[AddrSignIn].toString());
+    status->item(0, 3)->setText(tmpSet[AddrTpName].toString());
+    prev = 0;
+    min = 0xffff;
+    minb = 0;
+    impWave.clear();
 }
 
-void AppTester::recvAppLed(QVariantMap msg)
+void AppTester::recvLedMsg(QTmpMap msg)
 {
-    if (msg.value("text").toString() == "LEDY") {
+    QString tmp = msg.value(AddrText).toString();
+    if (tmp == "LEDY") {
         clearView();
         btnPlay->setText(tr("停止测试"));
         textResult->setText(judgeON.arg("ON"));
@@ -790,27 +790,29 @@ void AppTester::recvAppLed(QVariantMap msg)
         view->setEnabled(true);
         btnPlay->setText(tr("启动测试"));
     }
-    if (msg.value("text").toString() == "LEDG") {
+    if (tmp == "LEDG") {
         textResult->setText(judgeOK);
     }
-    if (msg.value("text").toString() == "LEDR") {
+    if (tmp == "LEDR") {
         textResult->setText(judgeNG);
     }
 }
 
-void AppTester::recvUpdate(QVariantMap msg)
+void AppTester::recvUpdate(QTmpMap msg)
 {
-    boxChart->setNews(msg);
-    int addr = msg.value("text").toInt();
-    if (addr >= AddrHighAG && addr < AddrHighAG + 0x40) {
-        int t = (addr%AddrHighAG)/0x10;
-        double j = msg[QString::number(addr + AddrSkewHJ)].toInt();
+    if (this->isHidden())
+        return;
+    int addr = msg.value(AddrText).toInt();
+    if (addr >= AddrACWS1 && addr <= AddrACWS4) {
+        int t = addr % AddrACWS1;
+        int s = msg[AddrINRA + t].toInt();
+        double j = msg[s + AddrACWJ].toInt();
+        double v = msg[s + AddrACWU].toInt();
+        double r = msg[s + AddrACWR].toInt();
+        double p = msg[s + AddrACWP].toInt();
         QString color = (j == 0) ? largeNG : largeOK;
         QString judge = (j == 0) ? "NG" : "OK";
-        double v = msg[QString::number(addr + AddrSkewHU)].toInt();
-        double r = msg[QString::number(addr + AddrSkewHR)].toInt();
-        double d = msg[QString::number(addr + AddrSkewHD)].toInt();
-        r *= qPow(10, -d);
+        r *= qPow(10, -p);
         QString volt = QString::number(v/1000, 'f', 3) + "kV";
         QString real = QString::number(r, 'f', 3) + "mA";
         if (t == 0) {
@@ -819,57 +821,59 @@ void AppTester::recvUpdate(QVariantMap msg)
         acwLabels.at(3*t + 0)->setText(color.arg(volt));
         acwLabels.at(3*t + 1)->setText(color.arg(real));
         acwLabels.at(3*t + 2)->setText(color.arg(judge));
-
-        QStringList keys = msg.keys();
-        keys.removeOne("enum");
-        keys.removeOne("text");
-        for (int i=0; i < keys.size(); i++) {
-            config[keys.at(i)] = msg[keys.at(i)];
-        }
     }
-    if (addr == AddrSetIMP) {
-        int t = 0;
-        double j = msg[QString::number(addr + AddrSkewHJ)].toInt();
+    if (addr == AddrIMPS1) {
+        QString real;
+        if (msg[AddrData].toInt() == 0) {
+            tmpWave = impWave.mid(minb*400, 400);
+
+            real = QString::number(diff.at(minb), 'f', 3) + "%";
+            diff.clear();
+            min = 0xffff;
+            minb = 0;
+            impWave.clear();
+            drawImpWave();
+        } else {
+            tmpWave.clear();
+            int t = msg[AddrIMPW].toInt();  // 匝间波形地址
+            for (int i=0; i < 400; i++) {
+                tmpWave.append(msg[t + i].toInt());
+            }
+            impWave.append(tmpWave);
+
+            int s = msg[AddrIMPA].toInt() + msg[AddrData].toInt() - 1;
+            double r = msg[s].toDouble();
+            diff.append(r);
+            real = QString::number(diff.last(), 'f', 3) + "%";
+            if (r < min)
+                minb = msg[AddrData].toInt() - 1;
+            min = qMin(r, min);
+        }
+        double j = msg[AddrIMPJ].toInt();
+        double v = msg[AddrIMPU].toInt();
+
         QString color = (j == 0) ? largeNG : largeOK;
         QString judge = (j == 0) ? "NG" : "OK";
-        double v = msg[QString::number(addr + AddrSkewHU)].toInt();
-        double r = msg[QString::number(addr + AddrSkewHR)].toInt();
-
         QString volt = QString::number(v/1000, 'f', 3) + "kV";
-        QString real = QString::number(r, 'f', 3) + "%";
+        impLabels.at(0)->setText(color.arg(volt));
+        impLabels.at(1)->setText(color.arg(real));
+        impLabels.at(2)->setText(color.arg(judge));
 
-        impLabels.at(3*t + 0)->setText(color.arg(volt));
-        impLabels.at(3*t + 1)->setText(color.arg(real));
-        impLabels.at(3*t + 2)->setText(color.arg(judge));
-        impWave.clear();
-        for (int i=0; i < 400; i++) {
-            impWave.append(msg[QString::number(AddrWaveTP + i)].toInt());
-        }
-        drawImpWave();
     }
 }
 
-void AppTester::recvAppMap(QVariantMap msg)
+void AppTester::recvAppMsg(QTmpMap msg)
 {
-    switch (msg.value("enum").toInt()) {
+    int c = msg.value(0).toInt();
+    switch (c) {
     case Qt::Key_Copy:
-        config = msg;
-        boxChart->setNum(msg[QString::number(AddrConfig + AddrSkewTC)].toInt());
+        tmpSet = msg;
         break;
     case Qt::Key_News:
-        if (this->isHidden())
-            break;
         recvUpdate(msg);
         break;
     case Qt::Key_Call:
-        recvAppLed(msg);
-        break;
-    case Qt::Key_Play:
-        break;
-    case Qt::Key_Stop:
-        break;
-    case Qt::Key_Plus:
-        boxChart->setStr(QTime::currentTime().toString("hh:mm"));
+        recvLedMsg(msg);
         break;
     default:
         break;

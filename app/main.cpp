@@ -43,6 +43,8 @@ int main(int argc, char *argv[])
     AppWindow w;
     w.show();
 
+
+
 #ifdef __arm__
     BoxQInput::instance()->hide();
 #endif

@@ -12,3 +12,15 @@ TypOffAcw::TypOffAcw(QWidget *parent) : QWidget(parent)
 {
 }
 
+void TypOffAcw::recvAppMsg(QTmpMap msg)
+{
+    int c = msg.value(AddrEnum).toInt();
+    switch (c) {
+    case Qt::Key_Copy:
+        tmpSet = msg;
+        break;
+    default:
+        break;
+    }
+}
+

@@ -47,42 +47,23 @@ void SqlCreate::createSqlite()
         qDebug() << "create table G_DEFAULT Error";
     }
     db.transaction();
-    insertStatInfo(query);
-    insertBackinfo(query);
-    insertSystInfo(query);
-    insertUserInfo(query);
-    insertSignInfo(query);
-    insertTypeInfo(query);
-    insertOffsetDcr(query);
-    insertOffsetInr(query);
-    insertOffsetAcw(query);
-    insertOffsetImp(query);
-    insertSqlNetwork(query);
+    //    insertBackinfo(query);
+    //    insertSystInfo(query);
+    //    insertUserInfo(query);
+    //    insertSignInfo(query);
+        insertTypeInfo(query);
+    //    insertOffsetDcr(query);
+    //    insertOffsetInr(query);
+    //    insertOffsetAcw(query);
+    //    insertOffsetImp(query);
+    //    insertSqlNetwork(query);
     insertMasterInfo(query);
     insertSourceInfo(query);
     insertModelsInfo(query);
     insertConfigInfo(query);
-    insertSetAcwInfo(query);
-    insertSetImpInfo(query);
     db.commit();
 
     query.clear();
-}
-
-void SqlCreate::insertStatInfo(QSqlQuery query)
-{  // 软件状态区,默认为空
-    int from = 0x0000;
-    QStringList parm;
-
-    for (int i=parm.size(); i < STEP; i++) {
-        parm << "";
-    }
-    for (int i=0; i < parm.size(); i++) {
-        query.prepare("insert into G_DEFAULT values(?,?)");
-        query.addBindValue(from + i);
-        query.addBindValue(parm.at(i));
-        query.exec();
-    }
 }
 
 void SqlCreate::insertBackinfo(QSqlQuery query)
@@ -164,7 +145,7 @@ void SqlCreate::insertSignInfo(QSqlQuery query)
 
 void SqlCreate::insertTypeInfo(QSqlQuery query)
 {  // 当前型号
-    int from = AddrTpName;
+    int from = 2500;
     QStringList parm;
     parm << tr("DEFAULT");
     for (int i=parm.size(); i < STEP; i++) {
@@ -267,16 +248,15 @@ void SqlCreate::insertSqlNetwork(QSqlQuery query)
 
 
 void SqlCreate::insertMasterInfo(QSqlQuery query)
-{  // 用户组别:0-超级用户;1-管理员;2-技术员;3-操作员;4-未登录;
-    int from = AddrMaster;
+{  // name pass role last save
+    int from = 2300;
     QStringList parm;
-    QString time = QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss");
-    parm << "supper" << "aip9918" << "0" << time;
-    parm << "admin" << "6" << "1" << time;
-    parm << "techo" << "6" << "2" << time;
-    parm << "guest" << "6" << "3" << time;
-    for (int i=parm.size(); i < STEP*0x10; i+=4) {
-        parm << "" << "" << "" << "";
+    parm << "supper" << "aip9918" << "0" << "" << "0";
+    parm << "admin" << "6" << "1" << "" << "1";
+    parm << "techo" << "6" << "2" << "" << "1";
+    parm << "guest" << "6" << "3" << "" << "1";
+    for (int i=parm.size(); i < 100; i+=5) {
+        parm << "" << "" << "" << "" << "";
     }
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into G_DEFAULT values(?,?)");
@@ -287,44 +267,34 @@ void SqlCreate::insertMasterInfo(QSqlQuery query)
 }
 
 void SqlCreate::insertSourceInfo(QSqlQuery query)
-{   // 界面组别:0-所有界面;1-系统设置;2-型号管理;3-数据管理;
-    // 界面权限:0-超级用户;1-管理员;2-技术员;3-操作员;4-未登录;
-    int from = AddrAction;
+{   // name mark role form
+    int from = 2200;
     QStringList parm;
-    parm << "backup" << "后台管理" << "1" << "0";
-    parm << "ioctrl" << "输出调试" << "1" << "0";
-    parm << "logger" << "调试信息" << "1" << "0";
-    parm << "offdcr" << "电阻后台" << "2" << "0";
-    parm << "offacw" << "绝缘后台" << "2" << "0";
-    parm << "offimp" << "匝间后台" << "2" << "0";
-    for (int i=parm.size(); i < 0x0020; i+=4) {
-        parm << "" << "" << "" << "";
-    }
-
-    parm << "author" << "系统主页" << "0" << "4";
-    parm << "tester" << "测试界面" << "0" << "4";
-    parm << "signin" << "用户登录" << "1" << "4";
-    for (int i=parm.size(); i < 0x0040; i+=4) {
-        parm << "" << "" << "" << "";
-    }
-
-    parm << "system" << "系统设置" << "1" << "2";
+    parm << "backup" << "后台管理" << "0" << "1";
+    parm << "ioctrl" << "输出调试" << "0" << "1";
+    parm << "logger" << "调试信息" << "0" << "1";
+    parm << "offdcr" << "电阻后台" << "0" << "2";
+    parm << "offacw" << "绝缘后台" << "0" << "2";
+    parm << "offimp" << "匝间后台" << "0" << "2";
+    parm << "author" << "系统主页" << "4" << "0";
+    parm << "tester" << "测试界面" << "4" << "0";
+    parm << "signin" << "用户登录" << "4" << "1";
+    parm << "system" << "系统设置" << "2" << "1";
     parm << "master" << "用户管理" << "1" << "1";
     parm << "action" << "权限管理" << "1" << "1";
-    parm << "config" << "型号管理" << "2" << "3";
+    parm << "config" << "型号管理" << "3" << "2";
     parm << "setdcr" << "电阻配置" << "2" << "2";
     parm << "setacw" << "介电强度" << "2" << "2";
     parm << "setimp" << "匝间配置" << "2" << "2";
+    parm << "record" << "数据管理" << "1" << "3";
+    parm << "upload" << "上传管理" << "1" << "3";
+    parm << "sdcard" << "历史数据" << "1" << "3";
+    parm << "unqual" << "不良分析" << "1" << "3";
 
-    parm << "record" << "数据管理" << "3" << "1";
-    parm << "upload" << "上传管理" << "3" << "1";
-    parm << "sdcard" << "历史数据" << "3" << "1";
-    parm << "unqual" << "不良分析" << "3" << "1";
-
-    for (int i=parm.size(); i < STEP*0x10; i+=4) {
+    for (int i=parm.size(); i < 100; i+=4) {
         parm << "" << "" << "" << "";
     }
-    for (int i=0; i < STEP*0x10; i++) {
+    for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into G_DEFAULT values(?,?)");
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
@@ -334,14 +304,14 @@ void SqlCreate::insertSourceInfo(QSqlQuery query)
 
 void SqlCreate::insertModelsInfo(QSqlQuery query)
 {
-    int from = AddrModels;
+    int from = 2000;
     QStringList parm;
-    parm << "DEFAULT";
+    parm << "2500" << "2305" << "1" << "0";
 
-    for (int i=parm.size(); i < STEP*0x10; i++) {
+    for (int i=parm.size(); i < 10; i++) {
         parm << "";
     }
-    for (int i=0; i < STEP*0x10; i++) {
+    for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into G_DEFAULT values(?,?)");
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
@@ -357,61 +327,18 @@ void SqlCreate::insertModelsInfo(QSqlQuery query)
 
 void SqlCreate::insertConfigInfo(QSqlQuery query)
 {
-    int from = 0x0400;
+    int from = 3000;
     QStringList parm;
-    parm << "DEFAULT" << "24" << "24";
-    for (int i=parm.size(); i < STEP; i++) {
-        parm << "";
-    }
-    for (int i=0; i < parm.size(); i++) {
-        query.prepare("insert into M_DEFAULT values(?,?)");
-        query.addBindValue(from + i);
-        query.addBindValue(parm.at(i));
-        query.exec();
-    }
-}
-
-void SqlCreate::insertSetAcwInfo(QSqlQuery query)
-{  // 介电强度
-    int from = 0x0460;
-    QStringList parm;
-    for (int i=parm.size(); i < STEP*0x01; i++) {
-        parm << "";
-    }
-    parm << "1" << "" << "500" << "10" << "0" << "500" << "0" << "0";
-    for (int i=parm.size(); i < STEP*0x02; i++) {
-        parm << "";
-    }
-    parm << "1" << "" << "1500" << "10" << "500" << "0" << "0" << "0";
-    for (int i=parm.size(); i < STEP*0x03; i++) {
-        parm << "";
-    }
-    parm << "1" << "" << "2500" << "10" << "500" << "0" << "0" << "0";
-    for (int i=parm.size(); i < STEP*0x04; i++) {
-        parm << "";
-    }
-    parm << "1" << "" << "4500" << "10" << "500" << "0" << "0" << "0";
-    for (int i=parm.size(); i < STEP*0x05; i++) {
-        parm << "";
-    }
-
-    for (int i=0; i < parm.size(); i++) {
-        query.prepare("insert into M_DEFAULT values(?,?)");
-        query.addBindValue(from + i);
-        query.addBindValue(parm.at(i));
-        query.exec();
-    }
-}
-
-void SqlCreate::insertSetImpInfo(QSqlQuery query)
-{
-    int from = AddrSetIMP;
-    QStringList parm;
-    parm << "1" << "" << "500" << "1" << "10" << "10" << "0" << "1";
-    for (int i=parm.size(); i < STEP; i++) {
-        parm << "";
-    }
-
+    parm << "2010" << "2020" << "2030" << "2040" << "2050" << "2060" << "2070" << "2080" << "2090" << "";
+    parm << "DEFAULT" << "12" << "12" << "" << "" << "" << "" << "" << "" << "";  // 综合配置
+    parm << "1" << "10000" << "1" << "25000" << "500" << "" << "" << "" << "" << "";  // 片间配置
+    parm << "1" << "500" << "" << "" << "" << "" << "" << "" << "" << "";  // 焊接配置
+    parm << "1" << "500" << "1500" << "" << "" << "" << "" << "" << "" << "";  // 跨间配置
+    parm << "1" << tr("绝缘电阻") << "500" << "10" << "0" << "500" << "0" << "0" << "" << "";  // 绝缘配置
+    parm << "1" << tr("轴铁耐压") << "1500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 轴铁配置
+    parm << "1" << tr("轴线耐压") << "2500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 轴线配置
+    parm << "1" << tr("铁线耐压") << "4500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 铁线配置
+    parm << "1" << tr("匝间测试") << "500" << "1" << "10" << "10" << "0" << "1"<< "1" << "7";  // 匝间
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into M_DEFAULT values(?,?)");
         query.addBindValue(from + i);

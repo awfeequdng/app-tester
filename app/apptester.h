@@ -34,6 +34,12 @@
 
 #include "appdefine.h"
 
+#include "devsetcan.h"
+#include "typconfig.h"
+#include "typsetdcr.h"
+#include "typsetacw.h"
+#include "typsetimp.h"
+
 #define NUMS 72
 
 const QString StyleOK = "<p style='font-size:10px;color:#FFFFFF;line-height:14px;'align='left'>";
@@ -57,7 +63,7 @@ class AppTester : public QWidget
 public:
     explicit AppTester(QWidget *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initUI();
     void initSkin();
@@ -89,41 +95,25 @@ private slots:
     void clickStart();
     void clickButton();
     void clearView();
-    void recvAppLed(QVariantMap msg);
-    void recvUpdate(QVariantMap msg);
-    void recvAppMap(QVariantMap msg);
+    void recvLedMsg(QTmpMap msg);
+    void recvUpdate(QTmpMap msg);
+    void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
     QTableWidget *status;
-    QHBoxLayout *vLayout;
     QVBoxLayout *mLayout;
-    QVBoxLayout *btnLayout;
     QCustomPlot *dcrView;
     QCustomPlot *impView;
     QTableWidget *view;
-    QStandardItemModel *mView;
-    QGroupBox *dcrBox;
-    QGroupBox *impBox;
-
     QLabel *textResult;
     QLabel *textWorker;
-
-    QVariantMap tmpMap;
-    QVariantMap config;
-
-    QSplitter *hsplitter1;
-    QSplitter *hsplitter2;
-
     QCustomPlot *histogram;
     QList<QCPBars*> bars;
     quint32 countOk;
     quint32 countAll;
 
-    QSplitter *vsp1;
-    int tt;
     QList<QLabel*> acwLabels;
     QList<QLabel*> acwTitles;
-
     QList<QLabel*> impLabels;
     QList<QLabel*> impTitles;
 
@@ -134,9 +124,16 @@ private:
 
     BoxQChart *boxChart;
 
+    QList<int> tmpWave;
     QList<int> impWave;
+    QList<double> diff;
+    double prev;
+    double min;
+    int minb;
     QCPGraph *impLine;
     QElapsedTimer t;
+    QTmpMap tmpSet;
+    QTmpMap tmpMsg;
 };
 
 #endif // APPTESTER_H

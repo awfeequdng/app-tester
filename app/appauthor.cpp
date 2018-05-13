@@ -103,20 +103,24 @@ void AppAuthor::initButtonBar()
 
 void AppAuthor::clickButton()
 {
-    tmpMap.insert("enum", Qt::Key_View);
-    tmpMap.insert("text", QObject::sender()->objectName());
-    emit sendAppMap(tmpMap);
+    tmpMap.insert(0, Qt::Key_View);
+    tmpMap.insert(AddrText, QObject::sender()->objectName());
+    emit sendAppMsg(tmpMap);
     tmpMap.clear();
 }
 
-void AppAuthor::recvAppMap(QVariantMap msg)
+void AppAuthor::recvAppMsg(QTmpMap msg)
 {
-    switch (msg.value("enum").toInt()) {
+    int c = msg.value(0).toInt();
+    switch (c) {
     case Qt::Key_Copy:
-        version->setText(msg[QString::number(AddrVerNub)].toString());
+        version->setText(msg.value(AddrSoft).toString());
         break;
     case Qt::Key_WLAN:
-        tcpStat->show();
+        if (tcpStat->isHidden())
+            tcpStat->show();
+        else
+            tcpStat->hide();
         break;
     default:
         break;

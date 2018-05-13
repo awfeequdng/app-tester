@@ -29,13 +29,16 @@
 
 #include "appdefine.h"
 
+#include "appmaster.h"
+#include "appaction.h"
+
 class AppSignin : public QDialog
 {
     Q_OBJECT
 public:
     explicit AppSignin(QWidget *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initUI();
     void initLayout();
@@ -48,7 +51,7 @@ private slots:
     void saveSettings();
     void checkSignin();
     void clickLink(QString msg);
-    void recvAppMap(QVariantMap msg);
+    void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
     QFrame *title;
@@ -59,9 +62,9 @@ private:
     QCheckBox *autosign;
     QList<QComboBox*> inputs;
 
-    QVariantMap tmpMap;
-    QVariantMap config;
     bool isOk;
+    QTmpMap tmpSet;
+    QTmpMap tmpMsg;
 };
 
 #endif // APPSIGNIN_H

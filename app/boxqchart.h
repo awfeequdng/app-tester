@@ -36,7 +36,6 @@ signals:
 public:
     void setNum(int num);
     void setStr(QString text);
-    void setNews(QVariantMap msg);
 protected:
     void mouseReleaseEvent(QMouseEvent *e);
     void paintEvent(QPaintEvent *event);

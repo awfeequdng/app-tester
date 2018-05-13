@@ -16,6 +16,8 @@
 #include <QMessageBox>
 #include <QtXml/QDomDocument>
 
+#include "appdefine.h"
+
 class UdpSocket : public QUdpSocket
 {
     Q_OBJECT
@@ -23,26 +25,27 @@ public:
     explicit UdpSocket(QObject *parent = 0);
 signals:
     void sendAppMap(QVariantMap msg);
-    void sendAppMsg(QMap<int, QString> msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initSocket();
     void readReady();
     void recvAll();
     void sendAll();
     void recvUdpXml(QByteArray dat);
-    void sendUdpXml(QVariantMap msg);
-    void recvAppMap(QVariantMap msg);
+    void sendUdpXml(QTmpMap msg);
+    void recvAppMsg(QTmpMap msg);
 private:
     quint16 hostPort;
     QHostAddress hostAddr;
     quint16 recvPort;
     QHostAddress recvAddr;
     QByteArray tmpByte;
-    QVariantMap tmpMap;
-    QVariantMap config;
     QQueue<QByteArray> sender;
     QQueue<QByteArray> recver;
-    QMap<int, QString> tmpMsg;
+
+    QTmpMap tmpSet;
+    QTmpMap tmpMsg;
+    bool isOK;
 };
 
 #endif // UDPSOCKET_H

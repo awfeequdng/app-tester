@@ -19,6 +19,11 @@
 
 #include "appdefine.h"
 
+#include "appmaster.h"
+#include "appaction.h"
+#include "typconfig.h"
+
+
 #define STEP 0x0010
 
 class SqlCreate : public QObject
@@ -31,7 +36,6 @@ public slots:
     void createRecord();
     void createSqlite();
 private slots:
-    void insertStatInfo(QSqlQuery query);
     void insertBackinfo(QSqlQuery query);
     void insertSystInfo(QSqlQuery query);
     void insertUserInfo(QSqlQuery query);
@@ -49,8 +53,6 @@ private slots:
     void insertSourceInfo(QSqlQuery query);
     void insertModelsInfo(QSqlQuery query);
     void insertConfigInfo(QSqlQuery query);
-    void insertSetAcwInfo(QSqlQuery query);
-    void insertSetImpInfo(QSqlQuery query);
 };
 
 #endif // SQLCREATE_H

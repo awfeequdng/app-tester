@@ -22,19 +22,17 @@
 #include <QObject>
 #include <QVariant>
 
-#include "devdriver.h"
+#include "appdefine.h"
 
 class DevScreen : public QObject
 {
     Q_OBJECT
 public:
     explicit DevScreen(QObject *parent = 0);
-signals:
-    void sendAppMap(QVariantMap msg);
 private slots:
     void initScreen();
     void sendScreen(double duty);
-    void recvAppMap(QVariantMap msg);
+    void recvAppMsg(QTmpMap msg);
 private:
     int fd;
 };

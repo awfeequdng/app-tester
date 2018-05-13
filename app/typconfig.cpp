@@ -157,6 +157,11 @@ void TypConfig::initButtonBar()
     btnLayout->addWidget(next);
     connect(next, SIGNAL(clicked(bool)), this, SLOT(clickButtons()));
 
+    QLabel *type = new QLabel(this);
+    type->setFixedSize(125, 40);
+    type->setText(tr("当前型号:"));
+    btnLayout->addWidget(type);
+
     btnLayout->addStretch();
 
     QPushButton *btnGet = new QPushButton(this);
@@ -176,17 +181,13 @@ void TypConfig::initButtonBar()
 void TypConfig::initSettings()
 {
     int p = page->text().toInt() - 1;    // 页码
-    int s = AddrModels + C_ROW*p;       // 起始地址
+    int r = tmpSet[AddrTypeC].toInt() ;
+    int s = r + C_ROW*p;       // 起始地址
     for (int i=0; i < C_ROW; i++) {
         int t = s + i;
-        view->item(i, 0)->setText(QString("%1").arg(t-AddrModels+1, 3, 10, QChar('0')));
-        view->item(i, 1)->setText(config[QString::number(t)].toString());
+        view->item(i, 0)->setText(QString("%1").arg(t-r+1, 3, 10, QChar('0')));
+        view->item(i, 1)->setText(tmpSet[t].toString());
     }
-    config[QString::number(AddrConfig + AddrSkewTM)] = config[QString::number(AddrTpName)];
-    for (int i=0; i < 3; i++) {
-        settings->item(i, 1)->setText(config[QString::number(AddrConfig + i)].toString());
-    }
-
     if (isShow == Qt::Key_Less)
         setFrame->show();
     else
@@ -195,12 +196,7 @@ void TypConfig::initSettings()
 
 void TypConfig::saveSettings()
 {
-    for (int i=0; i < 3; i++) {
-        tmpMap[QString::number(AddrConfig + i)] = settings->item(i, 1)->text();
-    }
-    tmpMap.insert("enum", Qt::Key_Save);
-    emit sendAppMap(tmpMap);
-    tmpMap.clear();
+
 }
 
 void TypConfig::appendModelType()
@@ -318,21 +314,16 @@ void TypConfig::clickViewBar()
     settings->item(t+1, 1)->setText(config[QString::number(s)].toString());
 }
 
-void TypConfig::recvAppMap(QVariantMap msg)
+void TypConfig::recvAppMsg(QTmpMap msg)
 {
-    switch (msg.value("enum").toInt()) {
+    int c = msg.value(0).toInt();
+    switch (c) {
     case Qt::Key_Copy:
-        config[QString::number(AddrTpName)] = msg[QString::number(AddrTpName)];  // 当前型号
-        for (int i=AddrModels; i < AddrModels+0x0100; i++) {
-            config[QString::number(i)] = msg[QString::number(i)];
-        }
-        for (int i=AddrConfig; i < AddrConfig + 0x10; i++) {  // 综合设置
-            config[QString::number(i)] = msg[QString::number(i)];
-        }
+        tmpSet = msg;
         break;
     case Qt::Key_Less:
     case Qt::Key_Meta:
-        isShow = msg.value("enum").toInt();
+        isShow = c;
         break;
     default:
         break;

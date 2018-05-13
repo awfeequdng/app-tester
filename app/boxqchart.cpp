@@ -30,17 +30,6 @@ void BoxQChart::setStr(QString text)
     m_timer++;
 }
 
-void BoxQChart::setNews(QVariantMap msg)
-{
-    QList<int> t;
-    t << AddrHighAG << AddrHighAC << AddrHighAL << AddrHighLC << AddrSetIMP;
-
-    int addr = t.indexOf(msg.value("text").toInt());
-    m_lenth = (addr + 1) * m_count / t.size();
-    this->update();
-
-}
-
 void BoxQChart::mouseReleaseEvent(QMouseEvent *e)
 {
     emit sendClick();

@@ -75,9 +75,9 @@ void DevSerial::clickButton(int id)
     switch (id) {
     case Qt::Key_Stop:
     case Qt::Key_Play:
-        tmpMap.insert("enum", id);
-        emit sendAppMap(tmpMap);
-        tmpMap.clear();
+        tmpMsg.insert(0, id);
+        emit sendAppMsg(tmpMsg);
+        tmpMsg.clear();
         break;
     case Qt::Key_Enter :
         break;
@@ -94,13 +94,13 @@ void DevSerial::clickButton(int id)
     }
 }
 
-void DevSerial::recvAppMap(QVariantMap msg)
+void DevSerial::recvAppMsg(QTmpMap msg)
 {
-    switch (msg.value("enum").toInt()) {
+    int c = msg.value(0).toInt();
+    switch (c) {
     case Qt::Key_Call:
-        if (!msg.value("text").isNull())
-            com->write(msg.value("text").toByteArray());
-        break;
+        if (!msg.value(AddrText).isNull())
+            com->write(msg.value(AddrText).toString().toUtf8());
     default:
         break;
     }

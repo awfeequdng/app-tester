@@ -50,10 +50,10 @@ void TypSetDcr::initCompBar()
     layout->addWidget(boxTemp);
 
     layout->addWidget(new QLabel(tr("折算温度"), this));
-    tempMax = new QDoubleSpinBox(this);
-    tempMax->setDecimals(3);
-    tempMax->setFixedSize(97, 40);
-    layout->addWidget(tempMax);
+    maxTemp = new QDoubleSpinBox(this);
+    maxTemp->setDecimals(3);
+    maxTemp->setFixedSize(97, 40);
+    layout->addWidget(maxTemp);
     layout->addWidget(new QLabel(tr("°C"), this));
 
     layout->addWidget(new QLabel(tr("测试时间"), this));
@@ -81,10 +81,10 @@ void TypSetDcr::initWeldBar()
     layout->addWidget(boxWeld);
 
     layout->addWidget(new QLabel(tr("离散允差"), this));
-    meldMax = new QDoubleSpinBox(this);
-    meldMax->setDecimals(3);
-    meldMax->setFixedSize(97, 40);
-    layout->addWidget(meldMax);
+    maxWeld = new QDoubleSpinBox(this);
+    maxWeld->setDecimals(3);
+    maxWeld->setFixedSize(97, 40);
+    layout->addWidget(maxWeld);
     layout->addWidget(new QLabel(tr("%"), this));
 
     layout->addStretch();
@@ -112,10 +112,10 @@ void TypSetDcr::initChipBar()
 
     layout->addWidget(new QLabel(tr("合格上限"), this));
 
-    chipMax = new QDoubleSpinBox(this);
-    chipMax->setDecimals(3);
-    chipMax->setFixedSize(97, 40);
-    layout->addWidget(chipMax);
+    maxChip = new QDoubleSpinBox(this);
+    maxChip->setDecimals(3);
+    maxChip->setFixedSize(97, 40);
+    layout->addWidget(maxChip);
 
     layout->addWidget(new QLabel(tr("mΩ"), this));
 
@@ -138,17 +138,17 @@ void TypSetDcr::initDiagBar()
 
     layout->addWidget(new QLabel(tr("合格范围"), this));
 
-    diagMin = new QDoubleSpinBox(this);
-    diagMin->setDecimals(3);
-    diagMin->setFixedSize(97, 40);
-    layout->addWidget(diagMin);
+    minDiag = new QDoubleSpinBox(this);
+    minDiag->setDecimals(3);
+    minDiag->setFixedSize(97, 40);
+    layout->addWidget(minDiag);
 
     layout->addWidget(new QLabel(tr("~"), this));
 
-    diagMax = new QDoubleSpinBox(this);
-    diagMax->setDecimals(3);
-    diagMax->setFixedSize(97, 40);
-    layout->addWidget(diagMax);
+    maxDiag = new QDoubleSpinBox(this);
+    maxDiag->setDecimals(3);
+    maxDiag->setFixedSize(97, 40);
+    layout->addWidget(maxDiag);
 
     layout->addWidget(new QLabel(tr("Ω"), this));
 
@@ -228,14 +228,77 @@ void TypSetDcr::initButtons()
     btnCell->setText(tr("采样"));
     layout->addWidget(btnCell);
 
-    QPushButton *btnAdd = new QPushButton(this);
-    btnAdd->setFixedSize(97, 40);
-    btnAdd->setText(tr("保存"));
-    layout->addWidget(btnAdd);
-    //    connect(btnAdd, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
+    QPushButton *btnSave = new QPushButton(this);
+    btnSave->setFixedSize(97, 40);
+    btnSave->setText(tr("保存"));
+    layout->addWidget(btnSave);
+    connect(btnSave, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
+}
+
+void TypSetDcr::initSettings()
+{
+    int s = 0;
+    s = tmpSet[AddrDCRS1].toInt();
+    boxWeld->setChecked(tmpSet[s + 0] == "1" ? Qt::Checked : Qt::Unchecked);
+    maxWeld->setValue(tmpSet[s + 1].toDouble()/1000);
+    boxTemp->setChecked(tmpSet[s + 2] == "1" ? Qt::Checked : Qt::Unchecked);
+    maxTemp->setValue(tmpSet[s + 3].toDouble()/1000);
+    boxTime->setValue(tmpSet[s + 4].toDouble()/1000);
+
+    s = tmpSet[AddrDCRS2].toInt();
+    boxChip->setChecked(tmpSet[s + 0] == "1" ? Qt::Checked : Qt::Unchecked);
+    maxChip->setValue(tmpSet[s + 1].toDouble()/1000);
+
+    s = tmpSet[AddrDCRS3].toInt();
+    boxDiag->setChecked(tmpSet[s + 0] == "1" ? Qt::Checked : Qt::Unchecked);
+    minDiag->setValue(tmpSet[s + 1].toDouble()/1000);
+    maxDiag->setValue(tmpSet[s + 2].toDouble()/1000);
+}
+
+void TypSetDcr::saveSettings()
+{
+    int s = 0;
+    s = tmpSet[AddrDCRS1].toInt();
+    tmpSet[s + 0] = boxWeld->isChecked() ? "1" : "0";
+    tmpSet[s + 1] = QString::number(maxWeld->value()*1000);
+    tmpSet[s + 2] = boxTemp->isChecked() ? "1" : "0";
+    tmpSet[s + 3] = QString::number(maxTemp->value()*1000);
+    tmpSet[s + 4] = QString::number(boxTime->value()*1000);
+
+    s = tmpSet[AddrDCRS2].toInt();
+    tmpSet[s + 0] = boxChip->isChecked() ? "1" : "0";
+    tmpSet[s + 1] = QString::number(maxChip->value()*1000);
+
+    s = tmpSet[AddrDCRS3].toInt();
+    tmpSet[s + 0] = boxDiag->isChecked() ? "1" : "0";
+    tmpSet[s + 1] = QString::number(minDiag->value()*1000);
+    tmpSet[s + 2] = QString::number(maxDiag->value()*1000);
+
+    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    emit sendAppMsg(tmpSet);
 }
 
 void TypSetDcr::clickButtons()
 {
+}
+
+void TypSetDcr::recvAppMsg(QTmpMap msg)
+{
+    int c = msg.value(0).toInt();
+    switch (c) {
+    case Qt::Key_Copy:
+        tmpSet = msg;
+        break;
+    case Qt::Key_News:
+        break;
+    default:
+        break;
+    }
+}
+
+void TypSetDcr::showEvent(QShowEvent *e)
+{
+    initSettings();
+    e->accept();
 }
 

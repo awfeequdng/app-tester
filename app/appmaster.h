@@ -29,8 +29,15 @@
 
 #include "appdefine.h"
 
+
+
+const int AddrName = 0x00;
+const int AddrPass = 0x01;
+const int AddrRole = 0x02;
+const int AddrLast = 0x03;
+const int AddrSave = 0x04;
+
 #define M_ROW 15
-#define M_COL 4
 
 class AppMaster : public QWidget
 {
@@ -38,7 +45,7 @@ class AppMaster : public QWidget
 public:
     explicit AppMaster(QWidget *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initUI();
     void initLayout();
@@ -49,27 +56,20 @@ private slots:
     void initSettings();
     void saveSettings();
     void clickViewBar();
-    void clickButtons();
     void appendMaster();
     void removeMaster();
-    void recvAppMap(QVariantMap msg);
+    void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
-    QVBoxLayout *boxLayout;
+    QHBoxLayout *boxLayout;
+    QVBoxLayout *btnLayout;
     QTableWidget *view;
-    QVariantMap tmpMap;
-    QVariantMap config;
-
-    QLineEdit *page;
-    QStringList groups;
-
     QLineEdit *lineNumb;
     QLineEdit *lineName;
     QLineEdit *linePass;
     QComboBox *boxGroup;
-
-
-public slots:
+    QStringList roles;
+    QTmpMap tmpSet;
 };
 
 #endif // APPMASTER_H

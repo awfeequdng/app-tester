@@ -21,6 +21,8 @@
 
 #include "appdefine.h"
 
+const int AddrBackA = 0x00;  // 后台配置地址
+
 class AppBackup : public QWidget
 {
     Q_OBJECT
@@ -28,6 +30,7 @@ public:
     explicit AppBackup(QWidget *parent = 0);
 signals:
     void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initUI();
     void initLayout();
@@ -35,11 +38,14 @@ private slots:
     void initSettings();
     void saveSettings();
     void recvAppMap(QVariantMap msg);
+    void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
     QHBoxLayout *boxLayout;
     QList<QLineEdit*> texts;
     QVariantMap config;
+    QTmpMap tmpSet;
+    QTmpMap tmpMsg;
 };
 
 #endif // APPBACKUP_H

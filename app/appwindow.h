@@ -58,7 +58,8 @@ public:
     explicit AppWindow(QWidget *parent = 0);
 signals:
     void sendAppMap(QVariantMap msg);
-    void sendUdpMap(QVariantMap msg);
+    void sendUdpMsg(QTmpMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initUI();
     int initTitle();
@@ -85,19 +86,17 @@ private slots:
     int initUpload();
     int initSdcard();
     int initUnqual();
+    int initTmpDat();
     int readSqlite();
     int readModels();
     int sendSqlite();
     int sendSignin();
     int initSocket();
     int initThread();
-    int getNextItem();
     void initButton(QString title, QString name);
     void showBoxPop(QString text, int t);
     void saveSqlite();
-    void saveModels();
     void clickButtons();
-    void showTester();
     bool checkAction(QString msg);
     void screensShow(QString msg);
     void recvAppShow(QString msg);
@@ -116,41 +115,33 @@ private slots:
     int testClearData();
     int testStartSend();
     int testStartTest();
-    void testUpdate(QVariantMap msg);
-    void recvUdpMap(QVariantMap msg);
-    void recvAppMap(QVariantMap msg);
+    int getNextItem();
+    void recvNewMsg(QTmpMap msg);
+    void recvAppMsg(QTmpMap msg);
     void wait(int ms);
 private:
     QStackedWidget *stack;
     QVBoxLayout *btnLayout;
     QFrame *btnFrame;
     QList<QPushButton*> buttons;
-    QVariantMap config;
-    QVariantMap tmpMap;
-
-    QStringList sources;
-    QStringList masters;
-    QList<int> sgroups;
-    QList<int> saction;
-    QList<int> maction;
-
-    QString verNumb;
     BoxDialog *boxbar;
-    bool isSignin;
 
     int preindex;
-
-    QList<int> addrList;
-    QStringList taskList;
-    QStringList testList;
     int currTask;
     int currTest;
     int taskShift;
     int testShift;
-    int testIndex;
+    int currItem;
     int timeOut;
     int timeTst;
     QElapsedTimer t;
+
+    QTmpMap tmpSet;
+    QTmpMap tmpMsg;
+    QStringList shows;
+    QStringList users;
+    QList<int> roles;
+    QList<int> forms;
 };
 
 #endif // APPWINDOW_H

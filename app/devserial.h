@@ -21,24 +21,26 @@
 #include <QWSServer>
 #endif
 
+#include "appdefine.h"
+
 class DevSerial : public QObject
 {
     Q_OBJECT
 public:
     explicit DevSerial(QObject *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initParam();
     void initDevPort();
     void readDevPort();
     void clickButton(int id);
-    void recvAppMap(QVariantMap msg);
+    void recvAppMsg(QTmpMap msg);
 private:
     bool upper;
     QSerialPort *com;
     QByteArray tmpByte;
-    QVariantMap tmpMap;
+    QTmpMap tmpMsg;
     QMap<QString, int> keys;
 };
 

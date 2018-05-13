@@ -186,19 +186,18 @@ void AppSystem::saveSettings()
 
 void AppSystem::setLocalTime()
 {
-    tmpMap.insert("enum", Qt::Key_Time);
-    tmpMap.insert("time", time->dateTime());
-    emit sendAppMap(tmpMap);
-    tmpMap.clear();
+    tmpMsg.insert(AddrEnum, Qt::Key_Time);
+    tmpMsg.insert(AddrText, time->dateTime());
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
 }
 
-void AppSystem::recvAppMap(QVariantMap msg)
+void AppSystem::recvAppMsg(QTmpMap msg)
 {
-    switch (msg.value("enum").toInt()) {
+    int c = msg.value(AddrEnum).toInt();
+    switch (c) {
     case Qt::Key_Copy:
-        for (int i=AddrSystem; i < AddrSystem+0x20; i++) {  // 后台信息存放在0x0020
-            config[QString::number(i)] = msg[QString::number(i)];
-        }
+        tmpSet = msg;
         break;
     default:
         break;

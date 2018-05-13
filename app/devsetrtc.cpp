@@ -48,11 +48,12 @@ void DevSetRtc::saveDevRtc(QDateTime t)
     }
 }
 
-void DevSetRtc::recvAppMap(QVariantMap msg)
+void DevSetRtc::recvAppMsg(QTmpMap msg)
 {
-    switch (msg.value("enum").toInt()) {
+    int c = msg.value(AddrEnum).toInt();
+    switch (c) {
     case Qt::Key_Time:
-        saveDevRtc(msg.value("time").toDateTime());
+        saveDevRtc(msg.value(AddrText).toDateTime());
         break;
     default:
         break;

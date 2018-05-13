@@ -26,8 +26,16 @@
 #include "boxqitems.h"
 
 #include "appdefine.h"
+#include "appmaster.h"
 
-#define A_ROW 16
+const int AddrShow = 1020;
+
+//const int AddrName = 0x00;
+const int AddrMark = 0x01;
+//const int AddrRole = 0x02;
+const int AddrForm = 0x03;
+
+#define A_ROW 25
 #define A_COL 4
 
 class AppAction : public QWidget
@@ -37,6 +45,7 @@ public:
     explicit AppAction(QWidget *parent = 0);
 signals:
     void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initUI();
     void initView();
@@ -44,15 +53,12 @@ private slots:
     void initDelegate();
     void initSettings();
     void saveSettings();
-    void clickButtons();
-    void recvAppMap(QVariantMap msg);
+    void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
     QTableWidget *view;
-    QVariantMap tmpMap;
-    QVariantMap config;
-    QLineEdit *page;
-    QStringList groups;
+    QStringList roles;
+    QTmpMap tmpSet;
 };
 
 #endif // APPACTION_H

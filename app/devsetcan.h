@@ -36,6 +36,41 @@
 #include <QElapsedTimer>
 
 #include "appdefine.h"
+#include "typconfig.h"
+#include "typsetdcr.h"
+#include "typsetacw.h"
+#include "typsetimp.h"
+
+const int AddrDevA = 1000;  // 设备信息区地址
+const int AddrWeld = 1001;  // 片间结果区地址
+const int AddrChip = 1002;
+const int AddrDiag = 1003;
+const int AddrINRA = 1004;  // 绝缘结果区地址
+const int AddrACWL = 1005;  // 轴铁结果区地址
+const int AddrACWC = 1006;  // 轴线结果区地址
+const int AddrACWA = 1007;  // 铁线结果区地址
+const int AddrIMPA = 1008;  // 匝间结果区地址
+const int AddrIMPW = 1009;  // 匝间波形区地址
+
+const int AddrDCRV = 1120;  // 电阻版本
+const int AddrDCRS = 1121;  // 电阻状态
+const int ADDRDCRJ = 1123;  // 电阻判定
+
+const int AddrACWV = 1130;  // 耐压版本
+const int AddrACWS = 1131;  // 耐压状态
+
+const int AddrACWJ = 0x00;  // 耐压判定
+const int AddrACWU = 0x01;  // 耐压电压
+const int AddrACWR = 0x02;  // 耐压结果
+const int AddrACWP = 0x03;  // 耐压小数
+
+const int AddrIMPV = 1140;  // 匝间版本
+const int AddrIMPS = 1141;  // 匝间状态
+const int AddrIMPQ = 1142;  // 匝间编号
+const int AddrIMPJ = 1143;  // 匝间判定
+const int AddrIMPU = 1144;  // 匝间电压
+const int AddrIMPG = 1145;  // 档位
+const int AddrIMPF = 1146;  // 频率
 
 class DevSetCan : public QObject
 {
@@ -43,12 +78,14 @@ class DevSetCan : public QObject
 public:
     explicit DevSetCan(QObject *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initDevPort();
     bool readDevPort();
     bool sendDevPort(can_frame can);
-    void getStatus();
+    void initDevStat();
+    void sendDevData(int id, QByteArray msg);
+    void readDevData(int id, QByteArray msg);
     void getAllDat();
     void putAllDat();
     void updateAll();
@@ -56,21 +93,23 @@ private slots:
     void configImp();
     void selectImp();
     void updateImp(int id, QByteArray msg);
+    void calc();
     void configAcw();
     void selectAcw();
     void updateAcw(QByteArray msg);
     void updateDat();
-    void recvAppMap(QVariantMap msg);
+    void startPlay(QTmpMap msg);
+    void recvAppMsg(QTmpMap msg);
 private:
     int fd;
     can_frame frame;
-    QQueue<QVariantMap> sender;
-    QQueue<QVariantMap> recver;
-    QVariantMap config;
-    QVariantMap tmpMap;
-    int currAddr;
+    QQueue<QTmpMap> sender;
+    QQueue<QTmpMap> recver;
+    int currItem;
     QList<int>wave;
     QElapsedTimer t;
+    QTmpMap tmpSet;
+    QTmpMap tmpMsg;
     int timeOut;
 };
 

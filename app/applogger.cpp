@@ -188,3 +188,15 @@ void AppLogger::recvAppMap(QVariantMap msg)
         break;
     }
 }
+
+void AppLogger::recvAppMsg(QTmpMap msg)
+{
+    int c = msg.value(AddrEnum).toInt();
+    switch (c) {
+    case Qt::Key_Copy:
+        tmpSet = msg;
+        break;
+    default:
+        break;
+    }
+}

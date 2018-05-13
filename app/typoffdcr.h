@@ -17,13 +17,22 @@
 #include <QMessageBox>
 #include <QPushButton>
 
+#include "appdefine.h"
+
+const int AddrDCRA = 0x01;  // 电阻后台地址
+
 class TypOffDcr : public QWidget
 {
     Q_OBJECT
 public:
     explicit TypOffDcr(QWidget *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
+private slots:
+    void recvAppMsg(QTmpMap msg);
+private:
+    QTmpMap tmpSet;
+    QTmpMap tmpMsg;
 };
 
 #endif // TYPOFFDCR_H

@@ -17,13 +17,20 @@
 #include <QMessageBox>
 #include <QPushButton>
 
+#include "appdefine.h"
+
 class TypOffAcw : public QWidget
 {
     Q_OBJECT
 public:
     explicit TypOffAcw(QWidget *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
+private slots:
+    void recvAppMsg(QTmpMap msg);
+private:
+    QTmpMap tmpSet;
+    QTmpMap tmpMsg;
 };
 
 #endif // TYPOFFACW_H

@@ -53,7 +53,6 @@ void TypSetAcw::initInrView()
             mInrView->setData(mInrView->index(i, j), "", Qt::DisplayRole);
         }
         mInrView->item(i, 0)->setCheckable(true);
-        mInrView->item(i, 1)->setText(names.at(i));
     }
 
     inrView = new QTableView(this);
@@ -95,7 +94,6 @@ void TypSetAcw::initAcwView()
             mAcwView->setData(mAcwView->index(i, j), "", Qt::DisplayRole);
         }
         mAcwView->item(i, 0)->setCheckable(true);
-        mAcwView->item(i, 1)->setText(names.at(i));
     }
     //    connect(mView, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(autoInput()));
 
@@ -155,170 +153,94 @@ void TypSetAcw::initDelegate()
     comp->setDecimals(0);
     comp->setMaxinum(60000);
 
-    inrView->setItemDelegateForColumn(AddrSkewHC, new BoxQItems);
-    acwView->setItemDelegateForColumn(AddrSkewHC, new BoxQItems);
-    inrView->setItemDelegateForColumn(AddrSkewHN, new BoxQItems);
-    acwView->setItemDelegateForColumn(AddrSkewHN, new BoxQItems);
-    inrView->setItemDelegateForColumn(AddrSkewHV, volt);
-    acwView->setItemDelegateForColumn(AddrSkewHV, volt);
-    inrView->setItemDelegateForColumn(AddrSkewHT, time);
-    acwView->setItemDelegateForColumn(AddrSkewHT, time);
-    inrView->setItemDelegateForColumn(AddrSkewHH, insr);
-    acwView->setItemDelegateForColumn(AddrSkewHH, curr);
-    inrView->setItemDelegateForColumn(AddrSkewHL, insr);
-    acwView->setItemDelegateForColumn(AddrSkewHL, curr);
-    inrView->setItemDelegateForColumn(AddrSkewHO, new BoxQItems);
-    acwView->setItemDelegateForColumn(AddrSkewHO, new BoxQItems);
-    inrView->setItemDelegateForColumn(AddrSkewHA, new BoxQItems);
-    acwView->setItemDelegateForColumn(AddrSkewHA, new BoxQItems);
+    inrView->setItemDelegateForColumn(AddrACWSC, new BoxQItems);
+    acwView->setItemDelegateForColumn(AddrACWSC, new BoxQItems);
+    inrView->setItemDelegateForColumn(AddrACWSN, new BoxQItems);
+    acwView->setItemDelegateForColumn(AddrACWSN, new BoxQItems);
+    inrView->setItemDelegateForColumn(AddrACWSV, volt);
+    acwView->setItemDelegateForColumn(AddrACWSV, volt);
+    inrView->setItemDelegateForColumn(AddrACWST, time);
+    acwView->setItemDelegateForColumn(AddrACWST, time);
+    inrView->setItemDelegateForColumn(AddrACWSH, insr);
+    acwView->setItemDelegateForColumn(AddrACWSH, curr);
+    inrView->setItemDelegateForColumn(AddrACWSL, insr);
+    acwView->setItemDelegateForColumn(AddrACWSL, curr);
+    inrView->setItemDelegateForColumn(AddrACWSO, new BoxQItems);
+    acwView->setItemDelegateForColumn(AddrACWSO, new BoxQItems);
+    inrView->setItemDelegateForColumn(AddrACWSA, new BoxQItems);
+    acwView->setItemDelegateForColumn(AddrACWSA, new BoxQItems);
 }
 
 void TypSetAcw::initSettings()
 {
-    int skew = 0;
+    int w = 0;
     double t = 0;
-    QString addr;
     for (int i=0; i < 4; i++) {
-        skew = AddrSkewHC;  // 测试
-        addr = QString::number(AddrHighAG + i*0x10 + skew);
-        Qt::CheckState s = config[addr] == "1" ? Qt::Checked : Qt::Unchecked;
-        if (i == 0)
-            mInrView->item(i-0, skew)->setCheckState(s);
-        else
-            mAcwView->item(i-1, skew)->setCheckState(s);
-
-        skew = AddrSkewHV;  // 电压
-        addr = QString::number(AddrHighAG + i*0x10 + skew);
-        if (i == 0)
-            mInrView->item(i-0, skew)->setText(config[addr].toString());
-        else
-            mAcwView->item(i-1, skew)->setText(config[addr].toString());
-
-        skew = AddrSkewHT;  // 时间
-        addr = QString::number(AddrHighAG + i*0x10 + skew);
-        t = config[addr].toString().toDouble();
-        t /= 10;
-        if (i == 0)
-            mInrView->item(i-0, skew)->setText(QString::number(t));
-        else
-            mAcwView->item(i-1, skew)->setText(QString::number(t));
-
-        skew = AddrSkewHH;  // 上限
-        addr = QString::number(AddrHighAG + i*0x10 + skew);
-        t = config[addr].toString().toDouble();
-        if (i == 0) {
-            mInrView->item(i-0, skew)->setText(QString::number(t));
-        } else {
-            t /= 100;
-            mAcwView->item(i-1, skew)->setText(QString::number(t));
-        }
-
-        skew = AddrSkewHL;  // 下限
-        addr = QString::number(AddrHighAG + i*0x10 + skew);
-        t = config[addr].toString().toDouble();
-        if (i == 0) {
-            mInrView->item(i-0, skew)->setText(QString::number(t));
-        } else {
-            t /= 100;
-            mAcwView->item(i-1, skew)->setText(QString::number(t));
-        }
-
-        skew = AddrSkewHO;  // 补偿
-        addr = QString::number(AddrHighAG + i*0x10 + skew);
-        t = config[addr].toString().toDouble();
-        if (i == 0) {
-            mInrView->item(i-0, skew)->setText(QString::number(t));
-        } else {
-            t /= 100;
-            mAcwView->item(i-1, skew)->setText(QString::number(t));
-        }
-
-        skew = AddrSkewHA;  // 电弧
-        addr = QString::number(AddrHighAG + i*0x10 + skew);
-        if (i == 0)
-            mInrView->item(i-0, skew)->setText(config[addr].toString());
-        else
-            mAcwView->item(i-1, skew)->setText(config[addr].toString());
+        int s = tmpSet[AddrACWS1 + i].toInt();
+        int r = (i == 0) ? (i - 0) : (i - 1);
+        BoxQModel *view = (i == 0) ? mInrView : mAcwView;
+        w = AddrACWSC; // 测试
+        Qt::CheckState c = (tmpSet[s + w]) == "1" ? Qt::Checked : Qt::Unchecked;
+        view->item(r, w)->setCheckState(c);
+        w = AddrACWSN;  // 名称
+        view->item(r, w)->setText(tmpSet[s + w].toString());
+        w = AddrACWSV;  // 电压
+        view->item(r, w)->setText(tmpSet[s + w].toString());
+        w = AddrACWST;  // 时间
+        t = tmpSet[s + w].toString().toDouble() / 10;
+        view->item(r, w)->setText(QString::number(t));
+        w = AddrACWSH;  // 上限
+        t = tmpSet[s + w].toString().toDouble();
+        view->item(r, w)->setText(QString::number((i == 0) ? t : t/100));
+        w = AddrACWSL;  // 下限
+        t = tmpSet[s + w].toString().toDouble();
+        view->item(r, w)->setText(QString::number((i == 0) ? t : t/100));
+        w = AddrACWSO;  // 补偿
+        t = tmpSet[s + w].toString().toDouble();
+        view->item(r, w)->setText(QString::number((i == 0) ? t : t/100));
+        w = AddrACWSA;  // 电弧
+        view->item(r, w)->setText(tmpSet[s + w].toString());
     }
 }
 
 void TypSetAcw::saveSettings()
 {
-    int skew = 0;
+    int w = 0;
     double t = 0;
-    QString addr;
     for (int i=0; i < 4; i++) {
-        skew = AddrSkewHC;  // 测试
-        addr = QString::number(AddrHighAG + i*0x10 + skew);
-        if (i == 0)
-            config[addr] = mInrView->item(i-0, skew)->checkState() == Qt::Checked ? 1 : 0;
-        else
-            config[addr] = mAcwView->item(i-1, skew)->checkState() == Qt::Checked ? 1 : 0;
-
-        skew = AddrSkewHV;  // 电压
-        addr = QString::number(AddrHighAG + i*0x10 + skew);
-        if (i == 0)
-            config[addr] = mInrView->item(i-0, skew)->text();
-        else
-            config[addr] = mAcwView->item(i-1, skew)->text();
-
-        skew = AddrSkewHT;  // 时间
-        addr = QString::number(AddrHighAG + i*0x10 + skew);
-        if (i == 0)
-            t = mInrView->item(i-0, skew)->text().toDouble();
-        else
-            t = mAcwView->item(i-1, skew)->text().toDouble();
-        t *= 10;
-        config[addr] = QString::number(t);
-
-        skew = AddrSkewHH;  // 上限
-        addr = QString::number(AddrHighAG + i*0x10 + skew);
-        if (i == 0) {
-            t = mInrView->item(i-0, skew)->text().toDouble();
-        } else {
-            t = mAcwView->item(i-1, skew)->text().toDouble();
-            t *= 100;
-        }
-        config[addr] = QString::number(t);
-
-        skew = AddrSkewHL;  // 下限
-        addr = QString::number(AddrHighAG + i*0x10 + skew);
-        if (i == 0) {
-            t = mInrView->item(i-0, skew)->text().toDouble();
-        } else {
-            t = mAcwView->item(i-1, skew)->text().toDouble();
-            t *= 100;
-        }
-        config[addr] = QString::number(t);
-
-        skew = AddrSkewHO;  // 补偿
-        addr = QString::number(AddrHighAG + i*0x10 + skew);
-        if (i == 0) {
-            t = mInrView->item(i-0, skew)->text().toDouble();
-        } else {
-            t = mAcwView->item(i-1, skew)->text().toDouble();
-            t *= 100;
-        }
-        config[addr] = QString::number(t);
-
-        skew = AddrSkewHA;  // 电弧
-        addr = QString::number(AddrHighAG + i*0x10 + skew);
-        if (i == 0)
-            config[addr] = mInrView->item(i-0, skew)->text();
-        else
-            config[addr] = mAcwView->item(i-1, skew)->text();
+        int s = tmpSet[AddrACWS1 + i].toInt();
+        int r = (i == 0) ? (i - 0) : (i - 1);
+        BoxQModel *view = (i == 0) ? mInrView : mAcwView;
+        w = AddrACWSC; // 测试
+        tmpSet[s + w] = view->item(r, w)->checkState() == Qt::Checked ? 1 : 0;
+        w = AddrACWSN;  // 名称
+        tmpSet[s + w] = view->item(r, w)->text();
+        w = AddrACWSV;  // 电压
+        tmpSet[s + w] = view->item(r, w)->text();
+        w = AddrACWST;  // 时间
+        tmpSet[s + w] = QString::number(view->item(r, w)->text().toDouble()*10);
+        w = AddrACWSH;  // 上限
+        t = view->item(r, w)->text().toDouble();
+        tmpSet[s + w] = (i == 0) ? QString::number(t) : QString::number(t*100);
+        w = AddrACWSL;  // 下限
+        t = view->item(r, w)->text().toDouble();
+        tmpSet[s + w] = (i == 0) ? QString::number(t) : QString::number(t*100);
+        w = AddrACWSO;  // 补偿
+        t = view->item(r, w)->text().toDouble();
+        tmpSet[s + w] = (i == 0) ? QString::number(t) : QString::number(t*100);
+        w = AddrACWSA;  // 电弧
+        tmpSet[s + w] = view->item(r, w)->text();
     }
-    config.insert("enum", Qt::Key_Save);
-    emit sendAppMap(config);
+    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    emit sendAppMsg(tmpSet);
 }
 
-void TypSetAcw::recvAppMap(QVariantMap msg)
+void TypSetAcw::recvAppMsg(QTmpMap msg)
 {
-    switch (msg.value("enum").toInt()) {
+    int c = msg.value(0).toInt();
+    switch (c) {
     case Qt::Key_Copy:
-        for (int i=0x0460; i < 0x0460+0x0050; i++) {  // 介电强度存放在0x0460
-            config[QString::number(i)] = msg[QString::number(i)];
-        }
+        tmpSet = msg;
         break;
     default:
         break;

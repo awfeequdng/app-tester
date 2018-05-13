@@ -23,7 +23,7 @@ void AppAction::initUI()
 void AppAction::initView()
 {
     QStringList headers;
-    headers << tr("界面名称") << tr("界面名称") << tr("界面组别") << tr("界面权限");
+    headers << tr("界面名称") << tr("界面权限") << tr("界面分组");
 
     view = new QTableWidget(this);
     view->setRowCount(A_ROW);
@@ -44,31 +44,13 @@ void AppAction::initView()
     view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     view->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 #endif
-    view->hideColumn(0);
     view->setEditTriggers(QAbstractItemView::AllEditTriggers);
+    view->verticalHeader()->hide();
 }
 
 void AppAction::initLayout()
 {
     QHBoxLayout *btnLayout = new QHBoxLayout;
-
-    QPushButton *prev = new QPushButton(this);
-    prev->setFixedSize(97, 40);
-    prev->setText(tr("上一页"));
-    btnLayout->addWidget(prev);
-    connect(prev, SIGNAL(clicked(bool)), this, SLOT(clickButtons()));
-
-    page = new QLineEdit(this);
-    page->setText("1");
-    page->setFixedSize(50, 36);
-    page->setAlignment(Qt::AlignCenter);
-    btnLayout->addWidget(page);
-
-    QPushButton *next = new QPushButton(this);
-    next->setFixedSize(97, 40);
-    next->setText(tr("下一页"));
-    btnLayout->addWidget(next);
-    connect(next, SIGNAL(clicked(bool)), this, SLOT(clickButtons()));
 
     btnLayout->addStretch();
 
@@ -85,82 +67,58 @@ void AppAction::initLayout()
     QGroupBox *box = new QGroupBox(this);
     box->setLayout(boxLayout);
 
-
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->addWidget(box);
 }
 
 void AppAction::initDelegate()
 {
-    groups << tr("管理员") << tr("技术员") << tr("操作员") << tr("所有人");
+    roles << tr("管理员") << tr("技术员") << tr("操作员") << tr("所有人");
 
     BoxQCombo *group = new BoxQCombo;
-    group->setItemNames(groups);
+    group->setItemNames(roles);
 
     view->setItemDelegateForColumn(0, new BoxQItems);
-    view->setItemDelegateForColumn(1, new BoxQItems);
+    view->setItemDelegateForColumn(1, group);
     view->setItemDelegateForColumn(2, new BoxQItems);
-    view->setItemDelegateForColumn(3, group);
 }
 
 void AppAction::initSettings()
 {
-    int p = page->text().toInt() - 1;               // 页码
-    int s = AddrAction + A_ROW*A_COL*p+0x40;       // 起始地址,隐藏通用界面
+    int s = AddrShow;
     for (int i=0; i < A_ROW; i++) {
-        int t = s + A_COL*i;
-        view->item(i, 0)->setText(config[QString::number(t+0)].toString());
-        view->item(i, 1)->setText(config[QString::number(t+1)].toString());
-        view->item(i, 2)->setText(config[QString::number(t+2)].toString());
-        if (!config[QString::number(t+0)].toString().isEmpty()) {
-            QString usrgroup = groups.at(config[QString::number(t+3)].toInt()-1);
-            view->item(i, 3)->setText(usrgroup);
+        int t = s + i*4;
+        int r = tmpSet[t + AddrRole].toInt();
+        if (r > 0) {
+            view->item(i, 0)->setText(tmpSet[t + AddrMark].toString());
+            view->item(i, 1)->setText(roles.at(r - 1));
+            view->item(i, 2)->setText(tmpSet[t + AddrForm].toString());
         } else {
-            view->item(i, 3)->setText("");
+            view->hideRow(i);
         }
     }
 }
 
 void AppAction::saveSettings()
 {
-    int p = page->text().toInt() - 1;               // 页码
-    int s = AddrAction + A_ROW*A_COL*p + 0x40;     // 起始地址,隐藏通用界面
+    int s = AddrShow;
     for (int i=0; i < A_ROW; i++) {
-        int t = s + A_COL*i;
-        QString username = view->item(i, 0)->text();
-        QString action = view->item(i, 3)->text();
-        if (!username.isEmpty() && !action.isEmpty()) {
-            config[QString::number(t + 3)] = QString::number(groups.indexOf(action) + 1);
+        int t = s + i*4;
+        QString role = view->item(i, 1)->text();
+        if (!role.isEmpty()) {
+            tmpSet[t + AddrRole] = QString::number(roles.indexOf(role) + 1);
         }
     }
-    config.insert("enum", Qt::Key_Save);
-    emit sendAppMap(config);
+    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    emit sendAppMsg(tmpSet);
 }
 
-void AppAction::clickButtons()
+void AppAction::recvAppMsg(QTmpMap msg)
 {
-    QPushButton *btn = qobject_cast<QPushButton*>(sender());
-    int p = page->text().toInt();
-    if (btn->text() == tr("上一页")) {
-        p--;
-    }
-    if (btn->text() == tr("下一页")) {
-        p++;
-    }
-    p = (p >= 1) ? p : 1;
-    p = (p <= 3) ? p : 3;
-
-    page->setText(QString::number(p));
-    initSettings();
-}
-
-void AppAction::recvAppMap(QVariantMap msg)
-{
-    switch (msg.value("enum").toInt()) {
+    int c = msg.value(AddrEnum).toInt();
+    switch (c) {
     case Qt::Key_Copy:
-        for (int i=AddrAction; i < AddrAction+0x0100; i++) {
-            config[QString::number(i)] = msg[QString::number(i)];
-        }
+        tmpSet = msg;
         break;
     default:
         break;
