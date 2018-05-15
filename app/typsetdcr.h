@@ -50,10 +50,13 @@ private slots:
     void initSettings();
     void saveSettings();
     void clickButtons();
+    void sample();
+    void recvUpdate(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
     QVBoxLayout *boxLayout;
+    QTableWidget *view;
     QCheckBox *boxTemp;
     QCheckBox *boxWeld;
     QCheckBox *boxChip;

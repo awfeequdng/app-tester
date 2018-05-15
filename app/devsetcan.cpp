@@ -52,6 +52,7 @@ void DevSetCan::initDevPort()
 
 void DevSetCan::initDevStat()
 {
+    timeOut = 0;
     currItem = 0;
     QList<int> ids;
     ids << 0x0022 << 0x0023 << 0x0024;
@@ -61,6 +62,7 @@ void DevSetCan::initDevStat()
     for (int i=0; i < ids.size(); i++) {
         sendDevData(ids.at(i), QByteArray::fromHex("08"));
     }
+    sendDevData(0x0022, QByteArray::fromHex("05"));
 }
 
 void DevSetCan::sendDevData(int id, QByteArray msg)
@@ -181,17 +183,6 @@ void DevSetCan::configDCR()
     msg = QByteArray::fromHex("0301010C");
     msg[3] = tmpSet[r + 0].toInt();
     sendDevData(0x0022, msg);
-    msg = QByteArray::fromHex("040C02E8030101");
-    msg[1] = tmpSet[r + 0].toInt();
-    sendDevData(0x0022, msg);
-}
-
-void DevSetCan::selectDCR()
-{
-    QByteArray msg = QByteArray::fromHex("010103");
-    if (currItem == AddrDCRS2)
-        msg[1] = 0x02;
-    sendDevData(0x0022, msg);
 }
 
 void DevSetCan::updateDCR(QByteArray msg)
@@ -199,22 +190,57 @@ void DevSetCan::updateDCR(QByteArray msg)
     quint8 cmd = quint8(msg.at(0));
     quint8 num = quint8(msg.at(1));
     if (cmd == 0x00) {
-        tmpSet[AddrDCRS] = num;  // 修改电阻板状态
+        tmpDat[DataDCRS] = num;  // 修改电阻板状态
         updateDat();
     }
     if (cmd == 0x01) {
-        if (num == 1) {
+        tmpDat[DataDCRS] = 0x01;  // 修改电阻板状态
+        if (num == 1 && currItem == AddrDCRS1) {
             int s = tmpSet[AddrWeld].toInt();
             int n = quint8(msg.at(2));
+            int g = quint8(msg.at(3));
             quint32 r = quint32(msg.at(4)) + quint32(msg.at(5)) * 0x0010 + quint32(msg.at(6))*0x1000;
-            tmpSet[s + n] = r;
+            r = g > 3 ? r / 1000 : r;  // 换算为mΩ
+            tmpDat[s + n] = r;
+            int w = tmpSet.value(AddrDCRSW).toInt();
+            int t = tmpSet[AddrDCRS1].toInt();
+            int h = tmpSet[t + 1].toInt();
+            double std = tmpSet[w + n - 1].toInt();
+            if (abs(r-std)/std*1000 >= h) {
+                tmpDat[DataDCRJ] = DataNG;
+                tmpDat[DataOKNG] = DataNG;
+            }
         }
+        if (num == 2 && currItem == AddrDCRS2) {
+            int s = tmpSet[AddrChip].toInt();
+            int n = quint8(msg.at(2));
+            quint32 r = quint32(msg.at(4)) + quint32(msg.at(5)) * 0x0010 + quint32(msg.at(6))*0x1000;
+            tmpDat[s + n] = r;
+        }
+        if (num == 1 && currItem == AddrDCRS3) {
+            int s = tmpSet[AddrDiag].toInt();
+            int n = quint8(msg.at(2));
+            quint32 r = quint32(msg.at(4)) + quint32(msg.at(5)) * 0x0010 + quint32(msg.at(6))*0x1000;
+            tmpDat[s + n] = r;
+        }
+    }
+    if (cmd == 0x05) {
+        tmpMsg.insert(AddrEnum, Qt::Key_Shop);
+        tmpMsg.insert(DataTemp, quint8(msg.at(1)) + quint8(msg.at(2))*256);
+        emit sendAppMsg(tmpMsg);
+        tmpMsg.clear();
     }
 }
 
 void DevSetCan::sampleImp()
 {
     sendDevData(0x0024, QByteArray::fromHex("0103110001"));  // 匝间采样
+}
+
+void DevSetCan::sampleDcr()
+{
+    currItem = AddrDCRS1;
+    sendDevData(0x0022, QByteArray::fromHex("010103"));  // 电阻采样
 }
 
 void DevSetCan::configImp()
@@ -231,13 +257,6 @@ void DevSetCan::configImp()
     sendDevData(0x0024, msg);
 }
 
-void DevSetCan::selectImp()
-{
-    QByteArray msg = QByteArray::fromHex("0100110001");  // 匝间采样
-    sendDevData(0x0024, msg);
-    tmpSet[AddrIMPS] = 1;
-}
-
 void DevSetCan::updateImp(int id, QByteArray msg)
 {
     t.restart();
@@ -245,28 +264,28 @@ void DevSetCan::updateImp(int id, QByteArray msg)
         quint8 cmd = quint8(msg.at(0));
         quint8 num = quint8(msg.at(1));
         if (cmd == 0x00) {
-            tmpSet[AddrIMPS] = num;
-            tmpSet[AddrData] = 0;
+            tmpDat[DataIMPS] = num;
+            tmpDat[AddrData] = 0;
             updateDat();
             qDebug() << "imp time:" << t.elapsed();
         }
         if (cmd == 0x02) {
-            tmpSet[AddrIMPG] = quint8(msg.at(2));  // 匝间档位
-            tmpSet[AddrIMPF] = quint8(msg.at(3));  // 匝间频率
-            tmpSet[AddrIMPU] = quint8(msg.at(4))*256 + (quint8)msg.at(5);  // 匝间电压
+            tmpDat[DataIMPG] = quint8(msg.at(2));  // 匝间档位
+            tmpDat[DataIMPF] = quint8(msg.at(3));  // 匝间频率
+            tmpDat[DataIMPU] = quint8(msg.at(4))*256 + (quint8)msg.at(5);  // 匝间电压
         }
         if (cmd == 0x03) {
             if (num == 0xFF) {
                 int s = tmpSet[AddrIMPW].toInt();
                 for (int i=0; i < wave.size(); i++) {
-                    tmpSet[s + i] = wave.at(i);
+                    tmpDat[s + i] = wave.at(i);
                 }
                 calc();
                 wave.clear();
                 updateDat();
                 qDebug() << "imp time:" << t.elapsed();
             } else {
-                tmpSet[AddrData] = num;  // 波形编号
+                tmpDat[AddrData] = num;  // 波形编号
             }
         }
     }
@@ -275,17 +294,20 @@ void DevSetCan::updateImp(int id, QByteArray msg)
             wave.append(quint8(msg.at(i*2+0))*256 + quint8(msg.at(i*2+1)));
         }
     }
-
 }
 
 void DevSetCan::calc()
 {
-    int s = tmpSet[AddrIMPA].toInt() + tmpSet[AddrData].toInt() - 1;
+    int n = tmpDat[AddrData].toInt() - 1;
+    int s = tmpSet[AddrIMPA].toInt() + n;  // 匝间结果地址
+    int r = tmpSet[AddrIMPS1].toInt() + AddrIMPSH;  // 匝间上限地址
+    int t = tmpSet[AddrIMPSW].toInt();  // 匝间波形地址
+    double h = tmpSet[r].toDouble();  // 匝间上限
     quint32 Area1=0;
     quint32 Area2=0;
     quint32 Area3=0;
     quint32 D = 0;
-    int t = tmpSet[AddrIMPSW].toInt();
+
     for (int i=1; i<wave.size()-1; i++) {
         int a1 = tmpSet[t + i].toInt();
         int a2 = wave.at(i);
@@ -301,44 +323,30 @@ void DevSetCan::calc()
     }
     D = qMin(Area2,Area3/4)*100*1000/Area1;
     D = qMin(D, quint32(99990));
-    tmpSet[s] = D;
+    tmpDat[s] = D;
 
-    int r = tmpSet[AddrIMPS1].toInt() + AddrIMPSH;
-    double h = tmpSet[r].toDouble();
-    if (D < h*1000) {
-        tmpSet[AddrIMPJ] = "1";
+    if (D >= h*1000) {
+        tmpDat[DataIMPJ] = DataNG;
+        tmpDat[DataOKNG] = DataNG;
     }
-    qDebug() << s << D;
 }
 
 void DevSetCan::configAcw()
 {
-    int v = 0;
-    int t = 0;
     QByteArray msg;
     for (int i=0; i < 4; i++) {
         int r = tmpSet[AddrACWS1 + i].toInt();
-        if (i == 0) {
-            msg = QByteArray::fromHex("0300040001000400");
-        }
-        if (i == 1) {
-            msg = QByteArray::fromHex("0301050001000200");
-        }
-        if (i == 2) {
-            msg = QByteArray::fromHex("0302050001000400");
-        }
-        if (i == 3) {
-            msg = QByteArray::fromHex("0303050002000400");
-        }
+        msg = QByteArray::fromHex("0300040001000400");
+        msg[1] = i;
+        msg[2] = (i == 0) ? 0x04 : 0x05;
+        msg[4] = (i == 3) ? 0x02 : 0x01;
+        msg[6] = (i == 1) ? 0x02 : 0x04;
+        msg[7] = (i == 0) ? 0x00 : 0x32;
         sendDevData(0x0023, msg);
 
-        if (i == 0) {
-            msg = QByteArray::fromHex("040001F4000A0000");
-        } else {
-            msg = QByteArray::fromHex("040001F4000A0000");
-        }
-        v = tmpSet[r + AddrACWSV].toInt();
-        t = tmpSet[r + AddrACWST].toInt();
+        msg = QByteArray::fromHex("040001F4000A0000");
+        int v = tmpSet[r + AddrACWSV].toInt();
+        int t = tmpSet[r + AddrACWST].toInt();
         msg[1] = i;
         msg[2] = v/256;
         msg[3] = v%256;
@@ -346,37 +354,12 @@ void DevSetCan::configAcw()
         msg[5] = t%256;
         sendDevData(0x0023, msg);
 
-        if (i == 0) {
-            msg = QByteArray::fromHex("0500000000030A");
-        } else {
-            msg = QByteArray::fromHex("050009C400030A");
-        }
+        msg = QByteArray::fromHex("0500000000030A");
         msg[1] = i;
+        msg[2] = (i == 0) ? 0x00 : 0x09;
+        msg[3] = (i == 0) ? 0x00 : 0xC4;
         sendDevData(0x0023, msg);
     }
-}
-
-void DevSetCan::selectAcw()
-{
-    QByteArray msg;
-    switch (currItem) {
-    case AddrACWS1:
-        msg = QByteArray::fromHex("0104001100");  // 启动绝缘
-        break;
-    case AddrACWS2:
-        msg = QByteArray::fromHex("0105011101");  // 启动交耐
-        break;
-    case AddrACWS3:
-        msg = QByteArray::fromHex("0105011102");  // 启动交耐
-        break;
-    case AddrACWS4:
-        msg = QByteArray::fromHex("0105011103");  // 启动交耐
-        break;
-    default:
-        break;
-    }
-    sendDevData(0x0023, msg);
-    tmpSet[AddrACWS] = 1;
 }
 
 void DevSetCan::updateAcw(QByteArray msg)
@@ -384,25 +367,33 @@ void DevSetCan::updateAcw(QByteArray msg)
     t.restart();
     quint8 cmd = quint8(msg.at(0));
     quint8 num = quint8(msg.at(1));
-    if (cmd == 0x00) {
-        tmpSet[AddrACWS] = num;  // 修改高压板状态
-    }
+    if (cmd == 0x00)
+        tmpDat[DataACWS] = num;  // 修改高压板状态
     if (cmd == 0x01) {
+        tmpDat[DataACWS] = 0x01;  // 修改高压板状态
         int t = (currItem%AddrACWS1);  // 第几个测试组
         int k = tmpSet[AddrACWS1 + t].toInt();  // 测试参数存储地址
         double h = tmpSet[k + AddrACWSH].toDouble();
         double l = tmpSet[k + AddrACWSL].toDouble();
         int s = tmpSet[AddrINRA + t].toInt();  // 测试结果存储地址
         double v = quint8(msg.at(1))*256 + (quint8)msg.at(2);  // 实测电压
-        tmpSet[s + AddrACWU] = v;
+        tmpDat[s + AddrACWU] = v;
         double r = quint8(msg.at(3))*256 + (quint8)msg.at(4);  // 实测结果
-        tmpSet[s + AddrACWR] = r;
+        tmpDat[s + AddrACWR] = r;
         double p = quint8(msg.at(5));  // 小数位数
-        tmpSet[s + AddrACWP] = p;
+        tmpDat[s + AddrACWP] = p;
         r *= qPow(10, -quint8(msg.at(5)));
         h = (currItem == AddrACWS1) ? h : h/100;  // 耐压电流倍数100
         l = (currItem == AddrACWS1) ? l : l/100;  // 耐压电流倍数100
-        tmpSet[s + AddrACWJ] = (h == 0) ? ((r > l) ? 1 : 0) : ((r > l && r < h) ? 1 : 0);
+        if (((h == 0) && (r > l)) || ((h != 0) && (r > l && r < h))) {
+            tmpDat[s + AddrACWJ] = DataOK;
+        } else {
+            tmpDat[s + AddrACWJ] = DataNG;
+            tmpDat[DataOKNG] = DataNG;
+        }
+    }
+    if (cmd == 0x08) {
+        tmpDat[DataACWV] = msg;
     }
     updateDat();
     qDebug() << "acw time:" << t.elapsed();
@@ -410,32 +401,48 @@ void DevSetCan::updateAcw(QByteArray msg)
 
 void DevSetCan::updateDat()
 {
-    tmpSet.insert(AddrEnum, Qt::Key_News);
-    tmpSet.insert(AddrText, currItem);
-    emit sendAppMsg(tmpSet);
+    tmpDat.insert(AddrEnum, Qt::Key_News);
+    tmpDat.insert(AddrText, currItem);
+    emit sendAppMsg(tmpDat);
 }
 
-void DevSetCan::startPlay(QTmpMap msg)
+void DevSetCan::startTest(QTmpMap map)
 {
-    currItem = msg.value(AddrText).toInt() + AddrModel;
+    int r = tmpSet[AddrModel].toInt();
+    tmpDat.clear();
+    currItem = map.value(AddrText).toInt() + AddrModel;
+    QByteArray msg;
     switch (currItem) {
     case AddrDCRS1:
     case AddrDCRS2:
     case AddrDCRS3:
-        selectDCR();
+        msg = QByteArray::fromHex("040C02E8030101");
+        msg[1] = tmpSet[r + 0].toInt();  // 电枢片数
+        msg[2] = (currItem == AddrDCRS3) ? tmpSet[r + 0].toInt()/2 -1 : 0;  // 间隔片数
+        sendDevData(0x0022, msg);
+        msg = QByteArray::fromHex("010103");
+        msg[1] = (currItem == AddrDCRS2) ? 0x02 : 0x01;
+        sendDevData(0x0022, msg);
+        tmpDat[DataDCRS] = 1;
         break;
     case AddrACWS1:
     case AddrACWS2:
     case AddrACWS3:
     case AddrACWS4:
-        selectAcw();
+        msg = QByteArray::fromHex("0104001100");  // 启动绝缘
+        msg[1] = (currItem == AddrACWS1) ? 0x04 : 0x05;
+        msg[4] = currItem - AddrACWS1;
+        sendDevData(0x0023, msg);
+        tmpDat[DataACWS] = 1;
         break;
     case AddrIMPS1:
-        selectImp();
+        sendDevData(0x0024, QByteArray::fromHex("0100110001"));
+        tmpDat[DataIMPS] = 1;
         break;
     default:
         break;
     }
+    tmpDat[DataOKNG] = "0";
 }
 
 void DevSetCan::recvAppMsg(QTmpMap msg)
@@ -449,6 +456,11 @@ void DevSetCan::recvAppMsg(QTmpMap msg)
         getAllDat();
         putAllDat();
         updateAll();
+        timeOut++;
+        if (timeOut % 500 == 0) {
+            if (sender.isEmpty() && recver.isEmpty())
+                sendDevData(0x0022, QByteArray::fromHex("05"));
+        }
         break;
     case Qt::Key_Send:
         if (msg.value(AddrText).toInt() == AddrModel) {
@@ -456,12 +468,15 @@ void DevSetCan::recvAppMsg(QTmpMap msg)
             configAcw();
             configImp();
         }
+        if (msg.value(AddrText).toInt() == AddrDCRS1) {
+            sampleDcr();
+        }
         if (msg.value(AddrText).toInt() == AddrIMPS1) {
             sampleImp();
         }
         break;
     case Qt::Key_Play:
-        startPlay(msg);
+        startTest(msg);
         break;
     default:
         break;

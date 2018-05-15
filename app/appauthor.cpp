@@ -114,7 +114,7 @@ void AppAuthor::recvAppMsg(QTmpMap msg)
     int c = msg.value(0).toInt();
     switch (c) {
     case Qt::Key_Copy:
-        version->setText(msg.value(AddrSoft).toString());
+        version->setText(msg.value(DataSoft).toString());
         break;
     case Qt::Key_WLAN:
         if (tcpStat->isHidden())

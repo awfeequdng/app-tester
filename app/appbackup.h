@@ -10,6 +10,7 @@
 #define APPBACKUP_H
 
 #include <QLabel>
+#include <QDebug>
 #include <QLayout>
 #include <QWidget>
 #include <QVariant>
@@ -34,6 +35,7 @@ private slots:
     void initBoxText();
     void initSettings();
     void saveSettings();
+    void recovery();
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:

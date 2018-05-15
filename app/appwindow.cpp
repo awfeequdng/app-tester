@@ -46,7 +46,7 @@ int AppWindow::initTitle()
 
     QDateTime t(dt, tt);
     QString verNumb = QString("V-%1").arg(t.toString("yyMMdd-hhmm"));
-    tmpSet[AddrSoft] = verNumb;
+    tmpSet[DataSoft] = verNumb;
     qDebug() << "app data:" << verNumb;
 
     this->setWindowTitle(tr("电枢测试仪%1").arg(verNumb));
@@ -277,7 +277,7 @@ int AppWindow::initTester()
 
 int AppWindow::initSignin()
 {
-    tmpSet[AddrSign] = 0;
+    tmpSet[DataSign] = 0;
     QString name = "signin";
     AppSignin *app = new AppSignin(this);
     app->setObjectName(name);
@@ -530,6 +530,7 @@ int AppWindow::initTmpDat()
     tmpSet.insert(AddrACWS3, 3070);
     tmpSet.insert(AddrACWS4, 3080);
     tmpSet.insert(AddrIMPS1, 3090);
+    tmpSet.insert(AddrDCRSW, 3200);
     tmpSet.insert(AddrIMPSW, 3600);
     return Qt::Key_Away;
 }
@@ -552,7 +553,7 @@ int AppWindow::readSqlite()
 int AppWindow::readModels()
 {
     QSqlQuery query(QSqlDatabase::database("sqlite"));
-    int r = tmpSet[AddrFile].toInt();
+    int r = tmpSet[DataFile].toInt();
     QString type = tmpSet[r].toString();
     qDebug() << "app read:" << type;
     query.exec(QString("select * from M_%1").arg(type));
@@ -593,7 +594,7 @@ int AppWindow::sendSignin()
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 
-    if (tmpSet[AddrSign].toInt() == 1) {
+    if (tmpSet[DataSign].toInt() == 1) {
         QPushButton *btn = NULL;
         for (int i=0; i < buttons.size(); i++) {
             if (buttons.at(i)->objectName() == "tester") {
@@ -714,7 +715,7 @@ void AppWindow::saveModels()
     QSqlQuery query(QSqlDatabase::database(name));
     QList<int> uuids = tmpSet.keys();
     QSqlDatabase::database(name).transaction();
-    QString type = tmpSet[tmpSet[AddrFile].toInt()].toString();
+    QString type = tmpSet[tmpSet[DataFile].toInt()].toString();
     for (int i=0; i < uuids.size(); i++) {
         int uuid = uuids.at(i);
         if (uuid < 4000 && uuid >= 3000) {
@@ -743,8 +744,8 @@ void AppWindow::clickButtons()
 
 bool AppWindow::checkAction(QString msg)
 {
-    int s = tmpSet[AddrSign].toInt();  // 是否已登录
-    int r = tmpSet[AddrCurr].toInt();  // 当前用户地址
+    int s = tmpSet[DataSign].toInt();  // 是否已登录
+    int r = tmpSet[DataUser].toInt();  // 当前用户地址
     int c = (s == 1) ? tmpSet[r + AddrRole].toInt() : 4;  // 当前权限等级
 
     int addr = shows.indexOf(msg);
@@ -939,7 +940,7 @@ int AppWindow::taskStartSave()
 int AppWindow::taskStartBeep()
 {
     tmpMsg.insert(AddrEnum, Qt::Key_Call);
-    tmpMsg.insert(AddrText, "LEDG");
+    tmpMsg.insert(AddrText, tmpSet[DataOKNG].toInt() == DataOK ? "LEDG" : "LEDR");
     tmpMsg.insert(AddrBeep, 100);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
@@ -951,12 +952,12 @@ int AppWindow::taskClearBeep()
     int ret = Qt::Key_Meta;
     timeOut++;
     int r = tmpSet[AddrSyst].toInt();
-    int t = tmpSet[r + 0x07].toDouble()*100;
+    int t = tmpSet[r + (tmpSet[DataOKNG].toInt() == DataOK ? 0x07 : 0x08)].toDouble()*100;
     if (timeOut > t) {
         timeOut = 0;
         ret = Qt::Key_Away;
         tmpMsg.insert(AddrEnum, Qt::Key_Call);
-        tmpMsg.insert(AddrText, "LEDG");
+        tmpMsg.insert(AddrText, tmpSet[DataOKNG].toInt() == DataOK ? "LEDG" : "LEDR");
         tmpMsg.insert(AddrBeep, 0);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
@@ -1034,28 +1035,48 @@ void AppWindow::recvNewMsg(QTmpMap msg)
     qDebug() << "udp time:" << t.elapsed();
     t.restart();
     int addr = msg.value(AddrText).toInt();
+    QList <int> keys = msg.keys();
+    int s = tmpSet[tmpSet[AddrIMPW].toInt()].toInt();
     switch (addr) {
     case AddrModel:
         break;
     case AddrDCRS1:
     case AddrDCRS2:
     case AddrDCRS3:
-        if (msg[AddrDCRS].toInt() == 2)
+        if (msg[DataDCRS].toInt() == 2) {
             testShift = Qt::Key_Away;
+            for (int i=0; i < keys.size(); i++) {
+                if (keys.at(i) < s)
+                    tmpSet[keys.at(i)] = msg[keys.at(i)];
+            }
+        }
         break;
     case AddrACWS1:
     case AddrACWS2:
     case AddrACWS3:
     case AddrACWS4:
-        if (msg[AddrACWS].toInt() == 0)
+        if (msg[DataACWS].toInt() == 0) {
             testShift = Qt::Key_Away;
+            for (int i=0; i < keys.size(); i++) {
+                if (keys.at(i) < s)
+                    tmpSet[keys.at(i)] = msg[keys.at(i)];
+            }
+        }
         break;
     case AddrIMPS1:
-        if (msg[AddrIMPS].toInt() == 0)
+        if (msg[DataIMPS].toInt() == 0) {
             testShift = Qt::Key_Away;
+            for (int i=0; i < keys.size(); i++) {
+                if (keys.at(i) < s)
+                    tmpSet[keys.at(i)] = msg[keys.at(i)];
+            }
+        }
         break;
     default:
         break;
+    }
+    if (!msg.value(DataOKNG).isNull()) {
+        tmpSet[DataOKNG] = msg.value(DataOKNG);
     }
     emit sendAppMsg(msg);
     qDebug() << "tst time:" << t.elapsed();
@@ -1069,11 +1090,14 @@ void AppWindow::recvAppMsg(QTmpMap msg)
 #endif
     int c = msg.value(0).toInt();
     switch (c) {
+    case Qt::Key_Shop:
+        emit sendAppMsg(msg);
+        break;
     case Qt::Key_View:
         recvAppShow(msg.value(AddrText).toString());
         break;
     case Qt::Key_Back:
-        tmpSet[AddrSign] = 0;
+        tmpSet[DataSign] = 0;
         recvAppShow("signin");
         break;
     case Qt::Key_Save:

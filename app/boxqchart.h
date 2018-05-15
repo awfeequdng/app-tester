@@ -35,6 +35,8 @@ signals:
     void sendClick();
 public:
     void setNum(int num);
+    void setClr(int num);
+    void setRun(int num);
 protected:
     void mouseReleaseEvent(QMouseEvent *e);
     void paintEvent(QPaintEvent *event);
@@ -50,6 +52,8 @@ private:
     int m_count;
     int m_timer;
     int m_lenth;
+    int m_start;
+    QList<int> nums;
 };
 
 #endif // BOXQCHART_H

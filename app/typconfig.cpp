@@ -194,7 +194,7 @@ void TypConfig::initSettings()
     else
         setFrame->hide();
 
-    r = tmpSet[AddrFile].toInt();
+    r = tmpSet[DataFile].toInt();
     type->setText(tr("当前型号:%1").arg(tmpSet[r].toString()));
 
     r = tmpSet[AddrModel].toInt();
@@ -224,7 +224,7 @@ void TypConfig::createModel()
         return;
     }
     QString name = "sqlite";
-    QString c_name = tmpSet[tmpSet[AddrFile].toInt()].toString();
+    QString c_name = tmpSet[tmpSet[DataFile].toInt()].toString();
 
     QSqlQuery query(QSqlDatabase::database(name));
     QSqlDatabase::database(name).transaction();
@@ -251,7 +251,7 @@ void TypConfig::selectModel()
         return;
 
     int r = tmpSet[AddrType].toInt();
-    tmpSet[AddrFile] = r + t_numb.toInt() - 1;
+    tmpSet[DataFile] = r + t_numb.toInt() - 1;
     tmpSet.insert(AddrEnum, Qt::Key_Word);
     emit sendAppMsg(tmpSet);
 
@@ -267,7 +267,7 @@ void TypConfig::removeModel()
         return;
     if (t_name.isEmpty())
         return;
-    QString c_name = tmpSet[tmpSet[AddrFile].toInt()].toString();
+    QString c_name = tmpSet[tmpSet[DataFile].toInt()].toString();
     if (t_name == c_name) {
         QMessageBox::warning(this, tr("警告"), tr("不能删除当前型号"), QMessageBox::Ok);
         return;

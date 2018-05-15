@@ -256,7 +256,7 @@ void TypSetImp::recvUpdate(QTmpMap msg)
         }
     } else if (r != prev) {
         prev = r;
-        int t = msg[AddrIMPW].toInt();  // 匝间波形地址
+        int t = tmpSet[AddrIMPW].toInt();  // 匝间波形地址
         tmpWave.clear();
         for (int i=0; i < 400; i++) {
             tmpWave.append(msg[t + i].toInt());
@@ -267,8 +267,8 @@ void TypSetImp::recvUpdate(QTmpMap msg)
             minb = r;
         min = qMin(c, min);
         QString tmp = QString("档位:%1 频率:%2 面积:%3");
-        tmp = tmp.arg(msg[AddrIMPG].toString());
-        tmp = tmp.arg(msg[AddrIMPF].toString());
+        tmp = tmp.arg(msg[DataIMPG].toString());
+        tmp = tmp.arg(msg[DataIMPF].toString());
         tmp = tmp.arg(calc());
         text->setText(tmp);
     }

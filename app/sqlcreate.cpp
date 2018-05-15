@@ -278,7 +278,7 @@ void SqlCreate::insertModelsInfo(QSqlQuery query)
 {
     int from = 2000;
     QStringList parm;
-    parm << "2500" << "2300" << "1" << "1";
+    parm << "2500" << "2300" << "1" << "0";
 
     for (int i=parm.size(); i < 10; i++) {
         parm << "";

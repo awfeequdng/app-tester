@@ -22,6 +22,9 @@ struct pwm_config_info {
     unsigned int count;
 };
 
+const int DataOK = 0x00;
+const int DataNG = 0x01;
+
 const int AddrEnum = 0x00;  // 命令
 const int AddrText = 0x01;  // 文本
 const int AddrRate = 0x02;  // 比率
@@ -60,26 +63,37 @@ const int AddrACWS3 = 1056;  // 轴线配置地址
 const int AddrACWS4 = 1057;  // 铁线配置地址
 const int AddrIMPS1 = 1058;  // 匝间配置地址
 const int AddrIMPSW = 1059;  // 标准波形地址
+const int AddrDCRSW = 1060;  // 片间电阻标准
 
-const int AddrSoft = 1110;  // 软件版本
-const int AddrStat = 1111;  // 软件状态
-const int AddrTime = 1112;  // 开机时间
-const int AddrSign = 1113;  // 登录状态
-const int AddrPlay = 1114;  // 启动时间
-const int AddrStop = 1115;  // 完成时间
-const int AddrCode = 1116;  // 条码状态
+const int DataSoft = 1110;  // 软件版本
+const int DataStat = 1111;  // 软件状态
+const int DataTime = 1112;  // 开机时间
+const int DataSign = 1113;  // 登录状态
+const int DataPlay = 1114;  // 启动时间
+const int DataStop = 1115;  // 完成时间
+const int DataCode = 1116;  // 条码状态
+const int DataTemp = 1117;  // 当前温度
+const int DataOKNG = 1118;  // 测试判定
 
-const int AddrDCRV = 1120;  // 电阻版本
-const int AddrDCRS = 1121;  // 电阻状态
-const int ADDRDCRJ = 1123;  // 电阻判定
+const int DataDCRV = 1120;  // 电阻版本
+const int DataDCRS = 1121;  // 电阻状态
+const int DataDCRJ = 1123;  // 电阻判定
 
-const int AddrACWV = 1130;  // 耐压版本
-const int AddrACWS = 1131;  // 耐压状态
+const int DataACWV = 1130;  // 耐压版本
+const int DataACWS = 1131;  // 耐压状态
 
-const int AddrFile = 2000;
-const int AddrCurr = 2001;
-const int AddrAuto = 2002;
-const int AddrLogS = 2003;
+const int DataIMPV = 1140;  // 匝间版本
+const int DataIMPS = 1141;  // 匝间状态
+const int DataIMPQ = 1142;  // 匝间编号
+const int DataIMPJ = 1143;  // 匝间判定
+const int DataIMPU = 1144;  // 匝间电压
+const int DataIMPG = 1145;  // 档位
+const int DataIMPF = 1146;  // 频率
+
+const int DataFile = 2000;  // 当前型号
+const int DataUser = 2001;  // 当前用户
+const int DataAuto = 2002;  // 自动保存
+const int DataSave = 2003;  // 日志输出
 
 #endif // APPDEFINE
 

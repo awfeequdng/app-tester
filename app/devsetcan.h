@@ -41,22 +41,12 @@
 #include "typsetacw.h"
 #include "typsetimp.h"
 
-
-
-
-
 const int AddrACWJ = 0x00;  // 耐压判定
 const int AddrACWU = 0x01;  // 耐压电压
 const int AddrACWR = 0x02;  // 耐压结果
 const int AddrACWP = 0x03;  // 耐压小数
 
-const int AddrIMPV = 1140;  // 匝间版本
-const int AddrIMPS = 1141;  // 匝间状态
-const int AddrIMPQ = 1142;  // 匝间编号
-const int AddrIMPJ = 1143;  // 匝间判定
-const int AddrIMPU = 1144;  // 匝间电压
-const int AddrIMPG = 1145;  // 档位
-const int AddrIMPF = 1146;  // 频率
+
 
 class DevSetCan : public QObject
 {
@@ -76,18 +66,16 @@ private slots:
     void putAllDat();
     void updateAll();
     void configDCR();
-    void selectDCR();
     void updateDCR(QByteArray msg);
     void sampleImp();
+    void sampleDcr();
     void configImp();
-    void selectImp();
     void updateImp(int id, QByteArray msg);
     void calc();
     void configAcw();
-    void selectAcw();
     void updateAcw(QByteArray msg);
     void updateDat();
-    void startPlay(QTmpMap msg);
+    void startTest(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
 private:
     int fd;
@@ -98,6 +86,7 @@ private:
     QList<int>wave;
     QElapsedTimer t;
     QTmpMap tmpSet;
+    QTmpMap tmpDat;
     QTmpMap tmpMsg;
     int timeOut;
 };

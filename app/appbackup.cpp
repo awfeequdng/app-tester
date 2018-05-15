@@ -54,13 +54,21 @@ void AppBackup::initBoxText()
     layout->addStretch();
 
     QHBoxLayout *btn = new QHBoxLayout;
+    layout->addLayout(btn);
+    btn->addStretch();
+//#ifdef __arm__
+//    QPushButton *recy = new QPushButton(this);
+//    recy->setText(tr("恢复出厂设置"));
+//    recy->setFixedHeight(44);
+//    btn->addWidget(recy);
+//    connect(recy, SIGNAL(clicked(bool)), this, SLOT(recovery()));
+//#endif
     QPushButton *save = new QPushButton(this);
     save->setText(tr("保存"));
     save->setFixedSize(97, 44);
-    btn->addStretch();
     btn->addWidget(save);
     connect(save, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
-    layout->addLayout(btn);
+
 }
 
 void AppBackup::initSettings()
@@ -79,6 +87,13 @@ void AppBackup::saveSettings()
     }
     tmpSet.insert(AddrEnum, Qt::Key_Save);
     emit sendAppMsg(tmpSet);
+}
+
+void AppBackup::recovery()
+{
+    qDebug() << system("rm /mnt/nandflash/sqilte.db");
+    qDebug() << system("rm /mnt/nandflash/record.db");
+    qDebug() << system("reboot");
 }
 
 void AppBackup::recvAppMsg(QTmpMap msg)

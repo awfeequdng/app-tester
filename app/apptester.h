@@ -95,6 +95,7 @@ private slots:
     void impResize();
     void clickStart();
     void clickButton();
+    void recvTmpMsg(QTmpMap msg);
     void recvLedMsg(QTmpMap msg);
     void recvUpdate(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
@@ -121,6 +122,7 @@ private:
 
     QTextBrowser *textWeld;
     QTextBrowser *textChip;
+    QTextBrowser *textDiag;
     QTextBrowser *textIMPR;
 
     QPushButton *btnPlay;

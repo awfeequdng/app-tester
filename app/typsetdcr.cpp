@@ -163,7 +163,7 @@ void TypSetDcr::initDiagBar()
 
 void TypSetDcr::initViewBar()
 {
-    QTableWidget *view = new QTableWidget(this);
+    view = new QTableWidget(this);
     view->setRowCount(6);
     view->setColumnCount(12);
     view->verticalHeader()->hide();
@@ -227,6 +227,7 @@ void TypSetDcr::initButtons()
     btnCell->setFixedSize(97, 40);
     btnCell->setText(tr("采样"));
     layout->addWidget(btnCell);
+    connect(btnCell, SIGNAL(clicked(bool)), this, SLOT(sample()));
 
     QPushButton *btnSave = new QPushButton(this);
     btnSave->setFixedSize(97, 40);
@@ -253,6 +254,13 @@ void TypSetDcr::initSettings()
     boxDiag->setChecked(tmpSet[s + 0] == "1" ? Qt::Checked : Qt::Unchecked);
     minDiag->setValue(tmpSet[s + 1].toDouble()/1000);
     maxDiag->setValue(tmpSet[s + 2].toDouble()/1000);
+
+    int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();
+    int r = tmpSet[AddrDCRSW].toInt();
+    for (int i=0; i < qMin(c, 36); i++) {
+        double t = tmpSet[r + i].toDouble()/1000;
+        view->item(i%6, (i/6)*2+1)->setText(QString::number(t));
+    }
 }
 
 void TypSetDcr::saveSettings()
@@ -282,6 +290,27 @@ void TypSetDcr::clickButtons()
 {
 }
 
+void TypSetDcr::sample()
+{
+    tmpMsg.insert(AddrEnum, Qt::Key_Send);
+    tmpMsg.insert(AddrText, AddrModel);
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.insert(AddrText, AddrDCRS1);
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
+}
+
+void TypSetDcr::recvUpdate(QTmpMap msg)
+{
+    int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();
+    int r = tmpSet[AddrDCRSW].toInt();
+    int s = tmpSet[AddrWeld].toInt();
+    for (int i=0; i < c; i++) {
+        tmpSet[r + i] = msg[s + i];
+    }
+    initSettings();
+}
+
 void TypSetDcr::recvAppMsg(QTmpMap msg)
 {
     int c = msg.value(0).toInt();
@@ -290,6 +319,9 @@ void TypSetDcr::recvAppMsg(QTmpMap msg)
         tmpSet = msg;
         break;
     case Qt::Key_News:
+        if (this->isHidden())
+            return;
+        recvUpdate(msg);
         break;
     default:
         break;

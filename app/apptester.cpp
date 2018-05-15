@@ -20,7 +20,6 @@ void AppTester::initUI()
     initStatus();
     initWorker();
     initHistogram();
-    drawHistogram();
     initResult();
     initQChart();
     initButton();
@@ -222,8 +221,8 @@ void AppTester::initDcrDiag()
         largeLayout->addWidget(text);
     }
 
-    QTextBrowser *text = new QTextBrowser(this);
-    text->setStyleSheet("border:none;");
+    textDiag = new QTextBrowser(this);
+    textDiag->setStyleSheet("border:none;");
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setMargin(0);
@@ -231,7 +230,7 @@ void AppTester::initDcrDiag()
     layout->setMargin(0);
     layout->addWidget(title);
     layout->addLayout(largeLayout);
-    layout->addWidget(text);
+    layout->addWidget(textDiag);
     layout->setStretch(1, 1);
 
     QFrame *frame = new QFrame(this);
@@ -435,15 +434,15 @@ void AppTester::initSettings()
     int r = 0;
     boxChart->setNum(tmpSet[tmpSet[AddrModel].toInt()].toInt());
     if (1) {
-        if (tmpSet[AddrSign].toInt() == 0) {
+        if (tmpSet[DataSign].toInt() == 0) {
             status->item(0, 1)->setText(tr("未登录"));
         } else {
-            r = tmpSet[AddrCurr].toInt();
+            r = tmpSet[DataUser].toInt();
             status->item(0, 1)->setText(tmpSet[r].toString());
         }
     }
     if (1) {
-        r = tmpSet[AddrFile].toInt();
+        r = tmpSet[DataFile].toInt();
         status->item(0, 3)->setText(tmpSet[r].toString());
     }
 
@@ -500,10 +499,9 @@ void AppTester::initSettings()
     if (1) {
         int r = tmpSet[AddrDCRS1].toInt();  // 配置地址
         QString tt = tmpSet[r+0].toDouble() == 1 ? titleOK : titleNG;
-        tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;%2%3%&nbsp;&nbsp;%4:%5~%6Ω</p>";
+        tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;%2%3%</p>";
         tt = tt.arg("片间电阻").arg("离散:±");
-        tt = tt.arg(QString::number(tmpSet[r+1].toDouble(), 'f', 3)).arg("均值");
-        tt = tt.arg(QString::number(0.500, 'f', 3)).arg(QString::number(1.500, 'f', 3));
+        tt = tt.arg(QString::number(tmpSet[r+1].toDouble()/1000, 'f', 3));
         dcrTitles.at(0)->setText(tt);
         textWeld->clear();
     }
@@ -518,11 +516,12 @@ void AppTester::initSettings()
     if (3) {
         int r = tmpSet[AddrDCRS3].toInt();  // 配置地址
         int c = tmpSet[r+0].toInt();
+        double l = tmpSet[r + 1].toDouble()/1000;
+        double h = tmpSet[r + 2].toDouble()/1000;
         QString tt = c == 1 ? titleOK : titleNG;
-        tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;%2%3%&nbsp;&nbsp;%4:%5~%6Ω</p>";
-        tt = tt.arg("跨间电阻").arg("离散:±");
-        tt = tt.arg(QString::number(tmpSet[r+1].toDouble()/1000, 'f', 3)).arg("均值");
-        tt = tt.arg(QString::number(0.500, 'f', 3)).arg(QString::number(1.500, 'f', 3));
+        tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;%2:%3~%4Ω</p>";
+        tt = tt.arg("跨间电阻").arg("均值");
+        tt = tt.arg(QString::number(l, 'f', 3)).arg(QString::number(h, 'f', 3));
         dcrTitles.at(2)->setText(tt);
 
         QStringList tmp;
@@ -532,11 +531,8 @@ void AppTester::initSettings()
             dcrLabels.at(1)->setText(largeOK.arg("------"));
             dcrLabels.at(2)->setText(largeOK.arg("--"));
         }
+        textDiag->clear();
     }
-    prev = 0;
-    min = 0xffff;
-    minb = 0;
-    impWave.clear();
 }
 
 void AppTester::drawImpWave()
@@ -612,6 +608,8 @@ void AppTester::drawDcrWave()
 
 void AppTester::initHistogram()
 {
+    countAll = 0;
+    countOk = 0;
     histogram = new QCustomPlot(this);
     QStringList colors;
     colors << "blue" << "green" << "red";
@@ -661,8 +659,8 @@ void AppTester::initHistogram()
 
 void AppTester::drawHistogram()
 {
-    countAll = 100;
-    countOk = 98;
+    if (countAll == 0)
+        return;
     QVector<double> x1(1), y1(1);
     QVector<double> x2(1), y2(1);
     QVector<double> x3(1), y3(1);
@@ -787,6 +785,17 @@ void AppTester::clickButton()
     tmpMsg.clear();
 }
 
+void AppTester::recvTmpMsg(QTmpMap msg)
+{
+    if (!msg.value(DataTemp).isNull()) {
+        double temp = msg.value(DataTemp).toInt();
+        if (temp > 0x8000) {
+            temp = 0x8000 - temp;
+        }
+        status->item(1, 1)->setText(QString::number(temp/10, 'f', 1));
+    }
+}
+
 void AppTester::recvLedMsg(QTmpMap msg)
 {
     QString tmp = msg.value(AddrText).toString();
@@ -794,18 +803,29 @@ void AppTester::recvLedMsg(QTmpMap msg)
         initSettings();
         btnPlay->setText(tr("停止测试"));
         textResult->setText(judgeON.arg("ON"));
+        boxChart->setRun(1);
 #ifdef __arm__
         view->setEnabled(false);
 #endif
     } else {
+        boxChart->setRun(0);
         view->setEnabled(true);
         btnPlay->setText(tr("启动测试"));
     }
     if (tmp == "LEDG") {
-        textResult->setText(judgeOK);
+        if (msg.value(AddrBeep).toInt() > 0) {
+            countAll++;
+            countOk++;
+            textResult->setText(judgeOK);
+            drawHistogram();
+        }
     }
     if (tmp == "LEDR") {
-        textResult->setText(judgeNG);
+        if (msg.value(AddrBeep).toInt() > 0) {
+            countAll++;
+            textResult->setText(judgeNG);
+            drawHistogram();
+        }
     }
 }
 
@@ -817,13 +837,13 @@ void AppTester::recvUpdate(QTmpMap msg)
     int addr = msg.value(AddrText).toInt();
     if (addr >= AddrACWS1 && addr <= AddrACWS4) {
         int t = addr % AddrACWS1;
-        int s = msg[AddrINRA + t].toInt();
+        int s = tmpSet[AddrINRA + t].toInt();
         double j = msg[s + AddrACWJ].toInt();
         double v = msg[s + AddrACWU].toInt();
         double r = msg[s + AddrACWR].toInt();
         double p = msg[s + AddrACWP].toInt();
-        QString color = (j == 0) ? largeNG : largeOK;
-        QString judge = (j == 0) ? "NG" : "OK";
+        QString color = (j == DataNG) ? largeNG : largeOK;
+        QString judge = (j == DataNG) ? "NG" : "OK";
         r *= qPow(10, -p);
         QString volt = QString::number(v/1000, 'f', 3) + "kV";
         QString real = QString::number(r, 'f', 3) + "mA";
@@ -836,62 +856,94 @@ void AppTester::recvUpdate(QTmpMap msg)
     }
     if (addr == AddrIMPS1) {
         QString real;
-        if (msg[AddrData].toInt() == 0) {
-            tmpWave = impWave.mid(minb*400, 400);
-            drawImpWave();
-
-            real = QString::number(diff.at(minb), 'f', 3) + "%";
-            diff.clear();
-            min = 0xffff;
-            minb = 0;
-            impWave.clear();
-
-            int r = msg.value(AddrIMPA).toInt();
+        if (msg[AddrData].toInt() == 0) {  // 显示结果
+            int r = tmpSet.value(AddrIMPA).toInt();  // 匝间结果地址
             for (int i=0; i < c; i++) {
                 if (i%12 == 0) {
                     if (i != 0)
                         textIMPR->insertHtml("<br></br>");
                     textIMPR->insertHtml("&nbsp;&nbsp;");
                 }
-
                 double tmp = msg.value(r+i).toDouble()/1000;
                 textIMPR->insertHtml(SmallOK.arg(QString::number(tmp, 'f', tmp >= 10 ? 2 : 3)));
             }
-
         } else {
             tmpWave.clear();
-            int t = msg[AddrIMPW].toInt();  // 匝间波形地址
+            int t = tmpSet[AddrIMPW].toInt();  // 匝间波形地址
             for (int i=0; i < 400; i++) {
                 tmpWave.append(msg[t + i].toInt());
             }
-            impWave.append(tmpWave);
             drawImpWave();
 
-            int s = msg[AddrIMPA].toInt() + msg[AddrData].toInt() - 1;
+            int s = tmpSet[AddrIMPA].toInt() + msg[AddrData].toInt() - 1;
             double r = msg[s].toDouble()/1000;
-            diff.append(r);
-            real = QString::number(diff.last(), 'f', 3) + "%";
-            if (r < min)
-                minb = msg[AddrData].toInt() - 1;
-            min = qMin(r, min);
+            real = QString::number(r, 'f', 3) + "%";
+            double j = msg[DataIMPJ].toInt();  // 匝间判定
+            double v = msg[DataIMPU].toInt();  // 匝间电压
+
+            QString color = (j == DataNG) ? largeNG : largeOK;
+            QString judge = (j == DataNG) ? "NG" : "OK";
+            QString volt = QString::number(v/1000, 'f', 3) + "kV";
+            impLabels.at(0)->setText(color.arg(volt));
+            impLabels.at(1)->setText(color.arg(real));
+            impLabels.at(2)->setText(color.arg(judge));
         }
-        double j = msg[AddrIMPJ].toInt();
-        double v = msg[AddrIMPU].toInt();
-
-        QString color = (j == 0) ? largeNG : largeOK;
-        QString judge = (j == 0) ? "NG" : "OK";
-        QString volt = QString::number(v/1000, 'f', 3) + "kV";
-        impLabels.at(0)->setText(color.arg(volt));
-        impLabels.at(1)->setText(color.arg(real));
-        impLabels.at(2)->setText(color.arg(judge));
-
     }
     if (addr == AddrDCRS1) {
         textWeld->clear();
-        int r = msg.value(AddrWeld).toInt();
+        int r = tmpSet.value(AddrWeld).toInt();
+        int s = tmpSet.value(AddrDCRS1).toInt();
+        int w = tmpSet.value(AddrDCRSW).toInt();
+        int h = tmpSet[s + 1].toInt();
         for (int i=0; i < c; i++) {
+            if (i%12 == 0) {
+                if (i != 0)
+                    textWeld->insertHtml("<br></br>");
+                textWeld->insertHtml("&nbsp;&nbsp;");
+            }
+            double std = tmpSet[w + i].toInt();
+            double tmp = msg.value(r+i).toDouble();
+            QString str = (abs(tmp-std)/std*1000 < h) ? SmallOK : SmallNG;
+            textWeld->insertHtml(str.arg(QString::number(tmp, 'f', tmp >= 10 ? 2 : 3)));
+            if (str == SmallNG)
+                boxChart->setClr(i);
+        }
+    }
+    if (addr == AddrDCRS2) {
+        textChip->clear();
+        int r = tmpSet.value(AddrChip).toInt();
+        int s = tmpSet.value(AddrDCRS2).toInt();
+        for (int i=0; i < c; i++) {
+            if (i%12 == 0) {
+                if (i != 0)
+                    textChip->insertHtml("<br></br>");
+                textChip->insertHtml("&nbsp;&nbsp;");
+            }
+            double h = msg.value(s).toDouble()/1000;  // 单位uΩ换算为mΩ
+            double tmp = msg.value(r+i).toDouble();  // 单位为mΩ
+            QString str = (tmp > h) ? SmallNG : SmallOK;
+            textChip->insertHtml(str.arg(QString::number(tmp, 'f', tmp >= 10 ? 2 : 3)));
+            if (str == SmallNG)
+                boxChart->setClr(i);
+        }
+    }
+    if (addr == AddrDCRS3) {
+        textDiag->clear();
+        int r = tmpSet.value(AddrDiag).toInt();
+        for (int i=0; i < c; i++) {
+            if (i%12 == 0) {
+                if (i != 0)
+                    textDiag->insertHtml("<br></br>");
+                textDiag->insertHtml("&nbsp;&nbsp;");
+            }
+            int s = tmpSet[AddrDCRS3].toInt();  // 配置地址
+            double l = tmpSet[s + 1].toDouble()/1000;
+            double h = tmpSet[s + 2].toDouble()/1000;
             double tmp = msg.value(r+i).toDouble()/1000;
-            textWeld->insertHtml(SmallOK.arg(QString::number(tmp, 'f', tmp >= 10 ? 2 : 3)));
+            QString str = (tmp > l && tmp < h) ? SmallOK : SmallNG;
+            textDiag->insertHtml(str.arg(QString::number(tmp, 'f', tmp >= 10 ? 2 : 3)));
+            if (str == SmallNG)
+                boxChart->setClr(i);
         }
     }
 }
@@ -908,6 +960,9 @@ void AppTester::recvAppMsg(QTmpMap msg)
         break;
     case Qt::Key_Call:
         recvLedMsg(msg);
+        break;
+    case Qt::Key_Shop:
+        recvTmpMsg(msg);
         break;
     default:
         break;

@@ -10,13 +10,14 @@
 
 BoxQChart::BoxQChart(QWidget *parent) : QLabel(parent)
 {
+    m_start = 0;
     m_lenth = 0;
     m_timer = 0;
     m_width = 34;
     m_count = 24;
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(setStr()));
-    timer->start(5000);
+    timer->start(500);
     setStr();
 }
 
@@ -31,12 +32,27 @@ void BoxQChart::setNum(int num)
         m_width = 28;
     if (num <= 8)
         m_width = 24;
-
+    nums.clear();
     this->update();
+}
+
+void BoxQChart::setClr(int num)
+{
+    nums.append(num);
+    this->update();
+}
+
+void BoxQChart::setRun(int num)
+{
+    m_start = num;
+    if (num > 0) {
+        m_timer = 0;
+    }
 }
 
 void BoxQChart::setStr()
 {
+    m_timer++;
     m_title = QTime::currentTime().toString("hh:mm");
     this->update();
 }
@@ -82,10 +98,13 @@ void BoxQChart::drawPie(QPainter *painter)
 
     painter->setPen(QPen(Qt::transparent));
     for (int i=0; i < m_count; i++) {
-        if (i < m_lenth) {
-            painter->setBrush(QBrush(QColor("#2C8EE3")));
+        if (nums.contains(i)) {
+            painter->setBrush(QBrush(QColor("#FF0000")));
         } else {
             painter->setBrush(QBrush(QColor(Qt::darkYellow)));
+        }
+        if (m_start > 0 && (m_timer % m_count == i)) {
+            painter->setBrush(QBrush(QColor("#00FF00")));
         }
         painter->drawPie(-radius, -radius, radius << 1, radius << 1,
                          int(startAngle*16), int((angle-t)*16));

@@ -139,7 +139,7 @@ void AppLogger::initLayout()
 
 void AppLogger::saveSettings()
 {  // 调试信息输出保存在0x001F
-    tmpSet[AddrLogS] = QString::number(combo->currentIndex());
+    tmpSet[DataSave] = QString::number(combo->currentIndex());
     tmpSet.insert(AddrEnum, Qt::Key_Save);
     emit sendAppMsg(tmpSet);
 }
@@ -183,7 +183,7 @@ void AppLogger::recvAppMsg(QTmpMap msg)
     switch (c) {
     case Qt::Key_Copy:
         tmpSet = msg;
-        combo->setCurrentIndex(tmpSet[AddrLogS].toInt());
+        combo->setCurrentIndex(tmpSet[DataSave].toInt());
         break;
     default:
         break;

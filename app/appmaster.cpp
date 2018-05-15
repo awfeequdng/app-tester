@@ -214,7 +214,7 @@ void AppMaster::removeMaster()
         return;
     int p = view->item(row, 0)->text().toInt();
     int s = tmpSet[AddrUser].toInt() + p*5;
-    if (s == tmpSet[AddrCurr].toInt())
+    if (s == tmpSet[DataUser].toInt())
         QMessageBox::warning(this, tr("警告"), tr("不能删除当前用户"), QMessageBox::Ok);
     else {
         tmpSet[s + AddrName] = "";

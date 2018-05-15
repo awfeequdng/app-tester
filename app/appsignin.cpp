@@ -237,8 +237,8 @@ void AppSignin::initSettings()
 {
     QStringList users;
     int c = tmpSet[AddrUser].toInt();  // 用户存储地址
-    int r = tmpSet[AddrCurr].toInt();  // 当前用户地址
-    int a = tmpSet[AddrAuto].toInt();  // 自动登录配置
+    int r = tmpSet[DataUser].toInt();  // 当前用户地址
+    int a = tmpSet[DataAuto].toInt();  // 自动登录配置
 
     QString curruser = tmpSet[r + AddrName].toString();
     QString currpass = tmpSet[r + AddrPass].toString();
@@ -269,9 +269,9 @@ void AppSignin::initSettings()
 void AppSignin::saveSettings()
 {
     isOk = true;
-    tmpSet[AddrSign] = 1;
-    int r = tmpSet[AddrCurr].toInt();
-    tmpSet[0 + AddrAuto] = autosign->isChecked() ? 1 : 0;
+    tmpSet[DataSign] = 1;
+    int r = tmpSet[DataUser].toInt();
+    tmpSet[0 + DataAuto] = autosign->isChecked() ? 1 : 0;
     tmpSet[r + AddrSave] = autosave->isChecked() ? 1 : 0;
     tmpSet[r + AddrLast] = QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss");
     tmpSet.insert(AddrEnum, Qt::Key_Save);
@@ -288,11 +288,11 @@ void AppSignin::checkSignin()
     int s = tmpSet[AddrUser].toInt();
     for (int i=0; i < 100; i += 5) {
         if (tmp == tmpSet[s + i].toString()) {
-            tmpSet[AddrCurr] = s + i;
+            tmpSet[DataUser] = s + i;
             break;
         }
     }
-    int r = tmpSet[AddrCurr].toInt();
+    int r = tmpSet[DataUser].toInt();
     QString currpass = tmpSet[r + AddrPass].toString();
     if (currpass == password->text()) {
         stack->setCurrentIndex(3);
