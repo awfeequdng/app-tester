@@ -83,7 +83,7 @@ void TypConfig::initConfigBar()
     QStringList headers;
     headers << tr("型号编号") << tr("型号名称");
 
-    names << tr("当前型号") << tr("电枢片数") << tr("夹具类型")
+    names << tr("电枢片数") << tr("夹具类型")
           << tr("选中编号") << tr("选中型号");
 
     settings = new QTableWidget(this);
@@ -124,13 +124,13 @@ void TypConfig::initConfigBar()
     btnAdd->setFixedSize(97, 40);
     btnAdd->setText(tr("添加"));
     box2->addWidget(btnAdd);
-    connect(btnAdd, SIGNAL(clicked(bool)), this, SLOT(appendModelType()));
+    connect(btnAdd, SIGNAL(clicked(bool)), this, SLOT(createModel()));
 
     QPushButton *btnDel = new QPushButton(this);
     btnDel->setFixedSize(97, 40);
     btnDel->setText(tr("删除"));
     box2->addWidget(btnDel);
-    connect(btnDel, SIGNAL(clicked(bool)), this, SLOT(deleteModelType()));
+    connect(btnDel, SIGNAL(clicked(bool)), this, SLOT(removeModel()));
 
     layout->addStretch();
 }
@@ -157,7 +157,7 @@ void TypConfig::initButtonBar()
     btnLayout->addWidget(next);
     connect(next, SIGNAL(clicked(bool)), this, SLOT(clickButtons()));
 
-    QLabel *type = new QLabel(this);
+    type = new QLabel(this);
     type->setFixedSize(125, 40);
     type->setText(tr("当前型号:"));
     btnLayout->addWidget(type);
@@ -168,6 +168,7 @@ void TypConfig::initButtonBar()
     btnGet->setFixedSize(97, 40);
     btnGet->setText(tr("调入"));
     btnLayout->addWidget(btnGet);
+    connect(btnGet, SIGNAL(clicked(bool)), this, SLOT(selectModel()));
 
     QPushButton *btnSave = new QPushButton(this);
     btnSave->setFixedSize(97, 40);
@@ -181,7 +182,7 @@ void TypConfig::initButtonBar()
 void TypConfig::initSettings()
 {
     int p = page->text().toInt() - 1;    // 页码
-    int r = tmpSet[AddrTypeC].toInt() ;
+    int r = tmpSet[AddrType].toInt() ;
     int s = r + C_ROW*p;       // 起始地址
     for (int i=0; i < C_ROW; i++) {
         int t = s + i;
@@ -192,14 +193,27 @@ void TypConfig::initSettings()
         setFrame->show();
     else
         setFrame->hide();
+
+    r = tmpSet[AddrFile].toInt();
+    type->setText(tr("当前型号:%1").arg(tmpSet[r].toString()));
+
+    r = tmpSet[AddrModel].toInt();
+    for (int i=0; i < 2; i++) {
+        settings->item(i, 1)->setText(tmpSet[r + i].toString());
+    }
 }
 
 void TypConfig::saveSettings()
 {
-
+    int r = tmpSet[AddrModel].toInt();
+    for (int i=0; i < 2; i++) {
+        tmpSet[r + i] = settings->item(i, 1)->text();
+    }
+    tmpSet.insert(AddrEnum, Qt::Key_Memo);
+    emit sendAppMsg(tmpSet);
 }
 
-void TypConfig::appendModelType()
+void TypConfig::createModel()
 {
     int t = names.indexOf(tr("选中编号"));
     QString t_numb = settings->item(t+0, 1)->text();
@@ -207,58 +221,44 @@ void TypConfig::appendModelType()
     if (t_name.isEmpty())
         return;
     if (t_numb.isEmpty()) {
-        for (int i=AddrModels; i < AddrModels+0x0100; i++) {
-            if (config[QString::number(i)].toString().isEmpty()) {
-                t_numb = QString::number(i - AddrModels + 1);
-                break;
-            }
-        }
-    }
-    for (int i=AddrModels; i < AddrModels+0x0100; i++) {
-        if (config[QString::number(i)].toString() == t_name) {
-            QString tmp = tr("发现编号%1与此型号名称相同").arg(i-AddrModels+1, 3, 10, QChar('0'));
-            QMessageBox::warning(this, tr("警告"), tmp, QMessageBox::Ok);
-            return;
-        }
-    }
-    t_numb = QString::number(AddrModels + (t_numb.toInt() - 1)%0x0100);
-    if (!config[t_numb].toString().isEmpty()) {
-        QString tmp = tr("此编号已使用");
-        QMessageBox::warning(this, tr("警告"), tmp, QMessageBox::Ok);
         return;
     }
-
     QString name = "sqlite";
-    QString c_name = config[QString::number(AddrTpName)].toString();
+    QString c_name = tmpSet[tmpSet[AddrFile].toInt()].toString();
+
     QSqlQuery query(QSqlDatabase::database(name));
     QSqlDatabase::database(name).transaction();
     query.exec(tr("create table M_%1 as select * from M_%2").arg(t_name).arg(c_name));
     QSqlDatabase::database(name).commit();
 
-    config[t_numb] = t_name;
-    config.insert("enum", Qt::Key_Save);
-    emit sendAppMap(config);
+    int r = tmpSet[AddrType].toInt();
+    tmpSet[r + t_numb.toInt() - 1] = t_name;
+
+    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    emit sendAppMsg(tmpSet);
 
     initSettings();
 }
 
-void TypConfig::selectModelType()
+void TypConfig::selectModel()
 {
     int row = view->currentRow();
     if (row < 0)
         return;
+    QString t_numb = view->item(row, 0)->text();
     QString t_name = view->item(row, 1)->text();
     if (t_name.isEmpty())
         return;
 
-    config.insert("enum", Qt::Key_Word);
-    config[QString::number(AddrTpName)] = t_name;
-    emit sendAppMap(config);
+    int r = tmpSet[AddrType].toInt();
+    tmpSet[AddrFile] = r + t_numb.toInt() - 1;
+    tmpSet.insert(AddrEnum, Qt::Key_Word);
+    emit sendAppMsg(tmpSet);
 
     initSettings();
 }
 
-void TypConfig::deleteModelType()
+void TypConfig::removeModel()
 {
     int t = names.indexOf(tr("选中编号"));
     QString t_numb = settings->item(t+0, 1)->text();
@@ -267,8 +267,7 @@ void TypConfig::deleteModelType()
         return;
     if (t_name.isEmpty())
         return;
-
-    QString c_name = config[QString::number(AddrTpName)].toString();
+    QString c_name = tmpSet[tmpSet[AddrFile].toInt()].toString();
     if (t_name == c_name) {
         QMessageBox::warning(this, tr("警告"), tr("不能删除当前型号"), QMessageBox::Ok);
         return;
@@ -277,10 +276,11 @@ void TypConfig::deleteModelType()
     QSqlQuery query(QSqlDatabase::database("sqlite"));
     query.exec(tr("drop table M_%1").arg(t_name));
 
-    t_numb = QString::number(AddrModels + (t_numb.toInt() - 1)%0x0100);
-    config[t_numb] = "";
-    config.insert("enum", Qt::Key_Save);
-    emit sendAppMap(config);
+    int r = tmpSet[AddrType].toInt();
+    tmpSet[r + t_numb.toInt() - 1] = "";
+
+    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    emit sendAppMsg(tmpSet);
 
     initSettings();
 }
@@ -307,11 +307,9 @@ void TypConfig::clickViewBar()
     int row = view->currentRow();
     if (row < 0)
         return;
-    int p = page->text().toInt() - 1;    // 页码
-    int s = AddrModels + C_ROW*p + row; // 地址
     int t = names.indexOf(tr("选中编号"));
-    settings->item(t+0, 1)->setText(QString("%1").arg(s-AddrModels+1, 3, 10, QChar('0')));
-    settings->item(t+1, 1)->setText(config[QString::number(s)].toString());
+    settings->item(t+0, 1)->setText(view->item(row, 0)->text());
+    settings->item(t+1, 1)->setText(view->item(row, 1)->text());
 }
 
 void TypConfig::recvAppMsg(QTmpMap msg)

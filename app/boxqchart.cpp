@@ -12,22 +12,33 @@ BoxQChart::BoxQChart(QWidget *parent) : QLabel(parent)
 {
     m_lenth = 0;
     m_timer = 0;
+    m_width = 34;
     m_count = 24;
+    QTimer *timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(setStr()));
+    timer->start(5000);
+    setStr();
 }
 
 void BoxQChart::setNum(int num)
 {
     m_count = num;
+    if (num <= 36)
+        m_width = 33;
+    if (num <= 24)
+        m_width = 32;
+    if (num <= 12)
+        m_width = 28;
+    if (num <= 8)
+        m_width = 24;
+
     this->update();
 }
 
-void BoxQChart::setStr(QString text)
+void BoxQChart::setStr()
 {
-    m_title = text;
-    if (m_timer%500) {
-        this->update();
-    }
-    m_timer++;
+    m_title = QTime::currentTime().toString("hh:mm");
+    this->update();
 }
 
 void BoxQChart::mouseReleaseEvent(QMouseEvent *e)
@@ -61,6 +72,14 @@ void BoxQChart::drawPie(QPainter *painter)
     double startAngle = 90-angle/2;
     int radius = SCALE*48/100;
 
+    int t = 1;
+    if (m_count <= 36)
+        t = 2;
+    if (m_count <= 12)
+        t = 3;
+    if (m_count <= 8)
+        t = 4;
+
     painter->setPen(QPen(Qt::transparent));
     for (int i=0; i < m_count; i++) {
         if (i < m_lenth) {
@@ -68,7 +87,6 @@ void BoxQChart::drawPie(QPainter *painter)
         } else {
             painter->setBrush(QBrush(QColor(Qt::darkYellow)));
         }
-        int t = qMin(3, qMax(1, (5 - m_count/12)));
         painter->drawPie(-radius, -radius, radius << 1, radius << 1,
                          int(startAngle*16), int((angle-t)*16));
         startAngle -= angle;
@@ -79,11 +97,8 @@ void BoxQChart::drawPie(QPainter *painter)
 void BoxQChart::drawCrown(QPainter *painter)
 { // 内圈圆形
     painter->save();
-    int radius = SCALE*32/100;
-    if (m_count < 12) {
-        radius = SCALE*28/100;
-    }
-    painter->setBrush(QBrush(QColor("#191919")));
+    int radius = SCALE*m_width/100;
+    painter->setBrush(QBrush(QColor("#121922")));
     painter->setPen(Qt::NoPen);
     painter->drawEllipse(-radius, -radius, radius << 1, radius << 1);
     painter->restore();
@@ -95,10 +110,7 @@ void BoxQChart::drawScaleNum(QPainter *painter)
     double startRad = PI/2;
     double deltaRad = 2 * PI / m_count;
     double sina, cosa;
-    int radius = SCALE*28/100;
-    if (m_count < 12) {
-        radius = SCALE*24/100;
-    }
+    int radius = SCALE*(m_width-4)/100;
     int x, y;
     QFontMetricsF fm(this->font());
     double w, h, tmpVal;

@@ -31,7 +31,6 @@ class AppSystem : public QWidget
 public:
     explicit AppSystem(QWidget *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
     void sendAppMsg(QTmpMap msg);
 private slots:
     void initUI();
@@ -40,7 +39,6 @@ private slots:
     void initDevice();
     void initButton();
     void initDelegate();
-
     void initSettings();
     void saveSettings();
     void setLocalTime();
@@ -52,7 +50,6 @@ private:
     QList<QComboBox*> texts;
     QList<QLineEdit*> ctrls;
     QDateTimeEdit *time;
-    QVariantMap config;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
 };

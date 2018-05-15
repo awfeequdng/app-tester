@@ -2,13 +2,13 @@
 QMainWindow {
 font:14px "WenQuanYi Mcrio Hei";
 color:white;
-background:#191919
+background:#121922
 }
 /*QWidget*/
 QWidget {
 font:15px "WenQuanYi Mcrio Hei";
 color:white;
-background:#191919;
+background:#121922;
 }
 QWidget:focus {
 outline:none;
@@ -17,12 +17,12 @@ outline:none;
 QFrame {
 font:14px "WenQuanYi Mcrio Hei";
 color:white;
-background:#191919;
+background:#121922;
 }
 /*QDialog*/
 QDialog {
 color:white;
-background:#191919
+background:#121922
 }
 QDialog QPushButton {
 min-height:25px;
@@ -359,7 +359,7 @@ QListView {
 font:15pt;
 border:1px solid #447684;
 gridline-color:#447684;
-background:#191919;
+background:#121922;
 }
 QListView::item:hover {
 color:white;
@@ -379,6 +379,25 @@ background-color:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #353B43,stop:1 #151A
 QTableCornerButton::section {
 border:1px solid #447684;padding:0px 2px;
 background-color:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #353B43,stop:1 #151A20);
+}
+/*QTableWidget*/
+QTableWidget {
+border:1px solid #447684;
+gridline-color:#447684;
+background:transparent;
+}
+QTableWidget::item:hover {
+color:white;
+background:transparent;
+}
+QTableWidget::item:selected {
+color:white;
+background:transparent;
+}
+QTableWidget::indicator {
+width:44px;
+height:44px;
+subcontrol-position:center;
 }
 /*QTableView*/
 QTableView {

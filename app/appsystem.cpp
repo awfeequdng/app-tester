@@ -137,15 +137,17 @@ void AppSystem::initDelegate()
 
 void AppSystem::initSettings()
 {
+    int r = tmpSet[AddrSyst].toInt();
     for (int i=0; i < texts.size(); i++) {  // 系统配置存放在0x0020
         if (i < 5) {
-            texts.at(i)->setCurrentIndex(config[QString::number(i+AddrSystem)].toInt());
+            texts.at(i)->setCurrentIndex(tmpSet[r + i].toInt());
         } else {
-            texts.at(i)->lineEdit()->setText(config[QString::number(i+AddrSystem)].toString());
+            texts.at(i)->lineEdit()->setText(tmpSet[r + i].toString());
         }
     }
+    int s = tmpSet[AddrInfo].toInt();
     for (int i=0; i < ctrls.size(); i++) {  // 本机设置存放在0x0030
-        ctrls.at(i)->setText(config[QString::number(i+0x0030)].toString());
+        ctrls.at(i)->setText(tmpSet[s + i].toString());
     }
 #ifdef __arm__
     time->setDateTime(QDateTime::currentDateTime());
@@ -154,18 +156,20 @@ void AppSystem::initSettings()
 
 void AppSystem::saveSettings()
 {
+    int r = tmpSet[AddrSyst].toInt();
     for (int i=0; i < texts.size(); i++) {  // 系统配置存放在0x0020
         if (i < 5) {
-            config[QString::number(i+AddrSystem)] = QString::number(texts.at(i)->currentIndex());
+            tmpSet[r + i] = QString::number(texts.at(i)->currentIndex());
         } else {
-            config[QString::number(i+AddrSystem)] = texts.at(i)->currentText();
+            tmpSet[r + i] = texts.at(i)->currentText();
         }
     }
+    int s = tmpSet[AddrInfo].toInt();
     for (int i=0; i < ctrls.size(); i++) {  // 本机设置存放在0x0030
-        config[QString::number(i+0x0030)] = ctrls.at(i)->text();
+        tmpSet[s + i] = ctrls.at(i)->text();
     }
-    config.insert("enum", Qt::Key_Save);
-    emit sendAppMap(config);
+    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    emit sendAppMsg(tmpSet);
 
     QSettings *set = new QSettings("./nandflash/userinfo.txt", QSettings::IniFormat);
     set->beginGroup("LOCAL_MACHINE");

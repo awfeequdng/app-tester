@@ -48,7 +48,7 @@ const QString SmallOK = StyleOK + "<b>%1&nbsp;</b></p>";
 const QString SmallNG = StyleNG + "<b>%1&nbsp;</b></p>";
 
 const QString titleOK = "<p style='font-size:11pt;color:#FFFFFF;' align='left'>";
-const QString titleNG = "<p style='font-size:11pt;color:#FF0000;' align='left'>";
+const QString titleNG = "<p style='font-size:11pt;color:#666666;' align='left'>";
 const QString largeOK = "<p style='font-size:15pt;color:#00FF00;' align='center'>%1</p>";
 const QString largeNG = "<p style='font-size:15pt;color:#FF0000;' align='center'>%1</p>";
 const QString largeON = "<p style='font-size:15pt;color:#666666;' align='center'>%1</p>";
@@ -84,6 +84,7 @@ private slots:
     void initAcwTextLC();
     void initImpText();
     void initImpWave();
+    void initSettings();
     void drawImpWave();
 
     void setViewSize();
@@ -94,7 +95,6 @@ private slots:
     void impResize();
     void clickStart();
     void clickButton();
-    void clearView();
     void recvLedMsg(QTmpMap msg);
     void recvUpdate(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
@@ -112,13 +112,16 @@ private:
     quint32 countOk;
     quint32 countAll;
 
+    QList<QLabel*> dcrTitles;
+    QList<QLabel*> dcrLabels;
     QList<QLabel*> acwLabels;
     QList<QLabel*> acwTitles;
     QList<QLabel*> impLabels;
     QList<QLabel*> impTitles;
 
-    QTextBrowser *textDcrMD;
-    QTextBrowser *textDcrCP;
+    QTextBrowser *textWeld;
+    QTextBrowser *textChip;
+    QTextBrowser *textIMPR;
 
     QPushButton *btnPlay;
 

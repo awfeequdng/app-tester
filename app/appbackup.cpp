@@ -65,31 +65,20 @@ void AppBackup::initBoxText()
 
 void AppBackup::initSettings()
 {
-    for (int i=0; i < texts.size(); i++) {  // 后台信息存放在0x0010
-        texts.at(i)->setText(config[QString::number(i+AddrBackup)].toString());
+    int r = tmpSet[AddrBack].toInt();
+    for (int i=0; i < texts.size(); i++) {
+        texts.at(i)->setText(tmpSet[r + i].toString());
     }
 }
 
 void AppBackup::saveSettings()
 {
+    int r = tmpSet[AddrBack].toInt();
     for (int i=0; i < texts.size(); i++) {
-        config[QString::number(i+AddrBackup)] = texts.at(i)->text();
+        tmpSet[r + i] = texts.at(i)->text();
     }
-    config.insert("enum", Qt::Key_Save);
-    emit sendAppMap(config);
-}
-
-void AppBackup::recvAppMap(QVariantMap msg)
-{
-    switch (msg.value("enum").toInt()) {
-    case Qt::Key_Copy:
-        for (int i=AddrBackup; i < AddrBackup + 0x10; i++) {  // 后台信息存放在0x0010
-            config[QString::number(i)] = msg[QString::number(i)];
-        }
-        break;
-    default:
-        break;
-    }
+    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    emit sendAppMsg(tmpSet);
 }
 
 void AppBackup::recvAppMsg(QTmpMap msg)

@@ -34,7 +34,6 @@ public:
     static AppLogger *instance();
     explicit AppLogger(QWidget *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
     void sendAppMsg(QTmpMap msg);
 public slots:
     void output(QtMsgType type, const QString &msg);
@@ -45,7 +44,6 @@ private slots:
     void initLayout();
     void saveSettings();
     void changeHandle(int t);
-    void recvAppMap(QVariantMap msg);
     void recvAppMsg(QTmpMap msg);
 private:
     QComboBox *combo;

@@ -284,6 +284,14 @@ void AppSignin::saveSettings()
 
 void AppSignin::checkSignin()
 {
+    QString tmp = username->currentText();
+    int s = tmpSet[AddrUser].toInt();
+    for (int i=0; i < 100; i += 5) {
+        if (tmp == tmpSet[s + i].toString()) {
+            tmpSet[AddrCurr] = s + i;
+            break;
+        }
+    }
     int r = tmpSet[AddrCurr].toInt();
     QString currpass = tmpSet[r + AddrPass].toString();
     if (currpass == password->text()) {

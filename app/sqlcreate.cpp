@@ -47,16 +47,15 @@ void SqlCreate::createSqlite()
         qDebug() << "create table G_DEFAULT Error";
     }
     db.transaction();
-    //    insertBackinfo(query);
-    //    insertSystInfo(query);
-    //    insertUserInfo(query);
-    //    insertSignInfo(query);
-        insertTypeInfo(query);
+    insertBackinfo(query);
+    insertSystInfo(query);
+    insertUserInfo(query);
+    insertTypeInfo(query);
     //    insertOffsetDcr(query);
     //    insertOffsetInr(query);
     //    insertOffsetAcw(query);
     //    insertOffsetImp(query);
-    //    insertSqlNetwork(query);
+    insertSqlNetwork(query);
     insertMasterInfo(query);
     insertSourceInfo(query);
     insertModelsInfo(query);
@@ -68,7 +67,7 @@ void SqlCreate::createSqlite()
 
 void SqlCreate::insertBackinfo(QSqlQuery query)
 {  // 后台设置
-    int from = 0x0010;
+    int from = 2020;
     QStringList parm;
     parm << "AIP8900";      // 产品型号
     parm << "189912001X";   // 产品编号
@@ -82,9 +81,6 @@ void SqlCreate::insertBackinfo(QSqlQuery query)
     parm << "s.aipuo.com";  // 公司网址
     parm << "6000";         // 连接端口
 
-    for (int i=parm.size(); i < STEP; i++) {
-        parm << "";
-    }
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into G_DEFAULT values(?,?)");
         query.addBindValue(from + i);
@@ -95,13 +91,11 @@ void SqlCreate::insertBackinfo(QSqlQuery query)
 
 void SqlCreate::insertSystInfo(QSqlQuery query)
 {  // 系统设置
-    int from = 0x0020;
+    int from = 2120;
     QStringList parm;
     parm << "0" << "0" << "0" << "5" << "5"     // 语言设置,测试模式,启动方式,亮度设定,音量设定
          << "0" << "9" << "0.2" << "0.5";       // 条码起始,条码长度,合格报警,报警提示
-    for (int i=parm.size(); i < STEP; i++) {
-        parm << "";
-    }
+
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into G_DEFAULT values(?,?)");
         query.addBindValue(from + i);
@@ -112,30 +106,11 @@ void SqlCreate::insertSystInfo(QSqlQuery query)
 
 void SqlCreate::insertUserInfo(QSqlQuery query)
 {  // 自动地址,默认网关,网络地址,子网掩码,挂载地址,挂载路径,自动执行,执行参数
-    int from = 0x0030;
+    int from = 2140;
     QStringList parm;
     parm << "1" << "192.168.1.1" << "192.168.1.56" << "255.255.255.0";
     parm << "192.168.1.186" << "/nfs" << "" << "";
-    for (int i=parm.size(); i < STEP; i++) {
-        parm << "";
-    }
     for (int i=0; i < parm.size(); i++) {
-        query.prepare("insert into G_DEFAULT values(?,?)");
-        query.addBindValue(from + i);
-        query.addBindValue(parm.at(i));
-        query.exec();
-    }
-}
-
-void SqlCreate::insertSignInfo(QSqlQuery query)
-{ // 用户名,密码,记住密码,自动登录
-    int from = AddrSignIn;
-    QStringList parm;
-    parm << tr("admin") << tr("6") << tr("1") << tr("1");
-    for (int i=parm.size(); i < STEP; i++) {
-        parm << "";
-    }
-    for (int i=0; i < STEP; i++) {
         query.prepare("insert into G_DEFAULT values(?,?)");
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
@@ -229,16 +204,13 @@ void SqlCreate::insertOffsetImp(QSqlQuery query)
 
 void SqlCreate::insertSqlNetwork(QSqlQuery query)
 {  // 上传模式,网络地址,登录用户,登录密码,数据库名,网络端口
-    int from = 0x00E0;
+    int from = 2160;
     QStringList parm;
     parm << tr("0") << tr("192.168.1.2") << tr("sa") << tr("Abc++123")
          << tr("aip-server") << tr("1433") << tr("") << tr("");
     parm << tr("0") << tr("192.168.1.55") << tr("sa") << tr("123")
          << tr("aip-server") << tr("1433") << tr("") << tr("");
-    for (int i=parm.size(); i < STEP*2; i++) {
-        parm << "";
-    }
-    for (int i=0; i < STEP; i++) {
+    for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into G_DEFAULT values(?,?)");
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
@@ -251,7 +223,7 @@ void SqlCreate::insertMasterInfo(QSqlQuery query)
 {  // name pass role last save
     int from = 2300;
     QStringList parm;
-    parm << "supper" << "aip9918" << "0" << "" << "0";
+    parm << "supper" << "aip9918" << "0" << "" << "1";
     parm << "admin" << "6" << "1" << "" << "1";
     parm << "techo" << "6" << "2" << "" << "1";
     parm << "guest" << "6" << "3" << "" << "1";
@@ -306,7 +278,7 @@ void SqlCreate::insertModelsInfo(QSqlQuery query)
 {
     int from = 2000;
     QStringList parm;
-    parm << "2500" << "2305" << "1" << "0";
+    parm << "2500" << "2300" << "1" << "1";
 
     for (int i=parm.size(); i < 10; i++) {
         parm << "";
@@ -329,8 +301,8 @@ void SqlCreate::insertConfigInfo(QSqlQuery query)
 {
     int from = 3000;
     QStringList parm;
-    parm << "2010" << "2020" << "2030" << "2040" << "2050" << "2060" << "2070" << "2080" << "2090" << "";
-    parm << "DEFAULT" << "12" << "12" << "" << "" << "" << "" << "" << "" << "";  // 综合配置
+    parm << "12" << "12" << "" << "" << "" << "" << "" << "" << "" << "";  // 综合配置
+    parm << "" << "" << "" << "" << "" << "" << "" << "" << "" << "";
     parm << "1" << "10000" << "1" << "25000" << "500" << "" << "" << "" << "" << "";  // 片间配置
     parm << "1" << "500" << "" << "" << "" << "" << "" << "" << "" << "";  // 焊接配置
     parm << "1" << "500" << "1500" << "" << "" << "" << "" << "" << "" << "";  // 跨间配置

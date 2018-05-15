@@ -231,7 +231,7 @@ void TypSetAcw::saveSettings()
         w = AddrACWSA;  // 电弧
         tmpSet[s + w] = view->item(r, w)->text();
     }
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    tmpSet.insert(AddrEnum, Qt::Key_Memo);
     emit sendAppMsg(tmpSet);
 }
 

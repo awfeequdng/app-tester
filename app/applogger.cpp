@@ -139,9 +139,9 @@ void AppLogger::initLayout()
 
 void AppLogger::saveSettings()
 {  // 调试信息输出保存在0x001F
-    config[QString::number(AddrLogger)] = QString::number(combo->currentIndex());
-    config.insert("enum", Qt::Key_Save);
-    emit sendAppMap(config);
+    tmpSet[AddrLogS] = QString::number(combo->currentIndex());
+    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    emit sendAppMsg(tmpSet);
 }
 
 void AppLogger::changeHandle(int t)
@@ -177,24 +177,13 @@ void AppLogger::changeHandle(int t)
 #endif
 }
 
-void AppLogger::recvAppMap(QVariantMap msg)
-{  // 调试信息输出保存在0x001F
-    switch (msg.value("enum").toInt()) {
-    case Qt::Key_Copy:
-        config[QString::number(AddrLogger)] = msg[QString::number(AddrLogger)];
-        combo->setCurrentIndex(config[QString::number(AddrLogger)].toInt());
-        break;
-    default:
-        break;
-    }
-}
-
 void AppLogger::recvAppMsg(QTmpMap msg)
 {
     int c = msg.value(AddrEnum).toInt();
     switch (c) {
     case Qt::Key_Copy:
         tmpSet = msg;
+        combo->setCurrentIndex(tmpSet[AddrLogS].toInt());
         break;
     default:
         break;

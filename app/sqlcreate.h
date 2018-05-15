@@ -39,7 +39,6 @@ private slots:
     void insertBackinfo(QSqlQuery query);
     void insertSystInfo(QSqlQuery query);
     void insertUserInfo(QSqlQuery query);
-    void insertSignInfo(QSqlQuery query);
     void insertTypeInfo(QSqlQuery query);
 
     void insertOffsetDcr(QSqlQuery query);

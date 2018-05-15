@@ -85,11 +85,13 @@ void AppAction::initDelegate()
 
 void AppAction::initSettings()
 {
-    int s = AddrShow;
+    int s = tmpSet[AddrShow].toInt();
     for (int i=0; i < A_ROW; i++) {
         int t = s + i*4;
         int r = tmpSet[t + AddrRole].toInt();
         if (r > 0) {
+            r = qMax(1, r);
+            r = qMin(r, roles.size());
             view->item(i, 0)->setText(tmpSet[t + AddrMark].toString());
             view->item(i, 1)->setText(roles.at(r - 1));
             view->item(i, 2)->setText(tmpSet[t + AddrForm].toString());

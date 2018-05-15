@@ -28,7 +28,7 @@
 #include "appdefine.h"
 #include "appmaster.h"
 
-const int AddrShow = 1020;
+
 
 //const int AddrName = 0x00;
 const int AddrMark = 0x01;

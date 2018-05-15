@@ -41,23 +41,9 @@
 #include "typsetacw.h"
 #include "typsetimp.h"
 
-const int AddrDevA = 1000;  // 设备信息区地址
-const int AddrWeld = 1001;  // 片间结果区地址
-const int AddrChip = 1002;
-const int AddrDiag = 1003;
-const int AddrINRA = 1004;  // 绝缘结果区地址
-const int AddrACWL = 1005;  // 轴铁结果区地址
-const int AddrACWC = 1006;  // 轴线结果区地址
-const int AddrACWA = 1007;  // 铁线结果区地址
-const int AddrIMPA = 1008;  // 匝间结果区地址
-const int AddrIMPW = 1009;  // 匝间波形区地址
 
-const int AddrDCRV = 1120;  // 电阻版本
-const int AddrDCRS = 1121;  // 电阻状态
-const int ADDRDCRJ = 1123;  // 电阻判定
 
-const int AddrACWV = 1130;  // 耐压版本
-const int AddrACWS = 1131;  // 耐压状态
+
 
 const int AddrACWJ = 0x00;  // 耐压判定
 const int AddrACWU = 0x01;  // 耐压电压
@@ -89,6 +75,9 @@ private slots:
     void getAllDat();
     void putAllDat();
     void updateAll();
+    void configDCR();
+    void selectDCR();
+    void updateDCR(QByteArray msg);
     void sampleImp();
     void configImp();
     void selectImp();

@@ -274,7 +274,7 @@ void TypSetDcr::saveSettings()
     tmpSet[s + 1] = QString::number(minDiag->value()*1000);
     tmpSet[s + 2] = QString::number(maxDiag->value()*1000);
 
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    tmpSet.insert(AddrEnum, Qt::Key_Memo);
     emit sendAppMsg(tmpSet);
 }
 

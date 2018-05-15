@@ -217,7 +217,7 @@ void TypSetImp::saveSettings()
     tmpSet[s + w] = mView->item(0, w)->text();
     w = AddrIMPSA;  // 间隔
     tmpSet[s + w] = mView->item(0, w)->text();
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    tmpSet.insert(AddrEnum, Qt::Key_Memo);
     emit sendAppMsg(tmpSet);
 }
 

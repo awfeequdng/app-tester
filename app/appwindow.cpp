@@ -509,8 +509,18 @@ int AppWindow::initTmpDat()
     tmpSet.insert(AddrDiag, 1350);
     tmpSet.insert(AddrIMPA, 1400);  // 匝间结果存放在400
     tmpSet.insert(AddrIMPW, 1600);  // 匝间波形存放在600
+    tmpSet.insert(AddrBack, 2020);
+    tmpSet.insert(AddrDCRB, 2040);
+    tmpSet.insert(AddrINRB, 2060);
+    tmpSet.insert(AddrACWB, 2080);
+    tmpSet.insert(AddrIMPB, 2100);
+    tmpSet.insert(AddrSyst, 2120);
+    tmpSet.insert(AddrInfo, 2140);
+    tmpSet.insert(AddrLoad, 2160);
+    tmpSet.insert(AddrType, 2500);
     tmpSet.insert(AddrShow, 2200);  // 界面信息存入在2200
     tmpSet.insert(AddrUser, 2300);  // 用户信息存放在2300
+
     tmpSet.insert(AddrModel, 3000);
     tmpSet.insert(AddrDCRS1, 3020);
     tmpSet.insert(AddrDCRS2, 3030);
@@ -688,7 +698,23 @@ void AppWindow::saveSqlite()
         }
         boxbar->setValue(i*50/uuids.size());
     }
-    QString type = tmpSet[tmpSet[AddrTypeC].toInt()].toString();
+    QSqlDatabase::database(name).commit();
+    boxbar->setValue(99);
+    wait(500);
+    query.clear();
+    boxbar->setValue(100);
+}
+
+void AppWindow::saveModels()
+{
+    boxbar->setLabelText(tr("正在保存数据"));
+    boxbar->show();
+    wait(10);
+    QString name = "sqlite";
+    QSqlQuery query(QSqlDatabase::database(name));
+    QList<int> uuids = tmpSet.keys();
+    QSqlDatabase::database(name).transaction();
+    QString type = tmpSet[tmpSet[AddrFile].toInt()].toString();
     for (int i=0; i < uuids.size(); i++) {
         int uuid = uuids.at(i);
         if (uuid < 4000 && uuid >= 3000) {
@@ -697,7 +723,7 @@ void AppWindow::saveSqlite()
             query.addBindValue(tmpSet[uuid]);
             query.exec();
         }
-        boxbar->setValue(i*50/uuids.size() + 48);
+        boxbar->setValue(i*99/uuids.size());
     }
     QSqlDatabase::database(name).commit();
     boxbar->setValue(99);
@@ -924,7 +950,8 @@ int AppWindow::taskClearBeep()
 {
     int ret = Qt::Key_Meta;
     timeOut++;
-    int t = tmpSet[AddrTimeOK].toDouble()*100;
+    int r = tmpSet[AddrSyst].toInt();
+    int t = tmpSet[r + 0x07].toDouble()*100;
     if (timeOut > t) {
         timeOut = 0;
         ret = Qt::Key_Away;
@@ -1013,7 +1040,7 @@ void AppWindow::recvNewMsg(QTmpMap msg)
     case AddrDCRS1:
     case AddrDCRS2:
     case AddrDCRS3:
-        if (msg[AddrDCRS].toInt() == 0)
+        if (msg[AddrDCRS].toInt() == 2)
             testShift = Qt::Key_Away;
         break;
     case AddrACWS1:
@@ -1052,6 +1079,11 @@ void AppWindow::recvAppMsg(QTmpMap msg)
     case Qt::Key_Save:
         tmpSet = msg;
         saveSqlite();
+        sendSqlite();
+        break;
+    case Qt::Key_Memo:
+        tmpSet = msg;
+        saveModels();
         sendSqlite();
         break;
     case Qt::Key_Play:

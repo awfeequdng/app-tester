@@ -70,13 +70,13 @@ void AppTester::initStatus()
 
 #if (QT_VERSION <= QT_VERSION_CHECK(5, 0, 0))
     status->setColumnWidth(0, 36);
-    status->setColumnWidth(1, 48);
+    status->setColumnWidth(1, 56);
     status->setColumnWidth(2, 36);
     status->horizontalHeader()->setResizeMode(3, QHeaderView::Stretch);
     status->verticalHeader()->setResizeMode(2, QHeaderView::Stretch);
 #else
     status->setColumnWidth(0, 42);
-    status->setColumnWidth(1, 52);
+    status->setColumnWidth(1, 56);
     status->setColumnWidth(2, 42);
     status->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
     status->verticalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
@@ -86,7 +86,7 @@ void AppTester::initStatus()
     status->verticalHeader()->setVisible(false);
 
     status->horizontalHeader()->setStretchLastSection(true);
-    status->setStyleSheet("border:none;font:11pt;");
+    status->setStyleSheet("border:none;font:11pt;background:#121922");
     status->setEnabled(false);
 
     QStringList strs;
@@ -172,30 +172,17 @@ void AppTester::initButton()
 
 void AppTester::initDcrWeld()
 {
-    QString tt = titleNG + "%1&nbsp;&nbsp;%2%3%&nbsp;&nbsp;%4:%5~%6Ω</p>";
-    tt = tt.arg("片间电阻").arg("离散:±");
-    tt = tt.arg(QString::number(12, 'f', 3)).arg("均值");
-    tt = tt.arg(QString::number(0.500, 'f', 3)).arg(QString::number(1.500, 'f', 3));
-
     QLabel *title = new QLabel(this);
-    title->setText(tt);
+    dcrTitles.append(title);
 
-    textDcrMD = new QTextBrowser(this);
-    textDcrMD->setEnabled(false);
-    textDcrMD->setStyleSheet("border:none");
-    for (int i=0; i < NUMS; i++) {
-        if (i !=0 && i%12 == 0)
-            textDcrMD->insertHtml("<br></br>");
-        if (i == 12)
-            textDcrMD->insertHtml(SmallNG.arg(QString::number(1.400, 'f', 3)));
-        else
-            textDcrMD->insertHtml(SmallOK.arg(QString::number(1.400, 'f', 3)));
-    }
+    textWeld = new QTextBrowser(this);
+    textWeld->setEnabled(false);
+    textWeld->setStyleSheet("border:none");
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
     layout->setMargin(0);
     layout->addWidget(title);
-    layout->addWidget(textDcrMD);
+    layout->addWidget(textWeld);
 
     QFrame *frame = new QFrame(this);
     frame->setLayout(layout);
@@ -204,25 +191,17 @@ void AppTester::initDcrWeld()
 
 void AppTester::initDcrChip()
 {
-    QString tt = titleOK + "%1&nbsp;&nbsp;&lt;%2mΩ</p>";
-    tt = tt.arg("焊接电阻").arg(QString::number(0.100, 'f', 3));
-
     QLabel *title = new QLabel(this);
-    title->setText(tt);
+    dcrTitles.append(title);
 
-    textDcrCP = new QTextBrowser(this);
-    textDcrCP->setEnabled(false);
-    textDcrCP->setStyleSheet("border:none");
-    for (int i=0; i < NUMS; i++) {
-        if (i !=0 && i%12 == 0)
-            textDcrCP->insertHtml("<br></br>");
-        textDcrCP->insertHtml(SmallOK.arg(QString::number(0.0500, 'f', 3)));
-    }
+    textChip = new QTextBrowser(this);
+    textChip->setEnabled(false);
+    textChip->setStyleSheet("border:none");
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
     layout->setMargin(0);
     layout->addWidget(title);
-    layout->addWidget(textDcrCP);
+    layout->addWidget(textChip);
     layout->setStretch(1, 1);
 
     QFrame *frame = new QFrame(this);
@@ -232,32 +211,19 @@ void AppTester::initDcrChip()
 
 void AppTester::initDcrDiag()
 {
-    QString tt = titleOK + "%1&nbsp;&nbsp;%2%3%&nbsp;&nbsp;%4:%5~%6Ω</p>";
-    tt = tt.arg("跨间电阻").arg("离散:±");
-    tt = tt.arg(QString::number(12, 'f', 3)).arg("均值");
-    tt = tt.arg(QString::number(0.500, 'f', 3)).arg(QString::number(1.500, 'f', 3));
-
     QLabel *title = new QLabel(this);
-    title->setText(tt);
+    dcrTitles.append(title);
 
-    QStringList tmp;
-    tmp << tr("挂钩顺序") << tr("顺时针") << "OK";
     QHBoxLayout *largeLayout = new QHBoxLayout;
     largeLayout->setMargin(0);
     for (int i=0; i < 3; i++) {
-        QLabel *text = new QLabel(largeOK.arg(tmp.at(i)), this);
-        //        inrTexts.append(text);
+        QLabel *text = new QLabel(this);
+        dcrLabels.append(text);
         largeLayout->addWidget(text);
     }
 
     QTextBrowser *text = new QTextBrowser(this);
     text->setStyleSheet("border:none;");
-
-    for (int i=0; i < NUMS/2; i++) {
-        if (i !=0 && i%12 == 0)
-            text->insertHtml("<br></br>");
-        text->insertHtml(SmallOK.arg(QString::number(0.0500, 'f', 3)));
-    }
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setMargin(0);
@@ -277,7 +243,7 @@ void AppTester::initDcrWave()
 {
     dcrView = new QCustomPlot(this);
     connect(dcrView, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(dcrResize()));
-    dcrView->setBackground(QBrush(QColor("#191919"))); //设置背景色
+    dcrView->setBackground(QBrush(QColor("#121922"))); //设置背景色
     dcrView->xAxis->grid()->setPen(Qt::NoPen);
     dcrView->yAxis->grid()->setPen(QPen(Qt::darkGreen, 1, Qt::DotLine));
     dcrView->xAxis->setTicks(false);
@@ -290,7 +256,7 @@ void AppTester::initDcrWave()
     dcrView->yAxis->setBasePen(Qt::NoPen);
     dcrView->xAxis2->setBasePen(Qt::NoPen);
     dcrView->yAxis2->setBasePen(Qt::NoPen);
-    dcrView->yAxis->setRange(0, 103);
+    dcrView->yAxis->setRange(0, 105);
 
     dcrView->xAxis->setTickLabelColor(Qt::white);
     dcrView->xAxis->setLabelColor(Qt::white);
@@ -419,20 +385,15 @@ void AppTester::initImpText()
         largeLayout->addWidget(text);
     }
 
-    QTextBrowser *text = new QTextBrowser(this);
-    text->setStyleSheet("border:none");
-    for (int i=0; i < NUMS/2; i++) {
-        if (i !=0 && i%12 == 0)
-            text->insertHtml("<br></br>");
-        text->insertHtml(SmallOK.arg(QString::number(0.0500, 'f', 3)));
-    }
+    textIMPR = new QTextBrowser(this);
+    textIMPR->setStyleSheet("border:none");
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setMargin(0);
     layout->setSpacing(0);
     layout->addWidget(title);
     layout->addLayout(largeLayout);
-    layout->addWidget(text);
+    layout->addWidget(textIMPR);
     layout->setStretch(1, 1);
 
     QFrame *frame = new QFrame(this);
@@ -444,7 +405,7 @@ void AppTester::initImpWave()
 {
     impView = new QCustomPlot(this);
     connect(impView, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(impResize()));
-    impView->setBackground(QBrush(QColor("#191919"))); //设置背景色
+    impView->setBackground(QBrush(QColor("#121922"))); //设置背景色
     impView->xAxis->grid()->setPen(Qt::NoPen);
     impView->yAxis->grid()->setPen(QPen(Qt::darkGreen, 1, Qt::DotLine));
     impView->xAxis->setTicks(false);
@@ -458,7 +419,7 @@ void AppTester::initImpWave()
     impView->xAxis2->setBasePen(Qt::NoPen);
     impView->yAxis2->setBasePen(Qt::NoPen);
     impView->xAxis->setRange(0, 400);
-    impView->yAxis->setRange(0, 103);
+    impView->yAxis->setRange(0, 105);
 
     impView->xAxis->setTickLabelColor(Qt::white);
     impView->xAxis->setLabelColor(Qt::white);
@@ -467,6 +428,115 @@ void AppTester::initImpWave()
     impLine = impView->addGraph();
 
     view->setCellWidget(6, 0, impView);
+}
+
+void AppTester::initSettings()
+{
+    int r = 0;
+    boxChart->setNum(tmpSet[tmpSet[AddrModel].toInt()].toInt());
+    if (1) {
+        if (tmpSet[AddrSign].toInt() == 0) {
+            status->item(0, 1)->setText(tr("未登录"));
+        } else {
+            r = tmpSet[AddrCurr].toInt();
+            status->item(0, 1)->setText(tmpSet[r].toString());
+        }
+    }
+    if (1) {
+        r = tmpSet[AddrFile].toInt();
+        status->item(0, 3)->setText(tmpSet[r].toString());
+    }
+
+    QString tt;
+    for (int i=0; i < 4; i++) {
+        r = tmpSet[AddrACWS1 + i].toInt();  // 高压配置地址
+        tt = tmpSet[r+0].toDouble() == 1 ? titleOK : titleNG;
+        double c = tmpSet[r + AddrACWSC].toDouble();
+        double v = tmpSet[r + AddrACWSV].toDouble()/1000;
+        double h = tmpSet[r + AddrACWSH].toDouble();
+        double l = tmpSet[r + AddrACWSL].toDouble();
+        QString n = tmpSet[r + AddrACWSN].toString();
+        h = (i == 0) ? h : h/100;
+        l = (i == 0) ? l : l/100;
+        if (i == 0) {
+            tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;DC:%2kV&nbsp;&nbsp;IR:%3MΩ</p>";
+            tt = tt.arg(n).arg(QString::number(v, 'f', 3));
+            tt = tt.arg(l);
+        } else {
+            tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;I:%3~%4mA</p>";
+            tt = tt.arg(n).arg(QString::number(v, 'f', 3));
+            tt = tt.arg(QString::number(l, 'f', 2)).arg(QString::number(h, 'f', 2));
+        }
+        acwTitles.at(i)->setText(tt);
+        QString color = (c == 1) ? largeOK : largeON;
+        acwLabels.at(i*3 + 0)->setText(color.arg("-.---kV"));
+        if (i == 0) {
+            acwLabels.at(3*i + 1)->setText(color.arg("---.-MΩ"));
+        } else {
+            acwLabels.at(3*i + 1)->setText(color.arg("-.---mA"));
+        }
+        acwLabels.at(3*i + 2)->setText(color.arg("--"));
+    }
+    if (1) {
+        int r = tmpSet[AddrIMPS1].toInt();  // 匝间配置地址
+        tt = tmpSet[r+0].toDouble() == 1 ? titleOK : titleNG;
+        double c = tmpSet[r + AddrACWSC].toDouble();
+        double v = tmpSet[r + AddrACWSV].toDouble()/1000;
+        double h = tmpSet[r + AddrACWSH].toDouble();
+        QString n = tmpSet[r + AddrACWSN].toString();
+
+        tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;&lt;%3%</p>";
+        tt = tt.arg(n).arg(QString::number(v, 'f', 3));
+        tt = tt.arg(QString::number(h, 'f', 2));
+        impTitles.at(0)->setText(tt);
+        QString color = (c == 1) ? largeOK : largeON;
+        impLabels.at(0)->setText(color.arg("-.---kV"));
+        impLabels.at(1)->setText(color.arg("-.---%"));
+        impLabels.at(2)->setText(color.arg("--"));
+
+        tmpWave.clear();
+        textIMPR->clear();
+    }
+    if (1) {
+        int r = tmpSet[AddrDCRS1].toInt();  // 配置地址
+        QString tt = tmpSet[r+0].toDouble() == 1 ? titleOK : titleNG;
+        tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;%2%3%&nbsp;&nbsp;%4:%5~%6Ω</p>";
+        tt = tt.arg("片间电阻").arg("离散:±");
+        tt = tt.arg(QString::number(tmpSet[r+1].toDouble(), 'f', 3)).arg("均值");
+        tt = tt.arg(QString::number(0.500, 'f', 3)).arg(QString::number(1.500, 'f', 3));
+        dcrTitles.at(0)->setText(tt);
+        textWeld->clear();
+    }
+    if (2) {
+        int r = tmpSet[AddrDCRS2].toInt();  // 配置地址
+        QString tt = tmpSet[r+0].toDouble() == 1 ? titleOK : titleNG;
+        tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;&lt; %2mΩ</p>";
+        tt = tt.arg("焊接电阻").arg(QString::number(tmpSet[r+1].toDouble()/1000, 'f', 3));
+        dcrTitles.at(1)->setText(tt);
+        textChip->clear();
+    }
+    if (3) {
+        int r = tmpSet[AddrDCRS3].toInt();  // 配置地址
+        int c = tmpSet[r+0].toInt();
+        QString tt = c == 1 ? titleOK : titleNG;
+        tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;%2%3%&nbsp;&nbsp;%4:%5~%6Ω</p>";
+        tt = tt.arg("跨间电阻").arg("离散:±");
+        tt = tt.arg(QString::number(tmpSet[r+1].toDouble()/1000, 'f', 3)).arg("均值");
+        tt = tt.arg(QString::number(0.500, 'f', 3)).arg(QString::number(1.500, 'f', 3));
+        dcrTitles.at(2)->setText(tt);
+
+        QStringList tmp;
+        tmp << tr("挂钩顺序") << tr("顺时针") << "OK";
+        if (c == 1) {
+            dcrLabels.at(0)->setText(largeOK.arg("挂钩顺序"));
+            dcrLabels.at(1)->setText(largeOK.arg("------"));
+            dcrLabels.at(2)->setText(largeOK.arg("--"));
+        }
+    }
+    prev = 0;
+    min = 0xffff;
+    minb = 0;
+    impWave.clear();
 }
 
 void AppTester::drawImpWave()
@@ -577,7 +647,7 @@ void AppTester::initHistogram()
     histogram->xAxis->setTickLabelColor(Qt::white);
     histogram->yAxis->setTicks(false);
     histogram->xAxis->setLabelColor(Qt::white);
-    histogram->setBackground(QBrush(QColor(25, 25, 25))); //设置背景色
+    histogram->setBackground(QBrush(QColor("#121922"))); //设置背景色
     histogram->axisRect()->setMinimumMargins(QMargins(3, 9, 3, 0));  // 左上右下
     histogram->rescaleAxes();
     histogram->xAxis->setRange(0.5, 3.5);  // x轴范围
@@ -717,70 +787,11 @@ void AppTester::clickButton()
     tmpMsg.clear();
 }
 
-void AppTester::clearView()
-{
-    QString tt;
-    for (int i=0; i < 4; i++) {
-        int r = tmpSet[AddrACWS1 + i].toInt();  // 高压配置地址
-        double c = tmpSet[r + AddrACWSC].toDouble();
-        double v = tmpSet[r + AddrACWSV].toDouble()/1000;
-        double h = tmpSet[r + AddrACWSH].toDouble();
-        double l = tmpSet[r + AddrACWSL].toDouble();
-        QString n = tmpSet[r + AddrACWSN].toString();
-        h = (i == 0) ? h : h/100;
-        l = (i == 0) ? l : l/100;
-        if (i == 0) {
-            tt = titleOK + "&nbsp;&nbsp;%1&nbsp;&nbsp;DC:%2kV&nbsp;&nbsp;IR:%3MΩ</p>";
-            tt = tt.arg(n).arg(QString::number(v, 'f', 3));
-            tt = tt.arg(l);
-        } else {
-            tt = titleOK + "&nbsp;&nbsp;%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;I:%3~%4mA</p>";
-            tt = tt.arg(n).arg(QString::number(v, 'f', 3));
-            tt = tt.arg(QString::number(l, 'f', 2)).arg(QString::number(h, 'f', 2));
-        }
-        acwTitles.at(i)->setText(tt);
-        QString color = (c == 1) ? largeOK : largeON;
-        acwLabels.at(i*3 + 0)->setText(color.arg("-.---kV"));
-        if (i == 0) {
-            acwLabels.at(3*i + 1)->setText(color.arg("---.-MΩ"));
-        } else {
-            acwLabels.at(3*i + 1)->setText(color.arg("-.---mA"));
-        }
-        acwLabels.at(3*i + 2)->setText(color.arg("--"));
-    }
-    if (1) {
-        int r = tmpSet[AddrIMPS1].toInt();  // 匝间配置地址
-        double c = tmpSet[r + AddrACWSC].toDouble();
-        double v = tmpSet[r + AddrACWSV].toDouble()/1000;
-        double h = tmpSet[r + AddrACWSH].toDouble();
-        QString n = tmpSet[r + AddrACWSN].toString();
-
-
-        tt = titleOK + "&nbsp;&nbsp;%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;&lt;%3%</p>";
-        tt = tt.arg(n).arg(QString::number(v, 'f', 3));
-        tt = tt.arg(QString::number(h, 'f', 2));
-        impTitles.at(0)->setText(tt);
-        QString color = (c == 1) ? largeOK : largeON;
-        impLabels.at(0)->setText(color.arg("-.---kV"));
-        impLabels.at(1)->setText(color.arg("-.---%"));
-        impLabels.at(2)->setText(color.arg("--"));
-
-        tmpWave.clear();
-        drawImpWave();
-    }
-    status->item(0, 1)->setText(tmpSet[AddrSignIn].toString());
-    status->item(0, 3)->setText(tmpSet[AddrTpName].toString());
-    prev = 0;
-    min = 0xffff;
-    minb = 0;
-    impWave.clear();
-}
-
 void AppTester::recvLedMsg(QTmpMap msg)
 {
     QString tmp = msg.value(AddrText).toString();
     if (tmp == "LEDY") {
-        clearView();
+        initSettings();
         btnPlay->setText(tr("停止测试"));
         textResult->setText(judgeON.arg("ON"));
 #ifdef __arm__
@@ -802,6 +813,7 @@ void AppTester::recvUpdate(QTmpMap msg)
 {
     if (this->isHidden())
         return;
+    int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();
     int addr = msg.value(AddrText).toInt();
     if (addr >= AddrACWS1 && addr <= AddrACWS4) {
         int t = addr % AddrACWS1;
@@ -826,13 +838,26 @@ void AppTester::recvUpdate(QTmpMap msg)
         QString real;
         if (msg[AddrData].toInt() == 0) {
             tmpWave = impWave.mid(minb*400, 400);
+            drawImpWave();
 
             real = QString::number(diff.at(minb), 'f', 3) + "%";
             diff.clear();
             min = 0xffff;
             minb = 0;
             impWave.clear();
-            drawImpWave();
+
+            int r = msg.value(AddrIMPA).toInt();
+            for (int i=0; i < c; i++) {
+                if (i%12 == 0) {
+                    if (i != 0)
+                        textIMPR->insertHtml("<br></br>");
+                    textIMPR->insertHtml("&nbsp;&nbsp;");
+                }
+
+                double tmp = msg.value(r+i).toDouble()/1000;
+                textIMPR->insertHtml(SmallOK.arg(QString::number(tmp, 'f', tmp >= 10 ? 2 : 3)));
+            }
+
         } else {
             tmpWave.clear();
             int t = msg[AddrIMPW].toInt();  // 匝间波形地址
@@ -840,9 +865,10 @@ void AppTester::recvUpdate(QTmpMap msg)
                 tmpWave.append(msg[t + i].toInt());
             }
             impWave.append(tmpWave);
+            drawImpWave();
 
             int s = msg[AddrIMPA].toInt() + msg[AddrData].toInt() - 1;
-            double r = msg[s].toDouble();
+            double r = msg[s].toDouble()/1000;
             diff.append(r);
             real = QString::number(diff.last(), 'f', 3) + "%";
             if (r < min)
@@ -859,6 +885,14 @@ void AppTester::recvUpdate(QTmpMap msg)
         impLabels.at(1)->setText(color.arg(real));
         impLabels.at(2)->setText(color.arg(judge));
 
+    }
+    if (addr == AddrDCRS1) {
+        textWeld->clear();
+        int r = msg.value(AddrWeld).toInt();
+        for (int i=0; i < c; i++) {
+            double tmp = msg.value(r+i).toDouble()/1000;
+            textWeld->insertHtml(SmallOK.arg(QString::number(tmp, 'f', tmp >= 10 ? 2 : 3)));
+        }
     }
 }
 
@@ -883,8 +917,8 @@ void AppTester::recvAppMsg(QTmpMap msg)
 void AppTester::showEvent(QShowEvent *e)
 {
     this->setFocus();
+    initSettings();
     drawDcrWave();
     setViewSize();
-    clearView();
     e->accept();
 }

@@ -35,7 +35,6 @@ signals:
     void sendClick();
 public:
     void setNum(int num);
-    void setStr(QString text);
 protected:
     void mouseReleaseEvent(QMouseEvent *e);
     void paintEvent(QPaintEvent *event);
@@ -43,8 +42,11 @@ protected:
     void drawCrown(QPainter *painter);
     void drawTitle(QPainter *painter);
     void drawScaleNum(QPainter *painter);
+private slots:
+    void setStr();
 private:
     QString m_title;
+    int m_width;
     int m_count;
     int m_timer;
     int m_lenth;

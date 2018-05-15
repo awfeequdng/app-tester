@@ -96,6 +96,7 @@ private slots:
     void initButton(QString title, QString name);
     void showBoxPop(QString text, int t);
     void saveSqlite();
+    void saveModels();
     void clickButtons();
     bool checkAction(QString msg);
     void screensShow(QString msg);
