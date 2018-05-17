@@ -75,7 +75,7 @@ void DevSerial::clickButton(int id)
     switch (id) {
     case Qt::Key_Stop:
     case Qt::Key_Play:
-        tmpMsg.insert(0, id);
+        tmpMsg.insert(AddrEnum, id);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
         break;

@@ -118,6 +118,7 @@ private slots:
     int testStartTest();
     int getNextItem();
     void recvNewMsg(QTmpMap msg);
+    void recvTmpMsg(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     void wait(int ms);
 private:

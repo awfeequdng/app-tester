@@ -25,11 +25,15 @@ struct pwm_config_info {
 const int DataOK = 0x00;
 const int DataNG = 0x01;
 
+const int DataFree = 0x00;
+const int DataTest = 0x01;
+
 const int AddrEnum = 0x00;  // 命令
 const int AddrText = 0x01;  // 文本
 const int AddrRate = 0x02;  // 比率
 const int AddrBeep = 0x03;  // 音量
 const int AddrData = 0x04;  // 数据
+const int AddrFreq = 0x05;  // 频率
 
 const int AddrDevA = 1000;  // 设备信息区地址,默认1100
 const int AddrWeld = 1001;  // 片间结果区地址,默认1200

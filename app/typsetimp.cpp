@@ -39,7 +39,7 @@ void TypSetImp::initViewBar()
 {
     QStringList headers;
     headers << tr("测试") << tr("匝间测试") << tr("峰值电压V") << tr("冲击次数")
-            << tr("合格上限") << tr("合格下限") << tr("电压补偿") << tr("冲击间隔");
+            << tr("合格上限") << tr("采样点") << tr("电压补偿") << tr("冲击间隔");
 
     QStringList names;
     names << tr("匝间测试");
@@ -89,7 +89,7 @@ void TypSetImp::initWaveBar()
 
     impView = new QCustomPlot(this);
     layout->addWidget(impView);
-    impView->setBackground(QBrush(QColor(25, 25, 25))); //设置背景色
+    impView->setBackground(QBrush(QColor("#121922"))); //设置背景色
     impView->xAxis->grid()->setPen(Qt::NoPen);
     impView->yAxis->grid()->setPen(QPen(Qt::darkGreen, 1, Qt::DotLine));
     impView->xAxis->setTicks(false);
@@ -118,10 +118,24 @@ void TypSetImp::initButtons()
     QHBoxLayout *layout = new QHBoxLayout;
     boxLayout->addLayout(layout);
 
+    layout->addWidget(new QLabel(tr("频率:"), this));
+
     text = new QLabel(this);
     layout->addWidget(text);
 
     layout->addStretch();
+
+    QPushButton *btnVacuo = new QPushButton(this);
+    btnVacuo->setFixedSize(97, 40);
+    btnVacuo->setText(tr("压缩"));
+    layout->addWidget(btnVacuo);
+    connect(btnVacuo, SIGNAL(clicked(bool)), this, SLOT(waveUpdate()));
+
+    QPushButton *btnStretch = new QPushButton(this);
+    btnStretch->setFixedSize(97, 40);
+    btnStretch->setText(tr("拉伸"));
+    layout->addWidget(btnStretch);
+    connect(btnStretch, SIGNAL(clicked(bool)), this, SLOT(waveUpdate()));
 
     QPushButton *btnWave = new QPushButton(this);
     btnWave->setFixedSize(97, 40);
@@ -182,12 +196,8 @@ void TypSetImp::initSettings()
     mView->item(0, w)->setText(tmpSet[s + w].toString());
     w = AddrIMPSA;  // 间隔
     mView->item(0, w)->setText(tmpSet[s + w].toString());
-    QString tmp = QString("档位:%1 频率:%2");
-    w = AddrIMPSG;
-    tmp = tmp.arg(tmpSet[s + w].toString());
     w = AddrIMPSF;
-    tmp = tmp.arg(tmpSet[s + w].toString());
-    text->setText(tmp);
+    text->setText(tmpSet[s + w].toString());
 
     int r = tmpSet[AddrIMPSW].toInt();  // 波形存储地址
     tmpWave.clear();
@@ -217,63 +227,53 @@ void TypSetImp::saveSettings()
     tmpSet[s + w] = mView->item(0, w)->text();
     w = AddrIMPSA;  // 间隔
     tmpSet[s + w] = mView->item(0, w)->text();
+    w = AddrIMPSF;  // 频率
+    tmpSet[s + w] = text->text();
     tmpSet.insert(AddrEnum, Qt::Key_Memo);
     emit sendAppMsg(tmpSet);
 }
 
 void TypSetImp::waveUpdate()
 {
+    QPushButton *btn = qobject_cast<QPushButton*>(sender());
+    int f = text->text().toInt();
+    if (btn->text() == tr("压缩")) {
+        f = (f >= 14) ? 14 : f + 1;
+    }
+    if (btn->text() == tr("拉伸")) {
+        f = (f <= 0) ? 0 : f -1;
+    }
+    text->setText(QString::number(f));
     tmpMsg.insert(AddrEnum, Qt::Key_Send);
-    tmpMsg.insert(AddrText, AddrModel);
-    emit sendAppMsg(tmpMsg);
     tmpMsg.insert(AddrText, AddrIMPS1);
+    tmpMsg.insert(AddrFreq, f);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
-
-    prev = 0;
-    min = 0xffff;
-    minb = 0;
-}
-
-int TypSetImp::calc()
-{
-    quint32 area = 0;
-    for (int i=0; i < 400; i++) {
-        area += abs(tmpWave.at(i) - 0x200);
-    }
-    area = area * 100 / 0x400 / 400;
-    return area;
+    time = 0;
 }
 
 void TypSetImp::recvUpdate(QTmpMap msg)
 {
     int r = msg.value(AddrData).toInt();
+    int c = tmpSet[AddrIMPS1].toInt() + AddrIMPSL;  // 采样点地址
     if (r == 0) {
-        tmpWave = impWave.mid((minb-1)*400, 400);
+        tmpWave = impWave;
         int s = tmpSet[AddrIMPSW].toInt();  // 波形存储地址
         for (int i=0; i < 400; i++) {
             tmpSet[s + i] = tmpWave.at(i);
         }
-    } else if (r != prev) {
-        prev = r;
+    } else {
+        time++;
         int t = tmpSet[AddrIMPW].toInt();  // 匝间波形地址
         tmpWave.clear();
         for (int i=0; i < 400; i++) {
             tmpWave.append(msg[t + i].toInt());
         }
-        impWave.append(tmpWave);
-        int c = calc();
-        if ( c < min)
-            minb = r;
-        min = qMin(c, min);
-        QString tmp = QString("档位:%1 频率:%2 面积:%3");
-        tmp = tmp.arg(msg[DataIMPG].toString());
-        tmp = tmp.arg(msg[DataIMPF].toString());
-        tmp = tmp.arg(calc());
-        text->setText(tmp);
+        if (time == tmpSet[c].toInt())
+            impWave = tmpWave;
     }
+    qDebug() << time << r << tmpSet[c].toInt();
     drawImpWave();
-    qDebug() << prev << min << minb;
 }
 
 void TypSetImp::recvAppMsg(QTmpMap msg)

@@ -42,8 +42,7 @@ const int AddrIMPSH = 0x04;  // 上限
 const int AddrIMPSL = 0x05;  // 下限
 const int AddrIMPSO = 0x06;  // 补偿
 const int AddrIMPSA = 0x07;  // 间隔
-const int AddrIMPSG = 0x08;
-const int AddrIMPSF = 0x09;
+const int AddrIMPSF = 0x09;  // 频率
 
 #define PI 3.1415926
 
@@ -65,7 +64,6 @@ private slots:
     void initSettings();
     void saveSettings();
     void waveUpdate();
-    int calc();
     void recvUpdate(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
@@ -78,9 +76,7 @@ private:
     QLabel *text;
     QList<int> tmpWave;
     QList<int> impWave;
-    int min;
-    int minb;
-    int prev;
+    int time;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
 };

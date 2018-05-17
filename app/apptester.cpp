@@ -132,6 +132,7 @@ void AppTester::initButton()
 {  // 按钮显示区
     QVBoxLayout *btnLayout = new QVBoxLayout;
     btnLayout->setMargin(3);
+    btnLayout->setSpacing(6);
 
     QPushButton *btnHome = new QPushButton("开机主页", this);
     btnLayout->addWidget(btnHome);
@@ -145,19 +146,19 @@ void AppTester::initButton()
     btnConf->setMinimumSize(97, 44);
     connect(btnConf, SIGNAL(clicked(bool)), this, SLOT(clickButton()));
 
-    btnPlay = new QPushButton("启动测试", this);
-    btnPlay->setMinimumSize(97, 44);
-    connect(btnPlay, SIGNAL(clicked(bool)), this, SLOT(clickStart()));
-
     QLabel *btnLogo = new QLabel(this);
     btnLogo->setPixmap(QPixmap(":/icon_aip.png"));
     btnLogo->setScaledContents(true);
+    btnLayout->addWidget(btnLogo);
+
+    btnPlay = new QPushButton("启动测试", this);
+    btnPlay->setMinimumSize(97, 44);
+    connect(btnPlay, SIGNAL(clicked(bool)), this, SLOT(clickStart()));
+    btnLayout->addWidget(btnPlay);
 
 #ifdef __arm__
     btnPlay->hide();
-    btnLayout->addWidget(btnLogo);
 #else
-    btnLayout->addWidget(btnPlay);
     btnLogo->hide();
 #endif
 
@@ -903,10 +904,11 @@ void AppTester::recvUpdate(QTmpMap msg)
             }
             double std = tmpSet[w + i].toInt();
             double tmp = msg.value(r+i).toDouble();
-            QString str = (abs(tmp-std)/std*1000 < h) ? SmallOK : SmallNG;
-            textWeld->insertHtml(str.arg(QString::number(tmp, 'f', tmp >= 10 ? 2 : 3)));
+            QString str = (abs(tmp-std)/std < h) ? SmallOK : SmallNG;
+            textWeld->insertHtml(str.arg(QString::number(tmp/1000, 'f', 3)));
             if (str == SmallNG)
                 boxChart->setClr(i);
+            qDebug() << "tst show:" << tmp << std;
         }
     }
     if (addr == AddrDCRS2) {

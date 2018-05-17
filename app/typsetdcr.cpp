@@ -259,7 +259,7 @@ void TypSetDcr::initSettings()
     int r = tmpSet[AddrDCRSW].toInt();
     for (int i=0; i < qMin(c, 36); i++) {
         double t = tmpSet[r + i].toDouble()/1000;
-        view->item(i%6, (i/6)*2+1)->setText(QString::number(t));
+        view->item(i%6, (i/6)*2+1)->setText(QString::number(t, 'f', 3));
     }
 }
 

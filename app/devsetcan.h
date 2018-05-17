@@ -46,6 +46,10 @@ const int AddrACWU = 0x01;  // 耐压电压
 const int AddrACWR = 0x02;  // 耐压结果
 const int AddrACWP = 0x03;  // 耐压小数
 
+const int CAN_ID_DCR = 0x0022;
+const int CAN_ID_ACW = 0x0023;
+const int CAN_ID_IMP = 0x0024;
+const int CAN_ID_WAVE = 0x0481;
 
 
 class DevSetCan : public QObject
@@ -65,16 +69,23 @@ private slots:
     void getAllDat();
     void putAllDat();
     void updateAll();
-    void configDCR();
     void updateDCR(QByteArray msg);
-    void sampleImp();
-    void sampleDcr();
-    void configImp();
+
+
+
     void updateImp(int id, QByteArray msg);
     void calc();
-    void configAcw();
+
     void updateAcw(QByteArray msg);
     void updateDat();
+    void sampleDCR();
+    void sampleIMP(QTmpMap dat);
+    void setupDCR();
+    void setupACW();
+    void setupIMP(QTmpMap map);
+    void startDCR();
+    void startACW();
+    void startIMP();
     void startTest(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
 private:

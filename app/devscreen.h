@@ -35,6 +35,7 @@ private slots:
     void recvAppMsg(QTmpMap msg);
 private:
     int fd;
+    QTmpMap tmpSet;
 };
 
 #endif // DEVSCREEN_H

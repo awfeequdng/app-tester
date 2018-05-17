@@ -52,7 +52,8 @@ void AppSystem::initSystem()
         input->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         input->setView(new QListView);
         input->setFixedHeight(35);
-        input->setEditable(true);
+        if (i > names.indexOf(tr("音量设定")))
+            input->setEditable(true);
         box->addWidget(input);
         texts.append(input);
     }
@@ -127,7 +128,7 @@ void AppSystem::initDelegate()
     texts.at(2)->addItems(tmp2);
 
     QStringList tmp3;
-    tmp3 << "0" << "1" << "2" << "3" << "4" << "5";
+    tmp3 << "0" << "1" << "2" << "3" << "4" << "5" << "6" << "7" << "8" << "9";
     texts.at(3)->addItems(tmp3);
 
     QStringList tmp4;

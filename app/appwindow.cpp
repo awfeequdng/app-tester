@@ -1082,6 +1082,14 @@ void AppWindow::recvNewMsg(QTmpMap msg)
     qDebug() << "tst time:" << t.elapsed();
 }
 
+void AppWindow::recvTmpMsg(QTmpMap msg)
+{
+#ifdef __arm__
+    emit sendUdpMsg(msg);
+#endif
+    emit sendAppMsg(msg);
+}
+
 void AppWindow::recvAppMsg(QTmpMap msg)
 {
 #ifndef __arm__
@@ -1091,7 +1099,7 @@ void AppWindow::recvAppMsg(QTmpMap msg)
     int c = msg.value(0).toInt();
     switch (c) {
     case Qt::Key_Shop:
-        emit sendAppMsg(msg);
+        recvTmpMsg(msg);
         break;
     case Qt::Key_View:
         recvAppShow(msg.value(AddrText).toString());
@@ -1111,6 +1119,7 @@ void AppWindow::recvAppMsg(QTmpMap msg)
         sendSqlite();
         break;
     case Qt::Key_Play:
+        qDebug() << "app play:";
         taskShift = Qt::Key_Play;
         break;
     case Qt::Key_Stop:  // 停止测试
