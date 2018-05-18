@@ -933,6 +933,8 @@ int AppWindow::taskStartTest()
 
 int AppWindow::taskStartSave()
 {
+    tmpSet.insert(AddrEnum, Qt::Key_Book);
+    emit sendAppMsg(tmpSet);
     qDebug() <<"app time:" << t.elapsed() << "ms";
     return Qt::Key_Away;
 }
@@ -1028,12 +1030,9 @@ int AppWindow::getNextItem()
 
 void AppWindow::recvNewMsg(QTmpMap msg)
 {
-    t.restart();
 #ifdef __arm__
     emit sendUdpMsg(msg);
 #endif
-    qDebug() << "udp time:" << t.elapsed();
-    t.restart();
     int addr = msg.value(AddrText).toInt();
     QList <int> keys = msg.keys();
     int s = tmpSet[tmpSet[AddrIMPW].toInt()].toInt();
@@ -1079,7 +1078,7 @@ void AppWindow::recvNewMsg(QTmpMap msg)
         tmpSet[DataOKNG] = msg.value(DataOKNG);
     }
     emit sendAppMsg(msg);
-    qDebug() << "tst time:" << t.elapsed();
+    //    qDebug() << "tst time:" << t.elapsed();
 }
 
 void AppWindow::recvTmpMsg(QTmpMap msg)
@@ -1119,7 +1118,6 @@ void AppWindow::recvAppMsg(QTmpMap msg)
         sendSqlite();
         break;
     case Qt::Key_Play:
-        qDebug() << "app play:";
         taskShift = Qt::Key_Play;
         break;
     case Qt::Key_Stop:  // 停止测试

@@ -293,9 +293,8 @@ void TypSetDcr::clickButtons()
 void TypSetDcr::sample()
 {
     tmpMsg.insert(AddrEnum, Qt::Key_Send);
-    tmpMsg.insert(AddrText, AddrModel);
-    emit sendAppMsg(tmpMsg);
     tmpMsg.insert(AddrText, AddrDCRS1);
+    tmpMsg.insert(AddrData, AddrDCRS1);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }

@@ -69,23 +69,18 @@ private slots:
     void getAllDat();
     void putAllDat();
     void updateAll();
-    void updateDCR(QByteArray msg);
-
-
-
-    void updateImp(int id, QByteArray msg);
-    void calc();
-
-    void updateAcw(QByteArray msg);
     void updateDat();
-    void sampleDCR();
-    void sampleIMP(QTmpMap dat);
     void setupDCR();
+    void startDCR(QTmpMap map);
+    void parseDCR(QByteArray msg);
     void setupACW();
-    void setupIMP(QTmpMap map);
-    void startDCR();
     void startACW();
-    void startIMP();
+    void parseACW(QByteArray msg);
+    void setupIMP(QTmpMap map);
+    void startIMP(QTmpMap map);
+    void parseIMP(int id, QByteArray msg);
+    void calc();
+    void setupTest(QTmpMap msg);
     void startTest(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
 private:
