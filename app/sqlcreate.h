@@ -9,6 +9,7 @@
 #ifndef SQLCREATE_H
 #define SQLCREATE_H
 
+#include <QDir>
 #include <QDebug>
 #include <QObject>
 #include <QDateTime>
@@ -31,27 +32,26 @@ class SqlCreate : public QObject
     Q_OBJECT
 public:
     explicit SqlCreate(QObject *parent = 0);
-
+signals:
+    void sendAppMsg(QTmpMap msg);
 public slots:
-    void createRecord();
-    void createSqlite();
-private slots:
-    void insertBackinfo(QSqlQuery query);
-    void insertSystInfo(QSqlQuery query);
-    void insertUserInfo(QSqlQuery query);
-    void insertTypeInfo(QSqlQuery query);
-
-    void insertOffsetDcr(QSqlQuery query);
-    void insertOffsetInr(QSqlQuery query);
-    void insertOffsetAcw(QSqlQuery query);
-    void insertOffsetImp(QSqlQuery query);
-
-    void insertSqlNetwork(QSqlQuery query);
-
-    void insertMasterInfo(QSqlQuery query);
-    void insertSourceInfo(QSqlQuery query);
-    void insertModelsInfo(QSqlQuery query);
-    void insertConfigInfo(QSqlQuery query);
+    void initSqlDir();
+public slots:
+    void initTmpDat();
+    void openRecord(bool isExist);
+    void openSystem(bool isExist);
+    void openConfig(bool isExist);
+    void initMisc(QSqlQuery query);
+    void initBack(QSqlQuery query);
+    void initSyst(QSqlQuery query);
+    void initInfo(QSqlQuery query);
+    void initLoad(QSqlQuery query);
+    void initShow(QSqlQuery query);
+    void initUser(QSqlQuery query);
+    void initType(QSqlQuery query);
+    void initConf(QSqlQuery query);
+private:
+    QTmpMap tmpSet;
 };
 
 #endif // SQLCREATE_H

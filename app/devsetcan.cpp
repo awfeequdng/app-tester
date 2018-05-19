@@ -401,7 +401,7 @@ void DevSetCan::calc()
     int n = tmpDat[AddrData].toInt() - 1;  // 第n个波形
     int addr = tmpSet[AddrIMPA].toInt() + n;  // 匝间结果地址
     int conf = tmpSet[AddrIMPS1].toInt();  // 匝间配置地址
-    int w = tmpSet[AddrIMPSW].toInt();  // 匝间波形地址
+    int w = tmpSet[AddrIMPSW].toInt() + n*400;  // 匝间波形地址
     double h = tmpSet[conf + AddrIMPSH].toDouble();  // 匝间上限
     quint32 area1=0;
     quint32 area2=0;

@@ -10,6 +10,7 @@
 
 UdpSocket::UdpSocket(QObject *parent) : QUdpSocket(parent)
 {
+    tmpByte.clear();
     hostAddr = "192.168.1.50";
     hostPort = 6000;
     initSocket();
@@ -36,10 +37,14 @@ void UdpSocket::initSocket()
 void UdpSocket::readReady()
 {
     while (this->hasPendingDatagrams()) {
-        tmpByte.resize(this->pendingDatagramSize());
-        this->readDatagram(tmpByte.data(), tmpByte.size(), &recvAddr, &recvPort);
-        recver.append(tmpByte);
-        tmpByte.clear();
+        tmpData.resize(this->pendingDatagramSize());
+        this->readDatagram(tmpData.data(), tmpData.size(), &recvAddr, &recvPort);
+        tmpByte.append(tmpData);
+        if (tmpByte.endsWith("</xml>\n")) {
+            recver.append(tmpByte);
+            tmpByte.clear();
+        }
+        tmpData.clear();
     }
 }
 
@@ -54,22 +59,33 @@ void UdpSocket::sendAll()
 {
     while (!sender.isEmpty()) {
         QByteArray msg = sender.dequeue();
-        this->writeDatagram(msg, hostAddr, hostPort);
-        this->waitForBytesWritten();
-//        qDebug() << "udp send:" << msg;
+        int t = 0;
+        while (1) {
+            QByteArray tmp = msg.mid(t*1024, 1024);
+            if (tmp.isEmpty())
+                break;
+            t++;
+            this->writeDatagram(tmp, hostAddr, hostPort);
+            this->waitForBytesWritten(1);
+//            qDebug() << "udp send:" << tmp;
+        }
     }
 }
 
 void UdpSocket::recvUdpXml(QByteArray dat)
 {
+    qDebug() << "udp recv:" << dat;
     QDomDocument docs;
-    if (docs.setContent(dat)) {
+    QString error;
+    if (docs.setContent(dat, &error)) {
         QDomNode root = docs.firstChild();
         QDomNode node = root.firstChild();
         while (!node.isNull()) {
             tmpMsg[node.nodeName().remove(0, 1).toInt()] = node.toElement().text();
             node = node.nextSibling();
         }
+    } else {
+        qDebug() << "udp recv:" << error;
     }
     if (tmpMsg.value(AddrEnum).toInt() == Qt::Key_Game) {
         hostAddr = recvAddr;

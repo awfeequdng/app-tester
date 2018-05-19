@@ -223,12 +223,12 @@ void TypConfig::createModel()
     if (t_numb.isEmpty()) {
         return;
     }
-    QString name = "sqlite";
+    QString name = "config";
     QString c_name = tmpSet[tmpSet[DataFile].toInt()].toString();
 
     QSqlQuery query(QSqlDatabase::database(name));
     QSqlDatabase::database(name).transaction();
-    query.exec(tr("create table M_%1 as select * from M_%2").arg(t_name).arg(c_name));
+    query.exec(tr("create table %1 as select * from %2").arg(t_name).arg(c_name));
     QSqlDatabase::database(name).commit();
 
     int r = tmpSet[AddrType].toInt();
@@ -273,8 +273,8 @@ void TypConfig::removeModel()
         return;
     }
 
-    QSqlQuery query(QSqlDatabase::database("sqlite"));
-    query.exec(tr("drop table M_%1").arg(t_name));
+    QSqlQuery query(QSqlDatabase::database("config"));
+    query.exec(tr("drop table %1").arg(t_name));
 
     int r = tmpSet[AddrType].toInt();
     tmpSet[r + t_numb.toInt() - 1] = "";

@@ -258,19 +258,15 @@ void TypSetImp::recvUpdate(QTmpMap msg)
     int c = tmpSet[AddrIMPS1].toInt() + AddrIMPSL;  // 采样点地址
     if (r == 0) {
         tmpWave = impWave;
-        int s = tmpSet[AddrIMPSW].toInt();  // 波形存储地址
-        for (int i=0; i < 400; i++) {
-            tmpSet[s + i] = tmpWave.at(i);
-        }
+        time = 0;
     } else {
         int t = tmpSet[AddrIMPW].toInt();  // 匝间波形地址
         int s = tmpSet[AddrIMPSW].toInt();
-        int w = tmpSet[s].toInt() + time*400;
-        qDebug() << s << w;
+        int w = s + time*400;
         tmpWave.clear();
         for (int i=0; i < 400; i++) {
             tmpWave.append(msg[t + i].toInt());
-//            tmpSet[w + i] = tmpWave.at(i);
+            tmpSet[w + i] = tmpWave.at(i);
         }
         if (time == tmpSet[c].toInt())
             impWave = tmpWave;

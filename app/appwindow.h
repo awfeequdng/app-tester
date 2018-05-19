@@ -39,6 +39,7 @@
 #include "typoffacw.h"
 #include "typoffimp.h"
 #include "sqlcreate.h"
+#include "sqlimport.h"
 #include "sqlrecord.h"
 #include "sqlupload.h"
 #include "sqlsdcard.h"
@@ -82,13 +83,13 @@ private slots:
     int initOffDcr();
     int initOffAcw();
     int initOffImp();
+    int initImport();
     int initRecord();
     int initUpload();
     int initSdcard();
     int initUnqual();
-    int initTmpDat();
-    int readSqlite();
-    int readModels();
+    int readSystem();
+    int readConfig();
     int sendSqlite();
     int sendSignin();
     int initSocket();

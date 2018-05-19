@@ -10,6 +10,11 @@
 #define SQLIMPORT_H
 
 #include <QObject>
+#include <QSqlQuery>
+#include <QSqlError>
+
+#include "sqlsnowid.h"
+#include "appdefine.h"
 
 class SqlImport : public QObject
 {
@@ -20,6 +25,9 @@ public:
 signals:
 
 public slots:
+    void recvAppDat(QTmpMap msg);
+    void recvAppMsg(QTmpMap msg);
+
 };
 
 #endif // SQLIMPORT_H

@@ -40,6 +40,7 @@ private:
     quint16 recvPort;
     QHostAddress recvAddr;
     QByteArray tmpByte;
+    QByteArray tmpData;
     QQueue<QByteArray> sender;
     QQueue<QByteArray> recver;
 
