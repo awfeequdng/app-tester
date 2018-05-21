@@ -14,11 +14,16 @@
 #include <QLayout>
 #include <QWidget>
 #include <QVariant>
+#include <QProcess>
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QShowEvent>
+#include <QHeaderView>
 #include <QPushButton>
 #include <QMessageBox>
+#include <QTableWidget>
+#include <QHostAddress>
+#include <QNetworkInterface>
 
 #include "appdefine.h"
 
@@ -33,14 +38,20 @@ private slots:
     void initUI();
     void initLayout();
     void initBoxText();
+    void initMacText();
     void initSettings();
     void saveSettings();
+    void initNetworks();
     void recovery();
+    void recvAppVer(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
-    QHBoxLayout *boxLayout;
-    QList<QLineEdit*> texts;
+    QGroupBox *boxGroup;
+    QGroupBox *macGroup;
+    QList<QLineEdit*> txts;
+    QList<QLineEdit*> nets;
+    QTableWidget *view;
     QTmpMap tmpSet;
 };
 

@@ -915,18 +915,20 @@ void AppTester::recvUpdate(QTmpMap msg)
         textChip->clear();
         int r = tmpSet.value(AddrChip).toInt();
         int s = tmpSet.value(AddrDCRS2).toInt();
+        double h = tmpSet.value(s+1).toDouble();  // 焊接电阻上限,单位uΩ
         for (int i=0; i < c; i++) {
             if (i%12 == 0) {
                 if (i != 0)
                     textChip->insertHtml("<br></br>");
                 textChip->insertHtml("&nbsp;&nbsp;");
             }
-            double h = msg.value(s).toDouble()/1000;  // 单位uΩ换算为mΩ
-            double tmp = msg.value(r+i).toDouble();  // 单位为mΩ
+
+            double tmp = msg.value(r+i).toDouble();  // 焊接电阻
             QString str = (tmp > h) ? SmallNG : SmallOK;
             textChip->insertHtml(str.arg(QString::number(tmp, 'f', tmp >= 10 ? 2 : 3)));
             if (str == SmallNG)
                 boxChart->setClr(i);
+            qDebug() << "dcr chip:" << r << s << h << tmp;
         }
     }
     if (addr == AddrDCRS3) {

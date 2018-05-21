@@ -117,10 +117,7 @@ void AppAuthor::recvAppMsg(QTmpMap msg)
         version->setText(msg.value(DataSoft).toString());
         break;
     case Qt::Key_WLAN:
-        if (tcpStat->isHidden())
-            tcpStat->show();
-        else
-            tcpStat->hide();
+        tcpStat->show();
         break;
     default:
         break;

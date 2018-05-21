@@ -184,6 +184,7 @@ void DevSetCan::setupDCR()
     int addr = tmpSet[AddrModel].toInt();  // 综合配置地址
     int quan = tmpSet[addr + 0].toInt();  // 电枢片数
     int tool = tmpSet[addr + 1].toInt();  // 夹具针数
+    int time = tmpSet[tmpSet[AddrDCRS1].toInt() + 4].toInt();  // 测试时间
     QByteArray msg;
     // 03配置;01工位数;01板卡数;0C夹具数
     msg = QByteArray::fromHex("0301010C");
@@ -194,6 +195,8 @@ void DevSetCan::setupDCR()
     msg = QByteArray::fromHex("040C0002E8030105");
     msg[1] = quan;  // 电枢片数
     msg[2] = (currItem == AddrDCRS3) ? quan/2 -1 : 0;  // 间隔片数
+    msg[3] = time%256;
+    msg[4] = time/256;
     sendDevData(CAN_ID_DCR, msg);
     qDebug() << "dcr send:" << msg.toHex();
 }
@@ -224,13 +227,12 @@ void DevSetCan::parseDCR(QByteArray msg)
         int g = quint8(msg.at(3));  // 电阻档位
         int r = quint32(msg.at(4)) + quint32(msg.at(5)) * 0x0100
                 + quint32(msg.at(6))*0x10000  + quint32(msg.at(7))*0x1000000;
-        r = g > 3 ? r / 1000 : r;  // 换算为mΩ
         int t = currItem - AddrDCRS1;  // 第t个测试项目
         int addr = tmpSet[AddrWeld + t].toInt();  // 片间/焊接/跨间电阻结果地址
         int conf = tmpSet[AddrDCRS1 + t].toInt();  // 片间/焊接/跨间电阻配置地址
         int stdd = tmpSet[AddrDCRSW].toInt();  // 片间电阻标准地址
         int h = tmpSet[conf + 1].toInt();  // 片间/焊接/跨间电阻上限
-        int std = tmpSet[stdd + n].toInt();  // 标准电阻
+        int std = (tmpSet[stdd + n].toInt() < 1) ? 1 : tmpSet[stdd + n].toInt();  // 标准电阻
         tmpDat[addr + n] = r;  // 临时存储测试结果
         if (currItem == AddrDCRS1 && abs(r-std)/std >= h) {  // 判断片间电阻是否超限
             tmpDat[DataDCRJ] = DataNG;
@@ -240,7 +242,7 @@ void DevSetCan::parseDCR(QByteArray msg)
             tmpDat[DataDCRJ] = DataNG;
             tmpDat[DataOKNG] = DataNG;
         }
-        qDebug() << "dcr calc:" << n << g << r << msg.toHex();
+        qDebug() << "dcr calc:" << n << g << r << h << msg.toHex();
     }
     if (cmd == 0x05) {  // 温度
         int t = quint8(msg.at(1)) + quint8(msg.at(2))*256;
@@ -249,6 +251,10 @@ void DevSetCan::parseDCR(QByteArray msg)
         tmpMsg.insert(DataTemp, t);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
+    }
+    if (cmd == 0x08) {  // 版本
+        tmpDat[DataDCRV] = msg;
+        qDebug() << "dcr vern:" << msg.toHex();
     }
 }
 
@@ -323,8 +329,9 @@ void DevSetCan::parseACW(QByteArray msg)
             tmpDat[DataOKNG] = DataNG;  // 总结果
         }
     }
-    if (cmd == 0x08) {
+    if (cmd == 0x08) {  // 版本
         tmpDat[DataACWV] = msg;
+        qDebug() << "acw vern:" << msg.toHex();
     }
     updateDat();
 }
@@ -391,6 +398,10 @@ void DevSetCan::parseIMP(int id, QByteArray msg)
                 tmpDat[AddrData] = num;  // 波形编号
             }
         }
+        if (cmd == 0x08) {
+            tmpDat[DataIMPV] = msg;
+            qDebug() << "imp vern:" << msg.toHex();
+        }
     }
     if (id == 0x0481) {
         for (int i=0; i < 4; i++) {
@@ -446,6 +457,15 @@ void DevSetCan::setupTest(QTmpMap msg)
     if (msg.value(AddrText).toInt() == AddrIMPS1) {  // 匝间采样
         setupIMP(msg);
         startIMP(msg);
+    }
+    if (msg.value(AddrText).toInt() == AddrDCRB) {  // 电阻校准
+
+    }
+    if (msg.value(AddrText).toInt() == AddrACWB) {  // 高压校准
+
+    }
+    if (msg.value(AddrText).toInt() == AddrIMPB) {  // 匝间校准
+
     }
 }
 

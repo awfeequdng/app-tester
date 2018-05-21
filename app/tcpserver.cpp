@@ -21,6 +21,9 @@ void TcpServer::incomingConnection(int handle)
     connect(socket, SIGNAL(readyRead()), this, SLOT(recvSocket()));
     connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this,
             SLOT(recvError(QAbstractSocket::SocketError)));
+    tmpMsg.insert(AddrEnum, Qt::Key_WLAN);
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
 }
 
 void TcpServer::initSocket()
@@ -132,6 +135,9 @@ void TcpServer::recvAppMsg(QTmpMap dat)
 void TcpServer::reckOK()
 {
     isOK = true;
+    tmpMsg.insert(AddrEnum, Qt::Key_WLAN);
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
 }
 
 void TcpServer::recvError(QAbstractSocket::SocketError)

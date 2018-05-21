@@ -130,6 +130,8 @@ private:
     QList<QPushButton*> buttons;
     BoxDialog *boxbar;
 
+    QString verNumb;
+
     int preindex;
     int currTask;
     int currTest;

@@ -45,10 +45,8 @@ int AppWindow::initTitle()
     static const QTime tt = QTime::fromString(__TIME__, "hh:mm:ss");
 
     QDateTime t(dt, tt);
-    QString verNumb = QString("V-%1").arg(t.toString("yyMMdd-hhmm"));
-    tmpSet[DataSoft] = verNumb;
+    verNumb = QString("V-%1").arg(t.toString("yyMMdd-hhmm"));
     qDebug() << "app data:" << verNumb;
-
     this->setWindowTitle(tr("电枢测试仪%1").arg(verNumb));
     return Qt::Key_Away;
 }
@@ -482,6 +480,7 @@ int AppWindow::sendSqlite()
         forms.append(tmpSet[s + i + AddrForm].toInt());
     }
     tmpSet[AddrEnum] = Qt::Key_Copy;
+    tmpSet[DataSoft] = verNumb;
     emit sendAppMsg(tmpSet);
 
     return Qt::Key_Away;
@@ -533,10 +532,10 @@ int AppWindow::initSocket()
     app->initSocket();
 #endif
 
-//    UdpSocket *udp = new UdpSocket(this);
-//    udp->setObjectName("socket");
-//    connect(udp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-//    connect(this, SIGNAL(sendNetMsg(QTmpMap)), udp, SLOT(recvAppMsg(QTmpMap)));
+    //    UdpSocket *udp = new UdpSocket(this);
+    //    udp->setObjectName("socket");
+    //    connect(udp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+    //    connect(this, SIGNAL(sendNetMsg(QTmpMap)), udp, SLOT(recvAppMsg(QTmpMap)));
     return Qt::Key_Away;
 }
 
@@ -842,10 +841,6 @@ int AppWindow::taskStartTest()
 
 int AppWindow::taskStartSave()
 {
-    int addr = tmpSet[AddrINRA].toInt();  // 绝缘结果地址
-    for (int i=0; i < 4; i++) {
-        qDebug() << addr+i << tmpSet[addr+i].toString();
-    }
     tmpSet.insert(AddrEnum, Qt::Key_Book);
     emit sendAppMsg(tmpSet);
     qDebug() <<"app time:" << t.elapsed() << "ms";
