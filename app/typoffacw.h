@@ -10,9 +10,12 @@
 #define TYPOFFACW_H
 
 #include <QLabel>
+#include <QDebug>
 #include <QLayout>
 #include <QWidget>
 #include <QVariant>
+#include <QGroupBox>
+#include <QLineEdit>
 #include <QShowEvent>
 #include <QMessageBox>
 #include <QPushButton>
@@ -27,10 +30,26 @@ public:
 signals:
     void sendAppMsg(QTmpMap msg);
 private slots:
+    void initUI();
+    void initLayout();
+    void initBoxINR();
+    void initBoxACW();
+    void initSettings();
+    void zeroINR();
+    void calcINR();
+    void zeroACW();
+    void calcACW();
     void recvAppMsg(QTmpMap msg);
+    virtual void showEvent(QShowEvent *e);
 private:
+    QGroupBox *inr;
+    QGroupBox *acw;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
+    QList<QPushButton*> inrs;
+    QList<QPushButton*> acws;
+    QList<QLineEdit*> inrboxs;
+    QList<QLineEdit*> acwboxs;
 };
 
 #endif // TYPOFFACW_H

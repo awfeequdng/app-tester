@@ -114,6 +114,8 @@ void SqlCreate::openSystem(bool isExist)
         initBack(query);
         initSyst(query);
         initInfo(query);
+        initINRB(query);
+        initACWB(query);
         initLoad(query);
         initShow(query);
         initUser(query);
@@ -231,6 +233,47 @@ void SqlCreate::initInfo(QSqlQuery query)
          << "/nfs"  // 挂载路径
          << ""  // 自动执行
          << "";  // 执行参数
+    for (int i=0; i < parm.size(); i++) {
+        query.prepare("insert into aip_system values(?,?)");
+        query.addBindValue(from + i);
+        query.addBindValue(parm.at(i));
+        if (!query.exec())
+            qDebug() << "aip_system" << query.lastError();
+    }
+}
+
+void SqlCreate::initINRB(QSqlQuery query)
+{  // 参数校准
+    int from = tmpSet.value(AddrINRB).toInt();
+    QStringList parm;
+    parm << "500"
+         << "1000"
+         << "100"
+         << "500"
+         << "50"
+         << "500"
+         << "50"
+         << "500";
+    for (int i=0; i < parm.size(); i++) {
+        query.prepare("insert into aip_system values(?,?)");
+        query.addBindValue(from + i);
+        query.addBindValue(parm.at(i));
+        if (!query.exec())
+            qDebug() << "aip_system" << query.lastError();
+    }
+
+}
+
+void SqlCreate::initACWB(QSqlQuery query)
+{
+    int from = tmpSet.value(AddrACWB).toInt();
+    QStringList parm;
+    parm << "500"
+         << "4500"
+         << "300"
+         << "1500"
+         << "10"
+         << "300";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_system values(?,?)");
         query.addBindValue(from + i);

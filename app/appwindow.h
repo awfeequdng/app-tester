@@ -21,6 +21,7 @@
 #include "devsetrtc.h"
 #include "devbuzzer.h"
 #include "devscreen.h"
+#include "tcpserver.h"
 #include "tcpsocket.h"
 #include "udpsocket.h"
 
@@ -59,7 +60,7 @@ public:
     explicit AppWindow(QWidget *parent = 0);
 signals:
     void sendAppMap(QVariantMap msg);
-    void sendUdpMsg(QTmpMap msg);
+    void sendNetMsg(QTmpMap msg);
     void sendAppMsg(QTmpMap msg);
 private slots:
     void initUI();

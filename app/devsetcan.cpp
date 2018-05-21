@@ -333,7 +333,7 @@ void DevSetCan::setupIMP(QTmpMap map)
 {
     int addr = tmpSet[AddrModel].toInt();  // 综合配置地址
     int quan = tmpSet[addr + 0].toInt();  // 电枢片数
-    //    int tool = tmpSet[addr + 1].toInt();  // 夹具针数
+    //
     int conf = tmpSet[AddrIMPS1].toInt();  // 匝间配置地址
     int time = tmpSet[conf + AddrIMPSA].toInt(); // 间隔(>=1)
     int v = tmpSet[conf + AddrIMPSV].toInt();  // 电压
@@ -353,8 +353,11 @@ void DevSetCan::setupIMP(QTmpMap map)
 
 void DevSetCan::startIMP(QTmpMap map)
 {
-    QByteArray msg = QByteArray::fromHex("0100110001");  // 01启动;00序号;11工位;0001序号
+    int addr = tmpSet[AddrModel].toInt();  // 综合配置地址
+    int tool = tmpSet[addr + 1].toInt();  // 夹具针数
+    QByteArray msg = QByteArray::fromHex("010011000106");  // 01启动;00序号;11工位;0001序号
     msg[1] = (map.value(AddrFreq).isNull()) ? 0x00 : 0x03;  // 00测试;03采样
+    msg[5] = tool;
     sendDevData(CAN_ID_IMP, msg);
     tmpDat[DataIMPS] = DataTest;  // 修改状态为Test
     qDebug() << "imp send:" << msg.toHex();

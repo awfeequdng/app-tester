@@ -523,10 +523,20 @@ int AppWindow::initSocket()
     //    tcp->connectToServer(tmpMap);
     //    tmpMap.clear();
 
-    UdpSocket *udp = new UdpSocket(this);
-    udp->setObjectName("socket");
-    connect(udp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    connect(this, SIGNAL(sendUdpMsg(QTmpMap)), udp, SLOT(recvAppMsg(QTmpMap)));
+    TcpServer *app = new TcpServer(this);
+    app->setObjectName("socket");
+    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+    connect(this, SIGNAL(sendNetMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
+#ifdef __arm__
+    app->listen(QHostAddress::Any, 5999);
+#else
+    app->initSocket();
+#endif
+
+//    UdpSocket *udp = new UdpSocket(this);
+//    udp->setObjectName("socket");
+//    connect(udp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+//    connect(this, SIGNAL(sendNetMsg(QTmpMap)), udp, SLOT(recvAppMsg(QTmpMap)));
     return Qt::Key_Away;
 }
 
@@ -934,7 +944,7 @@ int AppWindow::getNextItem()
 void AppWindow::recvNewMsg(QTmpMap msg)
 {
 #ifdef __arm__
-    emit sendUdpMsg(msg);
+    emit sendNetMsg(msg);
 #endif
     int addr = msg.value(AddrText).toInt();
     QList <int> keys = msg.keys();
@@ -990,7 +1000,7 @@ void AppWindow::recvNewMsg(QTmpMap msg)
 void AppWindow::recvTmpMsg(QTmpMap msg)
 {
 #ifdef __arm__
-    emit sendUdpMsg(msg);
+    emit sendNetMsg(msg);
 #endif
     emit sendAppMsg(msg);
 }
@@ -999,7 +1009,7 @@ void AppWindow::recvAppMsg(QTmpMap msg)
 {
 #ifndef __arm__
     if (sender()->objectName() != "socket")
-        emit sendUdpMsg(msg);
+        emit sendNetMsg(msg);
 #endif
     int c = msg.value(AddrEnum).toInt();
     switch (c) {

@@ -24,7 +24,6 @@ class UdpSocket : public QUdpSocket
 public:
     explicit UdpSocket(QObject *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
     void sendAppMsg(QTmpMap msg);
 private slots:
     void initSocket();
