@@ -12,6 +12,7 @@
 #include <QMap>
 #include <QString>
 #include <QVariant>
+#include <QMetaType>
 
 typedef QMap<int, QVariant> QTmpMap;
 

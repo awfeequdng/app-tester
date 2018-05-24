@@ -123,14 +123,12 @@ void AppBackup::initMacText()
     view->setEditTriggers(QAbstractItemView::AllEditTriggers);
     layout->addWidget(view);
 
-
-
     QHBoxLayout *btn = new QHBoxLayout;
     layout->addLayout(btn);
     btn->addStretch();
 
     QPushButton *recy = new QPushButton(this);
-    recy->setText(tr("恢复出厂设置"));
+    recy->setText(tr("恢复出厂"));
     recy->setFixedHeight(44);
     btn->addWidget(recy);
     connect(recy, SIGNAL(clicked(bool)), this, SLOT(recovery()));
@@ -223,9 +221,16 @@ void AppBackup::initNetworks()
 
 void AppBackup::recovery()
 {
-    qDebug() << system("rm /mnt/nandflash/sqilte.db");
-    qDebug() << system("rm /mnt/nandflash/record.db");
-    qDebug() << system("reboot");
+    qDebug() << "start recovery";
+    QProcess sys;
+    sys.start("rm /mnt/nandflash/system.db");
+    sys.waitForFinished();
+    sys.start("rm /mnt/nandflash/config.db");
+    sys.waitForFinished();
+    sys.start("rm /mnt/nandflash/record.db");
+    sys.waitForFinished();
+    sys.start("reboot");
+    sys.waitForFinished();
 }
 
 void AppBackup::recvAppVer(QTmpMap msg)

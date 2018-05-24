@@ -11,6 +11,7 @@
 #include <QTextCodec>
 #include <QFile>
 
+#include "appdefine.h"
 #include "appwindow.h"
 #include "boxqinput.h"
 
@@ -24,6 +25,8 @@ int main(int argc, char *argv[])
 #endif
 
     QApplication a(argc, argv);
+
+    qRegisterMetaType<QTmpMap> ("QTmpMap");
 
     QFile file;
     QString qss;
@@ -43,13 +46,9 @@ int main(int argc, char *argv[])
     AppWindow w;
     w.show();
 
-
-
 #ifdef __arm__
     BoxQInput::instance()->hide();
 #endif
-
-//    BoxQInput::instance()->show();
 
     return a.exec();
 }

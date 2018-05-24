@@ -116,6 +116,7 @@ void SqlCreate::openSystem(bool isExist)
         initInfo(query);
         initINRB(query);
         initACWB(query);
+        initIMPB(query);
         initLoad(query);
         initShow(query);
         initUser(query);
@@ -205,8 +206,8 @@ void SqlCreate::initSyst(QSqlQuery query)
     parm << "0"  // 语言设置
          << "0"  // 测试模式
          << "0"  // 启动方式
-         << "5"  // 亮度设定
-         << "5"  // 音量设定
+         << "9"  // 亮度设定
+         << "9"  // 音量设定
          << "0"  // 条码起始
          << "9"  // 条码长度
          << "0.2"  //合格提示
@@ -274,6 +275,29 @@ void SqlCreate::initACWB(QSqlQuery query)
          << "1500"
          << "10"
          << "300";
+    for (int i=0; i < parm.size(); i++) {
+        query.prepare("insert into aip_system values(?,?)");
+        query.addBindValue(from + i);
+        query.addBindValue(parm.at(i));
+        if (!query.exec())
+            qDebug() << "aip_system" << query.lastError();
+    }
+}
+
+void SqlCreate::initIMPB(QSqlQuery query)
+{
+    int from = tmpSet.value(AddrIMPB).toInt();
+    QStringList parm;
+    parm << "500"
+         << "1000"
+         << "1000"
+         << "2000"
+         << "2000"
+         << "3000"
+         << "3000"
+         << "4000"
+         << "4000"
+         << "5000";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_system values(?,?)");
         query.addBindValue(from + i);
@@ -386,13 +410,13 @@ void SqlCreate::initConf(QSqlQuery query)
     parm << "12" << "12" << "" << "" << "" << "" << "" << "" << "" << "";  // 综合配置
     parm << "" << "" << "" << "" << "" << "" << "" << "" << "" << "";
     parm << "1" << "10000" << "1" << "25000" << "500" << "" << "" << "" << "" << "";  // 片间配置
-    parm << "1" << "500" << "" << "" << "" << "" << "" << "" << "" << "";  // 焊接配置
+    parm << "1" << "100" << "" << "" << "" << "" << "" << "" << "" << "";  // 焊接配置
     parm << "1" << "500" << "1500" << "" << "" << "" << "" << "" << "" << "";  // 跨间配置
     parm << "1" << tr("绝缘电阻") << "500" << "10" << "0" << "500" << "0" << "0" << "" << "";  // 绝缘配置
     parm << "1" << tr("轴铁耐压") << "1500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 轴铁配置
     parm << "1" << tr("轴线耐压") << "2500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 轴线配置
     parm << "1" << tr("铁线耐压") << "4500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 铁线配置
-    parm << "1" << tr("匝间测试") << "500" << "1" << "10" << "2" << "0" << "1"<< "1" << "7";  // 匝间
+    parm << "1" << tr("匝间测试") << "500" << "1" << "15" << "2" << "0" << "1"<< "1" << "7";  // 匝间
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);

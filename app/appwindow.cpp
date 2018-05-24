@@ -19,6 +19,12 @@ AppWindow::AppWindow(QWidget *parent) : QMainWindow(parent)
     initDevice();
 }
 
+AppWindow::~AppWindow()
+{
+    sql->quit();
+    sql->wait();
+}
+
 void AppWindow::initUI()
 {
     initTitle();
@@ -365,8 +371,8 @@ int AppWindow::initOffImp()
     QString name = "offimp";
     TypOffImp *app = new TypOffImp(this);
     app->setObjectName(name);
-    //    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    //    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
+    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
     initButton(tr("匝间调试"), name);
@@ -375,8 +381,11 @@ int AppWindow::initOffImp()
 
 int AppWindow::initImport()
 {
-    SqlImport *app = new SqlImport(this);
+    sql = new QThread(this);
+    sql->start();
+    SqlImport *app = new SqlImport;
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
+    app->moveToThread(sql);
     return Qt::Key_Away;
 }
 
@@ -512,17 +521,10 @@ int AppWindow::sendSignin()
 
 int AppWindow::initSocket()
 {
-    //    TcpSocket *tcp = new TcpSocket(this);
-    //    connect(tcp, SIGNAL(sendAppMap(QVariantMap)), this, SLOT(recvAppMap(QVariantMap)));
+    TcpSocket *tcp = new TcpSocket(this);
+    tcp->connectToServer(tmpSet);
 
-    //    tmpMap.insert("hostaddr", "s.aipuo.com");
-    //    tmpMap.insert("hostport", "6000");
-    //    tmpMap.insert("devNumb", tmpSet.value(AddrSoft).toString());
-    //    tmpMap.insert("version", tmpSet.value(AddrSoft).toString());
-    //    tcp->connectToServer(tmpMap);
-    //    tmpMap.clear();
-
-    TcpServer *app = new TcpServer(this);
+    TcpServer *app = new TcpServer;
     app->setObjectName("socket");
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendNetMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
@@ -531,6 +533,7 @@ int AppWindow::initSocket()
 #else
     app->initSocket();
 #endif
+    app->moveToThread(sql);
 
     //    UdpSocket *udp = new UdpSocket(this);
     //    udp->setObjectName("socket");
@@ -551,6 +554,7 @@ int AppWindow::initThread()
     taskMap["6"] = &AppWindow::taskStartSave;
     taskMap["7"] = &AppWindow::taskStartBeep;
     taskMap["8"] = &AppWindow::taskClearBeep;
+    taskMap["9"] = &AppWindow::taskResetTest;
 
     testMap.clear();
     testMap["0"] = &AppWindow::testClearData;
@@ -841,6 +845,7 @@ int AppWindow::taskStartTest()
 
 int AppWindow::taskStartSave()
 {
+    qDebug() <<"sql time:" << t.elapsed() << "ms";
     tmpSet.insert(AddrEnum, Qt::Key_Book);
     emit sendAppMsg(tmpSet);
     qDebug() <<"app time:" << t.elapsed() << "ms";
@@ -871,6 +876,28 @@ int AppWindow::taskClearBeep()
         tmpMsg.insert(AddrBeep, 0);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
+    }
+    return ret;
+}
+
+int AppWindow::taskResetTest()
+{
+    int ret = Qt::Key_Meta;
+    int addr = tmpSet[AddrBack].toInt();
+    int test = tmpSet[addr + 7].toInt();
+    int time = tmpSet[addr + 8].toInt();
+    if (test == 1) {
+        timeOut++;
+        if (timeOut >= time*100) {
+            for (int i=0; i < taskMap.size(); i++) {
+                if (taskMap[QString::number(i)] == &AppWindow::taskCheckPlay) {
+                    currTask = i + 1;
+                    t.restart();
+                }
+            }
+        }
+    } else {
+        ret = Qt::Key_Away;
     }
     return ret;
 }

@@ -47,6 +47,7 @@ public slots:
     void initInfo(QSqlQuery query);
     void initINRB(QSqlQuery query);
     void initACWB(QSqlQuery query);
+    void initIMPB(QSqlQuery query);
     void initLoad(QSqlQuery query);
     void initShow(QSqlQuery query);
     void initUser(QSqlQuery query);

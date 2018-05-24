@@ -133,12 +133,12 @@ QComboBox {
 border:1px solid #32435E;
 border-radius:3px;
 padding:3px;
-background:#141F28;
+background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #080B10,stop:1.0 #212C3F);
 selection-background-color:#0D95A6;
 }
 QComboBox::drop-down{
 width:22px;
-background:#005270;
+background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #5B5F5F,stop:0.5 #0C2436,stop:1 #27405A);
 }
 QComboBox::down-arrow{
 image:url(:/icon_down_arrow.png);
@@ -185,7 +185,7 @@ QLineEdit {
 border:1px solid #32435E;
 border-radius:3px;
 padding:3px;
-background:#141F28;
+background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #080B10,stop:1.0 #212C3F);
 }
 /*QTextEdit*/
 QTextEdit {

@@ -32,9 +32,9 @@ TcpSocket::TcpSocket(QObject *parent) : QTcpSocket(parent)
     proc = new QProcess(this);
 }
 
-void TcpSocket::connectToServer(QVariantMap msg)
+void TcpSocket::connectToServer(QTmpMap msg)
 {
-    sign = msg;
+    tmpSet = msg;
     this->connectToHost("s.aipuo.com", 6000);
 }
 
@@ -214,14 +214,12 @@ void TcpSocket::recvSocketConnected()
 {
     display(tr("TCP连接成功"));
 
-    tmpMap.insert("enum", Qt::Key_WLAN);
-    emit sendAppMap(tmpMap);
-    tmpMap.clear();
+    int r = tmpSet.value(AddrDevA).toInt();
 
     QStringList dev;
-    dev.append(sign.value("devNumb").toString());
+    dev.append(tmpSet.value(r + 1).toString());
     dev.append(getHardwareAddress());
-    dev.append(sign.value("version").toString());
+    dev.append(tmpSet.value(DataSoft).toString());
     QByteArray msg = dev.join(" ").toUtf8();
     this->sendSocket(ADDR, SIGN_IN, msg);
 
@@ -234,7 +232,7 @@ void TcpSocket::recvSocketConnected()
 void TcpSocket::sendSocketBeat()
 {
     if (this->state() != QAbstractSocket::ConnectedState) {
-        connectToServer(sign);
+        connectToServer(tmpSet);
     } else {
         sendSocket(ADDR, BEAT, "");
         heart++;

@@ -17,6 +17,7 @@ DevSerial::DevSerial(QObject *parent) : QObject(parent)
 void DevSerial::initParam()
 {
     upper = true;
+    timeOut = 0;
     keys["k1\r\n"] = Qt::Key_Stop;
     keys["k2\r\n"] = Qt::Key_Play;
     keys["k3\r\n"] = Qt::Key_1;
@@ -33,7 +34,7 @@ void DevSerial::initParam()
     keys["k14\r\n"] = Qt::Key_Enter;
     keys["k15\r\n"] = Qt::Key_0;
     keys["k16\r\n"] = Qt::Key_Period;
-    keys["k17\r\n"] = Qt::Key_NumLock;
+    keys["k17\r\n"] = Qt::Key_CapsLock;
     keys["k18\r\n"] = Qt::Key_Help;
     keys["k19\r\n"] = Qt::Key_Left;
     keys["k20\r\n"] = Qt::Key_Right;
@@ -44,6 +45,9 @@ void DevSerial::initParam()
     keys["k25\r\n"] = Qt::Key_F4;
     keys["k26\r\n"] = Qt::Key_F1;
     keys["k27\r\n"] = Qt::Key_F2;
+    QTimer *timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(calibration()));
+    timer->start(2000);
 }
 
 void DevSerial::initDevPort()
@@ -79,19 +83,27 @@ void DevSerial::clickButton(int id)
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
         break;
-    case Qt::Key_Enter :
+    case Qt::Key_Enter:
+        timeOut++;
+        qDebug() << timeOut;
         break;
     case Qt::Key_CapsLock:
-        upper = !upper;
         break;
     default:
 #ifdef __arm__
-        if (id >= Qt::Key_A && id <= Qt::Key_Z && !upper)
-            id += 32;
         QWSServer::sendKeyEvent(id, id, Qt::NoModifier, true, false);
 #endif
         break;
     }
+}
+
+void DevSerial::calibration()
+{
+    if (timeOut > 5) {
+        QApplication::activeWindow()->hide();
+        system("ts_calibrate -qws&");
+    }
+    timeOut = 0;
 }
 
 void DevSerial::recvAppMsg(QTmpMap msg)

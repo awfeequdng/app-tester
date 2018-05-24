@@ -261,16 +261,17 @@ void TypSetImp::recvUpdate(QTmpMap msg)
         time = 0;
     } else {
         int t = tmpSet[AddrIMPW].toInt();  // 匝间波形地址
-        int s = tmpSet[AddrIMPSW].toInt();
+        int s = tmpSet[AddrIMPSW].toInt();  // 匝间标准波形地址
+        int k = tmpSet[c].toInt();  // 匝间采样点
         int w = s + time*400;
+        time++;
         tmpWave.clear();
         for (int i=0; i < 400; i++) {
             tmpWave.append(msg[t + i].toInt());
             tmpSet[w + i] = tmpWave.at(i);
         }
-        if (time == tmpSet[c].toInt())
+        if ((k == 0) || (time == k))
             impWave = tmpWave;
-        time++;
     }
     drawImpWave();
 }

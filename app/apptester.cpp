@@ -904,11 +904,11 @@ void AppTester::recvUpdate(QTmpMap msg)
             }
             double std = tmpSet[w + i].toInt();
             double tmp = msg.value(r+i).toDouble();
-            QString str = (abs(tmp-std)/std < h) ? SmallOK : SmallNG;
+            QString str = (abs(tmp-std)/std*1000*100 < h) ? SmallOK : SmallNG;
             textWeld->insertHtml(str.arg(QString::number(tmp/1000, 'f', 3)));
             if (str == SmallNG)
                 boxChart->setClr(i);
-            qDebug() << "tst show:" << tmp << std;
+            qDebug() << std << tmp << h;
         }
     }
     if (addr == AddrDCRS2) {
@@ -925,10 +925,9 @@ void AppTester::recvUpdate(QTmpMap msg)
 
             double tmp = msg.value(r+i).toDouble();  // 焊接电阻
             QString str = (tmp > h) ? SmallNG : SmallOK;
-            textChip->insertHtml(str.arg(QString::number(tmp, 'f', tmp >= 10 ? 2 : 3)));
+            textChip->insertHtml(str.arg(QString::number(tmp/1000, 'f', 3)));
             if (str == SmallNG)
                 boxChart->setClr(i);
-            qDebug() << "dcr chip:" << r << s << h << tmp;
         }
     }
     if (addr == AddrDCRS3) {

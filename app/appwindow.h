@@ -10,6 +10,7 @@
 #define APPWINDOW_H
 
 #include <QLayout>
+#include <QThread>
 #include <QDateTime>
 #include <QMainWindow>
 #include <QStackedWidget>
@@ -58,6 +59,7 @@ class AppWindow : public QMainWindow
     Q_OBJECT
 public:
     explicit AppWindow(QWidget *parent = 0);
+    ~AppWindow();
 signals:
     void sendAppMap(QVariantMap msg);
     void sendNetMsg(QTmpMap msg);
@@ -114,6 +116,7 @@ private slots:
     int taskStartSave();
     int taskStartBeep();
     int taskClearBeep();
+    int taskResetTest();
     int testThread();
     int testClearData();
     int testStartSend();
@@ -129,6 +132,8 @@ private:
     QFrame *btnFrame;
     QList<QPushButton*> buttons;
     BoxDialog *boxbar;
+
+    QThread *sql;
 
     QString verNumb;
 

@@ -22,6 +22,8 @@
 #include <QFileInfo>
 #include <QDateTime>
 
+#include "appdefine.h"
+
 #define SIGN_IN     1000  // 登录
 #define SIGN_OK     1001  // 登录返回
 #define READ_HEAD   1002  // 读取文件
@@ -46,10 +48,8 @@ class TcpSocket : public QTcpSocket
     Q_OBJECT
 public:
     explicit TcpSocket(QObject *parent = 0);
-signals:
-    void sendAppMap(QVariantMap msg);
 public slots:
-    void connectToServer(QVariantMap msg);
+    void connectToServer(QTmpMap msg);
     void sendSocket(quint16 addr, quint16 cmd, QByteArray data);
     void sendFileHead(QByteArray data);
 public:
@@ -79,12 +79,10 @@ private:
     QByteArray GetFileMD5;
     QByteArray fileName;
 
-    QVariantMap sign;
+    QTmpMap tmpSet;
     QTimer *timer;
 
     QProcess *proc;
-
-    QVariantMap tmpMap;
 };
 
 #endif // TCPSOCKET_H

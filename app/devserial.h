@@ -10,10 +10,14 @@
 #define DEVSERIAL_H
 
 #include <QDebug>
+#include <QTimer>
 #include <QObject>
+#include <QProcess>
 #include <QVariant>
 #include <QMessageBox>
 #include <QApplication>
+#include <QElapsedTimer>
+#include <QDesktopWidget>
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
 
@@ -35,6 +39,7 @@ private slots:
     void initDevPort();
     void readDevPort();
     void clickButton(int id);
+    void calibration();
     void recvAppMsg(QTmpMap msg);
 private:
     bool upper;
@@ -42,6 +47,8 @@ private:
     QByteArray tmpByte;
     QTmpMap tmpMsg;
     QMap<QString, int> keys;
+    int timeOut;
+    QElapsedTimer t;
 };
 
 #endif // DEVSERIAL_H

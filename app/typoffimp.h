@@ -13,6 +13,8 @@
 #include <QLayout>
 #include <QWidget>
 #include <QVariant>
+#include <QGroupBox>
+#include <QLineEdit>
 #include <QShowEvent>
 #include <QMessageBox>
 #include <QPushButton>
@@ -27,8 +29,21 @@ public:
 signals:
     void sendAppMsg(QTmpMap msg);
 private slots:
+    void initUI();
+    void initLayout();
+    void initBoxINR();
+    void initSettings();
+    void zeroINR();
+    void calcINR();
     void recvAppMsg(QTmpMap msg);
+    virtual void showEvent(QShowEvent *e);
 private:
+    QGroupBox *inr;
+    QGroupBox *acw;
+    QList<QPushButton*> inrs;
+    QList<QPushButton*> acws;
+    QList<QLineEdit*> inrboxs;
+    QList<QLineEdit*> acwboxs;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
 };
