@@ -35,6 +35,9 @@ const int AddrRate = 0x02;  // 比率
 const int AddrBeep = 0x03;  // 音量
 const int AddrData = 0x04;  // 数据
 const int AddrFreq = 0x05;  // 频率
+const int AddrPort = 0x06;  // 端口
+const int AddrSend = 0x07;
+const int AddrRecv = 0x08;
 
 const int AddrDevA = 1000;  // 设备信息区地址,默认1100
 const int AddrWeld = 1001;  // 片间结果区地址,默认1200
@@ -80,6 +83,7 @@ const int DataStop = 1115;  // 完成时间
 const int DataCode = 1116;  // 条码状态
 const int DataTemp = 1117;  // 当前温度
 const int DataOKNG = 1118;  // 测试判定
+const int DataPort = 1119;
 
 const int DataDCRV = 1120;  // 电阻版本
 const int DataDCRS = 1121;  // 电阻状态

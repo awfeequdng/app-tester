@@ -43,6 +43,10 @@ int main(int argc, char *argv[])
     qtBase.load(":/qtbase_zh_CN.qm");
     a.installTranslator(&qtBase);
 
+//    TcpOnline w;
+//    w.show();
+//    w.resize(800, 600);
+
     AppWindow w;
     w.show();
 

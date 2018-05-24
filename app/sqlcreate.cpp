@@ -346,6 +346,7 @@ void SqlCreate::initShow(QSqlQuery query)
     parm << "tester" << "测试界面" << "4" << "0";
     parm << "signin" << "用户登录" << "4" << "1";
     parm << "system" << "系统设置" << "2" << "1";
+    parm << "online" << "在线设备" << "2" << "1";
     parm << "master" << "用户管理" << "1" << "1";
     parm << "action" << "权限管理" << "1" << "1";
     parm << "config" << "型号管理" << "3" << "2";

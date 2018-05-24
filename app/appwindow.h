@@ -47,6 +47,7 @@
 #include "sqlsdcard.h"
 #include "sqlunqual.h"
 #include "apptester.h"
+#include "tcponline.h"
 
 #include "boxdialog.h"
 
@@ -96,6 +97,7 @@ private slots:
     int sendSqlite();
     int sendSignin();
     int initSocket();
+    int initOnline();
     int initThread();
     void initButton(QString title, QString name);
     void showBoxPop(QString text, int t);

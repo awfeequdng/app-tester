@@ -30,12 +30,21 @@ TcpSocket::TcpSocket(QObject *parent) : QTcpSocket(parent)
     dir.mkdir(QString("network"));
 
     proc = new QProcess(this);
+
+    QTimer *timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(recvTcpXml()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(sendSocket()));
+    timer->start(10);
 }
 
 void TcpSocket::connectToServer(QTmpMap msg)
 {
     tmpSet = msg;
+#ifdef __arm__
     this->connectToHost("s.aipuo.com", 6000);
+#else
+    this->connectToHost("192.168.1.55", 5999);
+#endif
 }
 
 void TcpSocket::readSocket()
@@ -183,6 +192,9 @@ void TcpSocket::recvSocketCmd(quint16 addr, quint16 cmd, QByteArray msg)
         break;
     case BEAT:        // 心跳
         break;
+    case SEND_DATA:
+        recver.append(msg);
+        break;
     default:
         break;
     }
@@ -213,16 +225,15 @@ void TcpSocket::recvSocketErr(QAbstractSocket::SocketError socketError)
 void TcpSocket::recvSocketConnected()
 {
     display(tr("TCP连接成功"));
-
+#ifdef __arm__
     int r = tmpSet.value(AddrDevA).toInt();
-
     QStringList dev;
     dev.append(tmpSet.value(r + 1).toString());
     dev.append(getHardwareAddress());
     dev.append(tmpSet.value(DataSoft).toString());
     QByteArray msg = dev.join(" ").toUtf8();
     this->sendSocket(ADDR, SIGN_IN, msg);
-
+#endif
     heart = 0;
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(sendSocketBeat()));
@@ -257,4 +268,77 @@ QString TcpSocket::getHardwareAddress()
 void TcpSocket::display(QString msg)
 {
     qDebug() << "tcp show:" << msg;
+}
+
+void TcpSocket::sendSocket()
+{
+    if (sender.isEmpty())
+        return;
+    QByteArray dat = sender.dequeue();
+    sendSocket(txPort, SEND_DATA, dat);
+}
+
+void TcpSocket::recvTcpXml()
+{
+    if (recver.isEmpty())
+        return;
+    QByteArray dat = recver.dequeue();
+    QDomDocument docs;
+    QString error;
+    if (docs.setContent(dat, &error)) {
+        QDomNode root = docs.firstChild();
+        QDomNode node = root.firstChild();
+        while (!node.isNull()) {
+            tmpMsg[node.nodeName().remove(0, 1).toInt()] = node.toElement().text();
+            node = node.nextSibling();
+        }
+    } else {
+        qDebug() << "tcp recv:" << error;
+    }
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
+}
+
+void TcpSocket::recvAppCmd(QTmpMap dat)
+{
+    if (isOK) {
+        QList<int> keys = dat.keys();
+        QDomDocument doc;
+        QDomElement root;
+        root = doc.createElement("xml");
+        doc.appendChild(root);
+        for (int t=0; t < keys.size(); t++) {
+            if (!dat.value(keys.at(t)).toString().isEmpty()) {
+                QDomElement element = doc.createElement("_" + QString::number(keys.at(t)));
+                QDomText text = doc.createTextNode(dat.value(keys.at(t)).toString());
+                element.appendChild(text);
+                root.appendChild(element);
+            }
+        }
+        QByteArray msg = doc.toByteArray();
+        sender.append(msg);
+    }
+}
+
+void TcpSocket::recvAppMsg(QTmpMap msg)
+{
+    int c = msg.value(AddrEnum).toInt();
+    switch (c) {
+    case Qt::Key_Zoom:
+        isOK = true;
+        txPort = msg.value(AddrPort).toInt();
+        if (!msg.value(AddrData).isNull()) {
+            this->sendSocket(txPort, SHELL_CMD, msg.value(AddrData).toByteArray());
+        }
+        if (!msg.value(AddrSend).isNull()) {
+            this->sendSocket(txPort, SEND_HEAD, msg.value(AddrSend).toByteArray());
+        }
+        if (!msg.value(AddrRecv).isNull()) {
+            this->sendSocket(txPort, READ_HEAD, msg.value(AddrRecv).toByteArray());
+        }
+        break;
+    default:
+        recvAppCmd(msg);
+        break;
+    }
 }

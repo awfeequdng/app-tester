@@ -134,6 +134,8 @@ int AppWindow::  initScreen()
     names << tr("正在初始化登录界面");
     initMap[names.size()] = &AppWindow::initSystem;
     names << tr("正在初始化系统设置");
+    initMap[names.size()] = &AppWindow::initOnline;
+    names << tr("正在初始化在线设备");
     initMap[names.size()] = &AppWindow::initMaster;
     names << tr("正在初始化用户管理");
     initMap[names.size()] = &AppWindow::initAction;
@@ -233,6 +235,19 @@ int AppWindow::initSystem()
     stack->addWidget(app);
 
     initButton(tr("系统设置"), name);
+    return Qt::Key_Away;
+}
+
+int AppWindow::initOnline()
+{
+    QString name = "online";
+    TcpOnline *app = new TcpOnline(this);
+    app->setObjectName(name);
+    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
+    stack->addWidget(app);
+
+    initButton(tr("在线设备"), name);
     return Qt::Key_Away;
 }
 
@@ -522,18 +537,21 @@ int AppWindow::sendSignin()
 int AppWindow::initSocket()
 {
     TcpSocket *tcp = new TcpSocket(this);
+    tcp->setObjectName("socket");
+    connect(tcp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+    connect(this, SIGNAL(sendNetMsg(QTmpMap)), tcp, SLOT(recvAppMsg(QTmpMap)));
     tcp->connectToServer(tmpSet);
 
-    TcpServer *app = new TcpServer;
-    app->setObjectName("socket");
-    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    connect(this, SIGNAL(sendNetMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
-#ifdef __arm__
-    app->listen(QHostAddress::Any, 5999);
-#else
-    app->initSocket();
-#endif
-    app->moveToThread(sql);
+    //    TcpServer *app = new TcpServer;
+    //    app->setObjectName("socket");
+    //    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+    //    connect(this, SIGNAL(sendNetMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
+    //#ifdef __arm__
+    //    app->listen(QHostAddress::Any, 5999);
+    //#else
+    //    app->initSocket();
+    //#endif
+    //    app->moveToThread(sql);
 
     //    UdpSocket *udp = new UdpSocket(this);
     //    udp->setObjectName("socket");
