@@ -68,7 +68,7 @@ void TcpServer::sendSocket()
     out.device()->seek(0);
     out << (qint64)(msg.size()-sizeof(qint64));
     socket->write(msg);
-//    qDebug() << "tcp send:" << msg.toHex() << msg.size()-sizeof(qint64);
+//    qDebug() << "tcp send:" << dat;
 }
 
 void TcpServer::recvTcpXml()
@@ -82,7 +82,7 @@ void TcpServer::recvTcpXml()
         QDomNode root = docs.firstChild();
         QDomNode node = root.firstChild();
         while (!node.isNull()) {
-            tmpMsg[node.nodeName().remove(0, 1).toInt()] = node.toElement().text();
+            tmpMsg[node.nodeName().remove(0, 1).toInt(0, 16)] = node.toElement().text();
             node = node.nextSibling();
         }
     } else {
@@ -121,7 +121,9 @@ void TcpServer::recvAppMsg(QTmpMap dat)
         doc.appendChild(root);
         for (int t=0; t < keys.size(); t++) {
             if (!dat.value(keys.at(t)).toString().isEmpty()) {
-                QDomElement element = doc.createElement("_" + QString::number(keys.at(t)));
+                QString name = QString("_%1").arg(keys.at(t), 4, 16, QChar('0'));
+                QDomElement element = doc.createElement(name);
+//                QDomElement element = doc.createElement("_" + QString::number(keys.at(t)));
                 QDomText text = doc.createTextNode(dat.value(keys.at(t)).toString());
                 element.appendChild(text);
                 root.appendChild(element);

@@ -263,12 +263,19 @@ void AppTester::initDcrWave()
     dcrView->xAxis->setTickLabelColor(Qt::white);
 
     view->setCellWidget(6, 2, dcrView);
+
+    graph1 = dcrView->addGraph();
+    graph1->setPen(QPen(Qt::green, 2));
+    graph2 = dcrView->addGraph();
+    graph2->setPen(QPen(Qt::white, 1));
+    graph3 = dcrView->addGraph();
+    graph3->setPen(QPen(Qt::white, 1));
 }
 
 void AppTester::initInrTextCG()
 {
     QFrame *frame = new QFrame(this);
-    view->setCellWidget(1, 0, frame);
+    view->setCellWidget(4, 0, frame);
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
@@ -293,7 +300,7 @@ void AppTester::initInrTextCG()
 void AppTester::initAcwTextAC()
 {
     QFrame *frame = new QFrame(this);
-    view->setCellWidget(2, 0, frame);
+    view->setCellWidget(1, 0, frame);
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
@@ -318,7 +325,7 @@ void AppTester::initAcwTextAC()
 void AppTester::initAcwTextAL()
 {
     QFrame *frame = new QFrame(this);
-    view->setCellWidget(3, 0, frame);
+    view->setCellWidget(2, 0, frame);
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
@@ -343,7 +350,7 @@ void AppTester::initAcwTextAL()
 void AppTester::initAcwTextLC()
 {
     QFrame *frame = new QFrame(this);
-    view->setCellWidget(4, 0, frame);
+    view->setCellWidget(3, 0, frame);
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
@@ -505,6 +512,14 @@ void AppTester::initSettings()
         tt = tt.arg(QString::number(tmpSet[r+1].toDouble()/1000, 'f', 3));
         dcrTitles.at(0)->setText(tt);
         textWeld->clear();
+
+        QVector<double> x(1), y(1);
+        x[0] = -1;
+        y[0] = -1;
+        graph1->setData(x, y);
+        graph2->setData(x, y);
+        graph3->setData(x, y);
+        dcrView->replot();
     }
     if (2) {
         int r = tmpSet[AddrDCRS2].toInt();  // 配置地址
@@ -576,35 +591,40 @@ void AppTester::setViewSize()
 
 void AppTester::drawDcrWave()
 {
-    //    dcrView->clearGraphs();
-    //    QCPGraph *graph1 = dcrView->addGraph();
-    //    graph1->setPen(QPen(Qt::green, 2));
-    //    QCPGraph *graph2 = dcrView->addGraph();
-    //    graph2->setPen(QPen(Qt::white, 1));
-    //    QCPGraph *graph3 = dcrView->addGraph();
-    //    graph3->setPen(QPen(Qt::white, 1));
-    //    int c = config[QString::number(AddrModel + AddrDCRSC)].toInt();
-    //    QVector<double> x1(c), y1(c), y2(c), y3(c);
+    int addr = tmpSet[AddrDCRSW].toInt();
+    int real = tmpSet[AddrDCRR1].toInt();
+    int stdd = tmpSet[tmpSet[AddrDCRS1].toInt() + 1].toInt();
+    int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();
+    QVector<double> x1(c), y1(c), y2(c), y3(c);
 
-    //    int t = qMin(4, qMax(1, c/12));
-
-    //    for (int i=0; i < c; i++) {
-    //        x1[i] = i;
-    //        if (i % 2 == 0) {
-    //            y1[i] = 50-i/t;
-    //            y2[i] = 54-i/t;
-    //            y3[i] = 46-i/t;
-    //        } else {
-    //            y1[i] = 55-i/t;
-    //            y2[i] = 59-i/t;
-    //            y3[i] = 51-i/t;
-    //        }
-    //    }
-    //    graph1->setData(x1, y1);
-    //    graph2->setData(x1, y2);
-    //    graph3->setData(x1, y3);
-    //    dcrView->xAxis->setRange(0, c-1);
-    //    dcrView->replot();
+    int max = 0;
+    int min = 0;
+    for (int i=0; i < c-1; i++) {
+        x1[i] = i;
+        int t1 = tmpSet[addr + i].toInt() + tmpSet[addr + i].toInt() * stdd / 100000;
+        int t2 = tmpSet[addr + i].toInt() - tmpSet[addr + i].toInt() * stdd / 100000;
+        max = qMax(t1, t2);
+        min = qMin(t1, t2);
+        if (t1 == 0 || t2 == 0)
+            return;
+    }
+    max *= 1.2;
+    min *= 0.9;
+    int sss = max - min;
+    for (int i=0; i < c-1; i++) {
+        x1[i] = i;
+        int t1 = tmpSet[real + i].toInt();
+        int t2 = tmpSet[addr + i].toInt() + tmpSet[addr + i].toInt() * stdd / 100000;
+        int t3 = tmpSet[addr + i].toInt() - tmpSet[addr + i].toInt() * stdd / 100000;
+        y1[i] = (t1 - min) * 100 / sss;
+        y2[i] = (t2 - min) * 100 / sss;
+        y3[i] = (t3 - min) * 100 / sss;
+    }
+    graph1->setData(x1, y1);
+    graph2->setData(x1, y2);
+    graph3->setData(x1, y3);
+    dcrView->xAxis->setRange(1.1, c-2);
+    dcrView->replot();
 }
 
 void AppTester::initHistogram()
@@ -838,7 +858,7 @@ void AppTester::recvUpdate(QTmpMap msg)
     int addr = msg.value(AddrText).toInt();
     if (addr >= AddrACWS1 && addr <= AddrACWS4) {
         int t = addr % AddrACWS1;
-        int s = tmpSet[AddrINRA + t].toInt();
+        int s = tmpSet[AddrACWR1 + t].toInt();
         double j = msg[s + AddrACWJ].toInt();
         double v = msg[s + AddrACWU].toInt();
         double r = msg[s + AddrACWR].toInt();
@@ -858,7 +878,7 @@ void AppTester::recvUpdate(QTmpMap msg)
     if (addr == AddrIMPS1) {
         QString real;
         if (msg[AddrData].toInt() == 0) {  // 显示结果
-            int r = tmpSet.value(AddrIMPA).toInt();  // 匝间结果地址
+            int r = tmpSet.value(AddrIMPR1).toInt();  // 匝间结果地址
             for (int i=0; i < c; i++) {
                 if (i%12 == 0) {
                     if (i != 0)
@@ -870,13 +890,13 @@ void AppTester::recvUpdate(QTmpMap msg)
             }
         } else {
             tmpWave.clear();
-            int t = tmpSet[AddrIMPW].toInt();  // 匝间波形地址
+            int t = tmpSet[AddrIMPW1].toInt();  // 匝间波形地址
             for (int i=0; i < 400; i++) {
                 tmpWave.append(msg[t + i].toInt());
             }
             drawImpWave();
 
-            int s = tmpSet[AddrIMPA].toInt() + msg[AddrData].toInt() - 1;
+            int s = tmpSet[AddrIMPR1].toInt() + msg[AddrData].toInt() - 1;
             double r = msg[s].toDouble()/1000;
             real = QString::number(r, 'f', 3) + "%";
             double j = msg[DataIMPJ].toInt();  // 匝间判定
@@ -892,28 +912,33 @@ void AppTester::recvUpdate(QTmpMap msg)
     }
     if (addr == AddrDCRS1) {
         textWeld->clear();
-        int r = tmpSet.value(AddrWeld).toInt();
+        int r = tmpSet.value(AddrDCRR1).toInt();
         int s = tmpSet.value(AddrDCRS1).toInt();
         int w = tmpSet.value(AddrDCRSW).toInt();
         int h = tmpSet[s + 1].toInt();
+        int p = 0;
         for (int i=0; i < c; i++) {
             if (i%12 == 0) {
                 if (i != 0)
                     textWeld->insertHtml("<br></br>");
                 textWeld->insertHtml("&nbsp;&nbsp;");
             }
+            tmpSet[r + i] = msg.value(r + i);
             double std = tmpSet[w + i].toInt();
             double tmp = msg.value(r+i).toDouble();
             QString str = (abs(tmp-std)/std*1000*100 < h) ? SmallOK : SmallNG;
-            textWeld->insertHtml(str.arg(QString::number(tmp/1000, 'f', 3)));
+            p = (tmp >= 10000) ? 2 : 3;
+            p = (tmp >= 100000) ? 1 : p;
+            textWeld->insertHtml(str.arg(tr("%1").arg(tmp/1000, 0, 'f', p)));
             if (str == SmallNG)
                 boxChart->setClr(i);
             qDebug() << std << tmp << h;
         }
+        drawDcrWave();
     }
     if (addr == AddrDCRS2) {
         textChip->clear();
-        int r = tmpSet.value(AddrChip).toInt();
+        int r = tmpSet.value(AddrDCRR2).toInt();
         int s = tmpSet.value(AddrDCRS2).toInt();
         double h = tmpSet.value(s+1).toDouble();  // 焊接电阻上限,单位uΩ
         for (int i=0; i < c; i++) {
@@ -922,18 +947,20 @@ void AppTester::recvUpdate(QTmpMap msg)
                     textChip->insertHtml("<br></br>");
                 textChip->insertHtml("&nbsp;&nbsp;");
             }
-
             double tmp = msg.value(r+i).toDouble();  // 焊接电阻
             QString str = (tmp > h) ? SmallNG : SmallOK;
-            textChip->insertHtml(str.arg(QString::number(tmp/1000, 'f', 3)));
+            if (tmp < 10000)
+                textChip->insertHtml(str.arg(QString::number(tmp/1000, 'f', 3)));
+            else
+                textChip->insertHtml(str.arg(QString(">10.0")));
             if (str == SmallNG)
                 boxChart->setClr(i);
         }
     }
     if (addr == AddrDCRS3) {
         textDiag->clear();
-        int r = tmpSet.value(AddrDiag).toInt();
-        for (int i=0; i < c; i++) {
+        int r = tmpSet.value(AddrDCRR3).toInt();
+        for (int i=0; i < c/2; i++) {
             if (i%12 == 0) {
                 if (i != 0)
                     textDiag->insertHtml("<br></br>");

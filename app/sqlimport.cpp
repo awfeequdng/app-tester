@@ -21,7 +21,7 @@ void SqlImport::recvAppDat(QTmpMap msg)
     int weld = msg[c + 1].toInt();
     for (int t=0; t < 3; t++) {
         int test = msg[AddrDCRS1 + t].toInt();
-        int addr = msg[AddrWeld + t].toInt();
+        int addr = msg[AddrDCRR1 + t].toInt();
         if (msg[test].toInt() == 1) {
             for (int i=0; i < weld; i++) {
                 query.prepare("insert into aip_record values(?,?,?,?)");
@@ -36,7 +36,7 @@ void SqlImport::recvAppDat(QTmpMap msg)
     for (int t=0; t < 4; t++) {
         int test = msg[AddrACWS1 + t].toInt();
         if (msg[test].toInt() == 1) {
-            int addr = msg[AddrINRA + t].toInt();  // 高压结果地址
+            int addr = msg[AddrACWR1 + t].toInt();  // 高压结果地址
             for (int i=0; i < 4; i++) {
                 query.prepare("insert into aip_record values(?,?,?,?)");
                 query.addBindValue(snow.getId());
@@ -49,7 +49,7 @@ void SqlImport::recvAppDat(QTmpMap msg)
     }
     if (1) {
         int test = msg[AddrIMPS1].toInt();
-        int addr = msg[AddrIMPA].toInt();
+        int addr = msg[AddrIMPR1].toInt();
         if (msg[test].toInt() == 1) {
             for (int i=0; i < weld; i++) {
                 query.prepare("insert into aip_record values(?,?,?,?)");

@@ -257,9 +257,12 @@ void TypSetDcr::initSettings()
 
     int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();
     int r = tmpSet[AddrDCRSW].toInt();
+    int p = 0;
     for (int i=0; i < qMin(c, 36); i++) {
         double t = tmpSet[r + i].toDouble()/1000;
-        view->item(i%6, (i/6)*2+1)->setText(QString::number(t, 'f', 3));
+        p = (t >= 10.0) ? 3 : 4;
+        p = (t >= 100.0) ? 2 : p;
+        view->item(i%6, (i/6)*2+1)->setText(tr("%1").arg(t, 0, 'f', p));
     }
 }
 
@@ -303,7 +306,7 @@ void TypSetDcr::recvUpdate(QTmpMap msg)
 {
     int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();
     int r = tmpSet[AddrDCRSW].toInt();
-    int s = tmpSet[AddrWeld].toInt();
+    int s = tmpSet[AddrDCRR1].toInt();
     for (int i=0; i < c; i++) {
         tmpSet[r + i] = msg[s + i];
     }

@@ -38,11 +38,11 @@ void TypOffImp::initBoxINR()
     for (int i=0; i < names.size()/2; i++) {
         QHBoxLayout *btn = new QHBoxLayout;
         QPushButton *btn1 = new QPushButton(this);
-        btn1->setFixedHeight(40);
+        btn1->setFixedHeight(28);
         btn1->setText(names.at(i*2 + 0));
         btn->addWidget(btn1);
         QPushButton *btn2 = new QPushButton(this);
-        btn2->setFixedHeight(40);
+        btn2->setFixedHeight(28);
         btn2->setText(names.at(i*2 + 1));
         btn->addWidget(btn2);
         layout->addLayout(btn);
@@ -71,19 +71,19 @@ void TypOffImp::initBoxINR()
     layout->addLayout(btn);
 
     QPushButton *zero = new QPushButton(this);
-    zero->setFixedHeight(40);
+    zero->setFixedHeight(30);
     zero->setText(tr("清零"));
     btn->addWidget(zero);
     connect(zero, SIGNAL(clicked(bool)), this, SLOT(zeroINR()));
 
     QPushButton *calc = new QPushButton(this);
-    calc->setFixedHeight(40);
+    calc->setFixedHeight(30);
     calc->setText(tr("计算"));
     btn->addWidget(calc);
     connect(calc, SIGNAL(clicked(bool)), this, SLOT(calcINR()));
 
     QPushButton *read = new QPushButton(this);
-    read->setFixedHeight(40);
+    read->setFixedHeight(30);
     read->setText(tr("读取"));
     btn->addWidget(read);
 

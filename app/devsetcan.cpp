@@ -188,12 +188,13 @@ void DevSetCan::setupDCR()
     QByteArray msg;
     // 03配置;01工位数;01板卡数;0C夹具数
     msg = QByteArray::fromHex("0301010C");
+    msg[2] = (tool%12 == 0) ? tool/12 : tool/12+1;
     msg[3] = tool;
     sendDevData(CAN_ID_DCR, msg);
     qDebug() << "dcr send:" << msg.toHex();
     // 04配置;0C电枢片数;02间隔;E803采样数;01自动档;05档位
-//    msg = QByteArray::fromHex("040C0002E8030105");
-    msg = QByteArray::fromHex("040C0002E8030003");
+//    msg = QByteArray::fromHex("040C02E8030105");
+    msg = QByteArray::fromHex("040C02E8030003");
     msg[1] = quan;  // 电枢片数
     msg[2] = (currItem == AddrDCRS3) ? quan/2 -1 : 0;  // 间隔片数
     msg[3] = time%256;
@@ -230,7 +231,7 @@ void DevSetCan::parseDCR(QByteArray msg)
                 + quint32(msg.at(6))*0x10000  + quint32(msg.at(7))*0x1000000;
         real = (g == 4 || g == 5) ? real/1000 : real;
         int t = currItem - AddrDCRS1;  // 第t个测试项目
-        int addr = tmpSet[AddrWeld + t].toInt();  // 片间/焊接/跨间电阻结果地址
+        int addr = tmpSet[AddrDCRR1 + t].toInt();  // 片间/焊接/跨间电阻结果地址
         int conf = tmpSet[AddrDCRS1 + t].toInt();  // 片间/焊接/跨间电阻配置地址
         int stdd = tmpSet[AddrDCRSW].toInt();  // 片间电阻标准地址
         int h = tmpSet[conf + 1].toInt();  // 片间/焊接/跨间电阻上限
@@ -314,7 +315,7 @@ void DevSetCan::parseACW(QByteArray msg)
         int k = tmpSet[AddrACWS1 + t].toInt();  // 测试参数存储地址
         double h = tmpSet[k + AddrACWSH].toDouble();  // 上限
         double l = tmpSet[k + AddrACWSL].toDouble();  // 下限
-        int s = tmpSet[AddrINRA + t].toInt();  // 测试结果存储地址
+        int s = tmpSet[AddrACWR1 + t].toInt();  // 测试结果存储地址
         double v = quint8(msg.at(1))*256 + (quint8)msg.at(2);  // 实测电压
         tmpDat[s + AddrACWU] = v;
         double r = quint8(msg.at(3))*256 + (quint8)msg.at(4);  // 实测结果
@@ -389,7 +390,7 @@ void DevSetCan::parseIMP(int id, QByteArray msg)
         }
         if (cmd == 0x03) {
             if (num == 0xFF) {  // 波形结束
-                int s = tmpSet[AddrIMPW].toInt();  // 测试波形存储地址
+                int s = tmpSet[AddrIMPW1].toInt();  // 测试波形存储地址
                 for (int i=0; i < wave.size(); i++) {
                     tmpDat[s + i] = wave.at(i);  // 临时存储波形
                 }
@@ -415,7 +416,7 @@ void DevSetCan::parseIMP(int id, QByteArray msg)
 void DevSetCan::calc()
 {
     int n = tmpDat[AddrData].toInt() - 1;  // 第n个波形
-    int addr = tmpSet[AddrIMPA].toInt() + n;  // 匝间结果地址
+    int addr = tmpSet[AddrIMPR1].toInt() + n;  // 匝间结果地址
     int conf = tmpSet[AddrIMPS1].toInt();  // 匝间配置地址
     int w = tmpSet[AddrIMPSW].toInt() + n*400;  // 匝间波形地址
     double h = tmpSet[conf + AddrIMPSH].toDouble();  // 匝间上限
@@ -504,6 +505,7 @@ void DevSetCan::startTest(QTmpMap map)
     case AddrDCRS1:
     case AddrDCRS2:
     case AddrDCRS3:
+        setupDCR();
         startDCR(map);
         break;
     case AddrACWS1:

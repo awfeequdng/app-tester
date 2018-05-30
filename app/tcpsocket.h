@@ -23,6 +23,7 @@
 #include <QDateTime>
 #include <QtXml/QDomDocument>
 #include <QQueue>
+#include <QSqlTableModel>
 
 #include "appdefine.h"
 
@@ -32,7 +33,7 @@
 #define READ_FAIL   1003  // 读取失败
 #define SEND_HEAD   1004  // 发送文件
 #define SEND_FAIL   1005  // 发送失败
-#define SEND_DATA   1006  // 发送数据
+#define SEND_DATA   1999  // 发送数据
 
 #define FILE_HEAD   2000  // 文件头
 #define FILE_DATA   2001  // 文件内容
@@ -70,9 +71,10 @@ private slots:
     void sendSocketBeat();
     QString getHardwareAddress();
     void display(QString msg);
-    void sendSocket();
+    void initSqlite();
+    void readSqlite();
+    void sendTcpXml();
     void recvTcpXml();
-    void recvAppCmd(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
 private:
     QFile *file;
@@ -92,13 +94,14 @@ private:
     QTimer *timer;
 
     QProcess *proc;
-    bool isOK;
 
     int txPort;
 
+    QSqlTableModel *mOnlineView;
     QQueue<QByteArray> recver;
     QQueue<QByteArray> sender;
     QTmpMap tmpMsg;
+    bool isOK;
 };
 
 #endif // TCPSOCKET_H

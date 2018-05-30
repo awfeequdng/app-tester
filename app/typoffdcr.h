@@ -19,8 +19,6 @@
 
 #include "appdefine.h"
 
-const int AddrDCRA = 0x01;  // 电阻后台地址
-
 class TypOffDcr : public QWidget
 {
     Q_OBJECT

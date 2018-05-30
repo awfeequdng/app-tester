@@ -113,6 +113,10 @@ private:
     quint32 countOk;
     quint32 countAll;
 
+    QCPGraph *graph1;
+    QCPGraph *graph2;
+    QCPGraph *graph3;
+
     QList<QLabel*> dcrTitles;
     QList<QLabel*> dcrLabels;
     QList<QLabel*> acwLabels;

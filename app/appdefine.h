@@ -40,15 +40,15 @@ const int AddrSend = 0x07;
 const int AddrRecv = 0x08;
 
 const int AddrDevA = 1000;  // 设备信息区地址,默认1100
-const int AddrWeld = 1001;  // 片间结果区地址,默认1200
-const int AddrChip = 1002;
-const int AddrDiag = 1003;
-const int AddrINRA = 1004;  // 绝缘结果区地址,默认1150
-const int AddrACWL = 1005;  // 轴铁结果区地址,默认1155
-const int AddrACWC = 1006;  // 轴线结果区地址,默认1160
-const int AddrACWA = 1007;  // 铁线结果区地址,默认1165
-const int AddrIMPA = 1008;  // 匝间结果区地址,默认1400
-const int AddrIMPW = 1009;  // 匝间波形区地址,默认1600
+const int AddrDCRR1 = 1001;  // 片间结果区地址,默认1200
+const int AddrDCRR2 = 1002;
+const int AddrDCRR3 = 1003;
+const int AddrACWR1 = 1004;  // 绝缘结果区地址,默认1150
+const int AddrACWR2 = 1005;  // 轴铁结果区地址,默认1155
+const int AddrACWR3 = 1006;  // 轴线结果区地址,默认1160
+const int AddrACWR4 = 1007;  // 铁线结果区地址,默认1165
+const int AddrIMPR1 = 1008;  // 匝间结果区地址,默认1400
+const int AddrIMPW1 = 1009;  // 匝间波形区地址,默认1600
 const int AddrBack = 1010;  // 后台信息区地址,默认2020
 const int AddrDCRB = 1011;  // 电阻后台区地址,默认2040
 const int AddrINRB = 1012;  // 绝缘后台区地址
@@ -60,7 +60,7 @@ const int AddrLoad = 1017;  // 数据上传区地址
 const int AddrType = 1018;  // 型号管理区地址
 const int AddrUser = 1019;  // 用户管理区地址
 const int AddrShow = 1020;  // 权限管理区地址
-const int AddrMisc = 1021;  // 零散数据区地址
+const int AddrOther = 1021;  // 零散数据区地址
 
 const int AddrModel = 1050;  // 综合配置区地址
 const int AddrDCRS1 = 1051;  // 片机配置区地址
@@ -100,10 +100,10 @@ const int DataIMPU = 1144;  // 匝间电压
 const int DataIMPG = 1145;  // 档位
 const int DataIMPF = 1146;  // 频率
 
-const int DataFile = 2000;  // 当前型号
-const int DataUser = 2001;  // 当前用户
-const int DataAuto = 2002;  // 自动保存
-const int DataSave = 2003;  // 日志输出
+const int DataFile = 22000;  // 当前型号
+const int DataUser = 22001;  // 当前用户
+const int DataAuto = 22002;  // 自动保存
+const int DataSave = 22003;  // 日志输出
 
 #endif // APPDEFINE
 

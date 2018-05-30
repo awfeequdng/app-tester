@@ -240,14 +240,16 @@ int AppWindow::initSystem()
 
 int AppWindow::initOnline()
 {
-    QString name = "online";
-    TcpOnline *app = new TcpOnline(this);
-    app->setObjectName(name);
-    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
-    stack->addWidget(app);
-
-    initButton(tr("在线设备"), name);
+#ifndef __arm__
+    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL3", "mysql");
+    db.setHostName("192.168.1.55");
+    db.setUserName("root");
+    db.setPassword("87973318");
+    db.setDatabaseName("aip-server");
+    if (!db.open()) {
+        qDebug() << "open fail" << db.lastError();
+    }
+#endif
     return Qt::Key_Away;
 }
 
@@ -463,7 +465,7 @@ int AppWindow::readSystem()
     query.exec("select * from aip_system");
     while (query.next()) {
         int uuid = query.value(0).toInt();
-        if (uuid >= 2000 && uuid < 3000)  // 系统设置区
+//        if (uuid >= 2000 && uuid < 3000)  // 系统设置区
             tmpSet[uuid] = query.value(1).toString();
     }
     query.clear();
@@ -479,7 +481,7 @@ int AppWindow::readConfig()
     query.exec(QString("select * from %1").arg(name));
     while (query.next()) {
         int uuid = query.value(0).toInt();
-        if (uuid >= 3000 && uuid < 4000)  // 型号参数区
+//        if (uuid >= 3000 && uuid < 4000)  // 型号参数区
             tmpSet[uuid] = query.value(1).toString();
     }
     query.clear();
@@ -536,22 +538,22 @@ int AppWindow::sendSignin()
 
 int AppWindow::initSocket()
 {
-    TcpSocket *tcp = new TcpSocket(this);
-    tcp->setObjectName("socket");
-    connect(tcp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    connect(this, SIGNAL(sendNetMsg(QTmpMap)), tcp, SLOT(recvAppMsg(QTmpMap)));
-    tcp->connectToServer(tmpSet);
+//    TcpSocket *tcp = new TcpSocket(this);
+//    tcp->setObjectName("socket");
+//    connect(tcp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+//    connect(this, SIGNAL(sendNetMsg(QTmpMap)), tcp, SLOT(recvAppMsg(QTmpMap)));
+//    tcp->connectToServer(tmpSet);
 
-    //    TcpServer *app = new TcpServer;
-    //    app->setObjectName("socket");
-    //    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    //    connect(this, SIGNAL(sendNetMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
-    //#ifdef __arm__
-    //    app->listen(QHostAddress::Any, 5999);
-    //#else
-    //    app->initSocket();
-    //#endif
-    //    app->moveToThread(sql);
+    TcpServer *app = new TcpServer;
+    app->setObjectName("socket");
+    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+    connect(this, SIGNAL(sendNetMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
+#ifdef __arm__
+    app->listen(QHostAddress::Any, 5999);
+#else
+    app->initSocket();
+#endif
+    app->moveToThread(sql);
 
     //    UdpSocket *udp = new UdpSocket(this);
     //    udp->setObjectName("socket");
@@ -621,7 +623,7 @@ void AppWindow::saveSqlite()
     QSqlDatabase::database(name).transaction();
     for (int i=0; i < uuids.size(); i++) {
         int uuid = uuids.at(i);
-        if (uuid < 3000 && uuid >= 2000) {
+        if (uuid < 20000 && uuid >= 10000) {
             query.prepare("replace into aip_system values(?,?)");
             query.addBindValue(uuid);
             query.addBindValue(tmpSet[uuid]);
@@ -648,7 +650,7 @@ void AppWindow::saveModels()
     QString type = tmpSet[tmpSet[DataFile].toInt()].toString();
     for (int i=0; i < uuids.size(); i++) {
         int uuid = uuids.at(i);
-        if (uuid >= 3000) {
+        if (uuid >= 40000) {
             query.prepare(QString("replace into %1 values(?,?)").arg(type));
             query.addBindValue(uuid);
             query.addBindValue(tmpSet[uuid]);
@@ -989,7 +991,7 @@ void AppWindow::recvNewMsg(QTmpMap msg)
     int addr = msg.value(AddrText).toInt();
     QList <int> keys = msg.keys();
     int t = 0;
-    int s = tmpSet[AddrIMPW].toInt();
+    int s = tmpSet[AddrIMPW1].toInt();
     switch (addr) {
     case AddrModel:
         break;
@@ -1107,6 +1109,13 @@ void AppWindow::recvAppMsg(QTmpMap msg)
         break;
     case Qt::Key_Xfer:
         tmpSet = msg;
+        break;
+    case Qt::Key_Flip:
+#ifdef __arm__
+        emit sendNetMsg(msg);
+#else
+        qDebug() << "tcp recv:" << msg.value(AddrText).toString();
+#endif
         break;
     default:
         break;

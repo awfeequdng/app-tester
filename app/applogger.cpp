@@ -48,18 +48,25 @@ void AppLogger::output(QtMsgType type, const QString &msg)
 #ifdef __linux__
     newLine = "\n";
 #endif
+    int grade = (combo->currentIndex()-1) % 4;
     switch (type) {
     case QtDebugMsg:
-        message = QString("Debug: ");
+        if (grade > 0)
+            return;
+        message = QString("D: ");
         break;
     case QtWarningMsg:
-        message = QString("Warn : ");
+        if (grade > 1)
+            return;
+        message = QString("W: ");
         break;
     case QtCriticalMsg:
-        message = QString("Error: ");
+        if (grade > 2)
+            return;
+        message = QString("E: ");
         break;
     case QtFatalMsg:
-        message = QString("Fatal: ");
+        message = QString("F: ");
         break;
     default:
         break;
@@ -70,9 +77,11 @@ void AppLogger::output(QtMsgType type, const QString &msg)
     message.append(QString("%1 ").arg(msg));
     message.append(newLine);
 
-    if (combo->currentIndex() == 1) {
+    int t = (combo->currentIndex() - 1) / 4;
+
+    if (t == 0) {
         text->insertPlainText(message);
-    } else if (combo->currentIndex() == 2) {
+    } else if (t == 1) {
         QDir dir;
         dir.mkdir("log");
         QString name = QString("log/%1.txt").arg(QDate::currentDate().toString("yyyy-MM-dd"));
@@ -82,6 +91,11 @@ void AppLogger::output(QtMsgType type, const QString &msg)
         cout << message;
         log.flush();
         log.close();
+    } else if (t == 2) {
+        tmpMsg.insert(AddrEnum, Qt::Key_Flip);
+        tmpMsg.insert(AddrText, msg);
+        emit sendAppMsg(tmpMsg);
+        tmpMsg.clear();
     }
 }
 
@@ -102,11 +116,21 @@ void AppLogger::initButton()
     btnLayout = new QHBoxLayout;
 
     combo = new QComboBox(this);
-    combo->setFixedSize(120, 44);
+    combo->setFixedSize(220, 44);
     combo->setView(new QListView);
-    combo->addItem(tr("默认输出"));
-    combo->addItem(tr("输出到窗口"));
-    combo->addItem(tr("输出到文件"));
+    combo->addItem(tr("默认"));
+    combo->addItem(tr("目标:窗口;等级:一般"));
+    combo->addItem(tr("目标:窗口;等级:警告"));
+    combo->addItem(tr("目标:窗口;等级:严重"));
+    combo->addItem(tr("目标:窗口;等级:灾难"));
+    combo->addItem(tr("目标:文件;等级:一般"));
+    combo->addItem(tr("目标:文件;等级:警告"));
+    combo->addItem(tr("目标:文件;等级:严重"));
+    combo->addItem(tr("目标:文件;等级:灾难"));
+    combo->addItem(tr("目标:网络;等级:一般"));
+    combo->addItem(tr("目标:网络;等级:警告"));
+    combo->addItem(tr("目标:网络;等级:严重"));
+    combo->addItem(tr("目标:网络;等级:灾难"));
     btnLayout->addWidget(combo);
     connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(changeHandle(int)));
 
@@ -152,12 +176,15 @@ void AppLogger::changeHandle(int t)
         qInstallMessageHandler(0);
         break;
     case 1:
-        qInstallMessageHandler(outputHandle);
-        break;
     case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
         qInstallMessageHandler(outputHandle);
-        break;
-    default:
+    default:  // PC端不使用打印到网络
         break;
     }
 #else
@@ -165,13 +192,8 @@ void AppLogger::changeHandle(int t)
     case 0:
         qInstallMsgHandler(0);
         break;
-    case 1:
-        qInstallMsgHandler(outputHandle);
-        break;
-    case 2:
-        qInstallMsgHandler(outputHandle);
-        break;
     default:
+        qInstallMsgHandler(outputHandle);
         break;
     }
 #endif

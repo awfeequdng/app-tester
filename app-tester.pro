@@ -60,8 +60,7 @@ HEADERS += \
     app/typsetimp.h \
     app/udpsocket.h \
     lib/qcustomplot.h \
-    app/tcpserver.h \
-    app/tcponline.h
+    app/tcpserver.h
 
 SOURCES += \
     app/appaction.cpp \
@@ -105,6 +104,5 @@ SOURCES += \
     app/typsetimp.cpp \
     app/udpsocket.cpp \
     lib/qcustomplot.cpp \
-    app/tcpserver.cpp \
-    app/tcponline.cpp
+    app/tcpserver.cpp
 

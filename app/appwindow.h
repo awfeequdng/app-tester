@@ -47,7 +47,6 @@
 #include "sqlsdcard.h"
 #include "sqlunqual.h"
 #include "apptester.h"
-#include "tcponline.h"
 
 #include "boxdialog.h"
 

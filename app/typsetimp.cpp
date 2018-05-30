@@ -260,7 +260,7 @@ void TypSetImp::recvUpdate(QTmpMap msg)
         tmpWave = impWave;
         time = 0;
     } else {
-        int t = tmpSet[AddrIMPW].toInt();  // 匝间波形地址
+        int t = tmpSet[AddrIMPW1].toInt();  // 匝间波形地址
         int s = tmpSet[AddrIMPSW].toInt();  // 匝间标准波形地址
         int k = tmpSet[c].toInt();  // 匝间采样点
         int w = s + time*400;
