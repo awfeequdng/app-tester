@@ -465,8 +465,8 @@ int AppWindow::readSystem()
     query.exec("select * from aip_system");
     while (query.next()) {
         int uuid = query.value(0).toInt();
-//        if (uuid >= 2000 && uuid < 3000)  // 系统设置区
-            tmpSet[uuid] = query.value(1).toString();
+        //        if (uuid >= 2000 && uuid < 3000)  // 系统设置区
+        tmpSet[uuid] = query.value(1).toString();
     }
     query.clear();
     qDebug() << "app read:" << name;
@@ -481,8 +481,8 @@ int AppWindow::readConfig()
     query.exec(QString("select * from %1").arg(name));
     while (query.next()) {
         int uuid = query.value(0).toInt();
-//        if (uuid >= 3000 && uuid < 4000)  // 型号参数区
-            tmpSet[uuid] = query.value(1).toString();
+        //        if (uuid >= 3000 && uuid < 4000)  // 型号参数区
+        tmpSet[uuid] = query.value(1).toString();
     }
     query.clear();
     qDebug() << "app read:" << name;
@@ -538,11 +538,11 @@ int AppWindow::sendSignin()
 
 int AppWindow::initSocket()
 {
-//    TcpSocket *tcp = new TcpSocket(this);
-//    tcp->setObjectName("socket");
-//    connect(tcp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-//    connect(this, SIGNAL(sendNetMsg(QTmpMap)), tcp, SLOT(recvAppMsg(QTmpMap)));
-//    tcp->connectToServer(tmpSet);
+    //    TcpSocket *tcp = new TcpSocket(this);
+    //    tcp->setObjectName("socket");
+    //    connect(tcp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+    //    connect(this, SIGNAL(sendNetMsg(QTmpMap)), tcp, SLOT(recvAppMsg(QTmpMap)));
+    //    tcp->connectToServer(tmpSet);
 
     TcpServer *app = new TcpServer;
     app->setObjectName("socket");
@@ -991,50 +991,55 @@ void AppWindow::recvNewMsg(QTmpMap msg)
     int addr = msg.value(AddrText).toInt();
     QList <int> keys = msg.keys();
     int t = 0;
-    int s = tmpSet[AddrIMPW1].toInt();
     switch (addr) {
     case AddrModel:
         break;
     case AddrDCRS1:
     case AddrDCRS2:
     case AddrDCRS3:
-        if (msg[DataDCRS].toInt() == 2) {
+        if (msg[tmpSet[AddrDCRR1 + addr - AddrDCRS1].toInt() + AddrDataS].toInt() == 2) {
             testShift = Qt::Key_Away;
             for (int i=0; i < keys.size(); i++) {
                 t = keys.at(i);
-                if (t < s)
+                if (t >= 30000 && t < 40000)
                     tmpSet.insert(t, msg[t].toString());
             }
+        }
+        if (msg[tmpSet[AddrDCRR1 + addr - AddrDCRS1].toInt() + AddrDataJ].toInt() == 1) {
+            tmpSet[DataOKNG] = DataNG;
         }
         break;
     case AddrACWS1:
     case AddrACWS2:
     case AddrACWS3:
     case AddrACWS4:
-        if (msg[DataACWS].toInt() == 0) {
+        if (msg[tmpSet[AddrACWR1 + addr - AddrACWS1].toInt() + AddrDataS].toInt() == 0) {
             testShift = Qt::Key_Away;
             for (int i=0; i < keys.size(); i++) {
                 t = keys.at(i);
-                if (t < s)
+                if (t >= 30000 && t < 40000)
                     tmpSet.insert(t, msg[t].toString());
             }
         }
+        if (msg[tmpSet[AddrACWR1 + addr - AddrACWS1].toInt() + AddrDataJ].toInt() == 1) {
+            tmpSet[DataOKNG] = DataNG;
+        }
         break;
     case AddrIMPS1:
-        if (msg[DataIMPS].toInt() == 0) {
+        if (msg[tmpSet[AddrIMPR1 + addr - AddrIMPS1].toInt() + AddrDataS].toInt() == 0) {
             testShift = Qt::Key_Away;
             for (int i=0; i < keys.size(); i++) {
                 t = keys.at(i);
-                if (t < s)
+                if (t >= 30000 && t < 40000)
                     tmpSet.insert(t, msg[t].toString());
             }
+        }
+        if (msg[tmpSet[AddrIMPR1 + addr - AddrIMPS1].toInt() + AddrDataJ].toInt() == 1) {
+            tmpSet[DataOKNG] = DataNG;
         }
         break;
     default:
         break;
-    }
-    if (!msg.value(DataOKNG).isNull()) {
-        tmpSet[DataOKNG] = msg.value(DataOKNG);
     }
     emit sendAppMsg(msg);
 }

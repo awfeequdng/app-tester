@@ -140,6 +140,7 @@ void TypSetDcr::initDiagBar()
 
     minDiag = new QDoubleSpinBox(this);
     minDiag->setDecimals(3);
+    minDiag->setMaximum(9999.999);
     minDiag->setFixedSize(97, 40);
     layout->addWidget(minDiag);
 
@@ -147,6 +148,7 @@ void TypSetDcr::initDiagBar()
 
     maxDiag = new QDoubleSpinBox(this);
     maxDiag->setDecimals(3);
+    maxDiag->setMaximum(9999.999);
     maxDiag->setFixedSize(97, 40);
     layout->addWidget(maxDiag);
 
@@ -223,6 +225,17 @@ void TypSetDcr::initButtons()
 
     layout->addStretch();
 
+    grade = new QComboBox(this);
+    grade->setView(new QListView);
+    grade->setFixedSize(97, 40);
+    grade->addItem(tr("自动"));
+    grade->addItem(tr("100Ω+"));
+    grade->addItem(tr("10Ω+"));
+    grade->addItem(tr("1Ω+"));
+    grade->addItem(tr("50mΩ+"));
+    grade->addItem(tr("50mΩ-"));
+    layout->addWidget(grade);
+
     QPushButton *btnCell = new QPushButton(this);
     btnCell->setFixedSize(97, 40);
     btnCell->setText(tr("采样"));
@@ -245,6 +258,7 @@ void TypSetDcr::initSettings()
     boxTemp->setChecked(tmpSet[s + 2] == "1" ? Qt::Checked : Qt::Unchecked);
     maxTemp->setValue(tmpSet[s + 3].toDouble()/1000);
     boxTime->setValue(tmpSet[s + 4].toDouble()/1000);
+    grade->setCurrentIndex(tmpSet[s + 5].toInt());
 
     s = tmpSet[AddrDCRS2].toInt();
     boxChip->setChecked(tmpSet[s + 0] == "1" ? Qt::Checked : Qt::Unchecked);
@@ -257,12 +271,15 @@ void TypSetDcr::initSettings()
 
     int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();
     int r = tmpSet[AddrDCRSW].toInt();
-    int p = 0;
-    for (int i=0; i < qMin(c, 36); i++) {
-        double t = tmpSet[r + i].toDouble()/1000;
-        p = (t >= 10.0) ? 3 : 4;
-        p = (t >= 100.0) ? 2 : p;
-        view->item(i%6, (i/6)*2+1)->setText(tr("%1").arg(t, 0, 'f', p));
+    for (int i=0; i < 36; i++) {
+        if (i < c) {
+            double t = tmpSet[r + i*2 + 0].toDouble();
+            double p = tmpSet[r + i*2 + 1].toDouble();
+            t = t*qPow(10, -p);
+            view->item(i%6, (i/6)*2+1)->setText(tr("%1").arg(t, 0, 'f', p));
+        } else {
+            view->item(i%6, (i/6)*2+1)->setText("");
+        }
     }
 }
 
@@ -275,6 +292,7 @@ void TypSetDcr::saveSettings()
     tmpSet[s + 2] = boxTemp->isChecked() ? "1" : "0";
     tmpSet[s + 3] = QString::number(maxTemp->value()*1000);
     tmpSet[s + 4] = QString::number(boxTime->value()*1000);
+    tmpSet[s + 5] = QString::number(grade->currentIndex());
 
     s = tmpSet[AddrDCRS2].toInt();
     tmpSet[s + 0] = boxChip->isChecked() ? "1" : "0";
@@ -297,18 +315,20 @@ void TypSetDcr::sample()
 {
     tmpMsg.insert(AddrEnum, Qt::Key_Send);
     tmpMsg.insert(AddrText, AddrDCRS1);
-    tmpMsg.insert(AddrData, AddrDCRS1);
+    tmpMsg.insert(AddrFreq, grade->currentIndex());
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
 
 void TypSetDcr::recvUpdate(QTmpMap msg)
 {
-    int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();
-    int r = tmpSet[AddrDCRSW].toInt();
-    int s = tmpSet[AddrDCRR1].toInt();
+    int t = 0x04;
+    int c = tmpSet[tmpSet[AddrModel].toInt() + 1].toInt();  // 夹具针数
+    int r = tmpSet[AddrDCRSW].toInt();  // 电阻标准
+    int s = tmpSet[AddrDCRR1].toInt();  // 电阻结果
     for (int i=0; i < c; i++) {
-        tmpSet[r + i] = msg[s + i];
+        tmpSet[r + i*2 + 0] = msg[s + t*(i + 1) + AddrDataR];
+        tmpSet[r + i*2 + 1] = msg[s + t*(i + 1) + AddrDataS];
     }
     initSettings();
 }

@@ -254,25 +254,27 @@ void TypSetImp::waveUpdate()
 
 void TypSetImp::recvUpdate(QTmpMap msg)
 {
-    int r = msg.value(AddrData).toInt();
-    int c = tmpSet[AddrIMPS1].toInt() + AddrIMPSL;  // 采样点地址
-    if (r == 0) {
-        tmpWave = impWave;
-        time = 0;
-    } else {
-        int t = tmpSet[AddrIMPW1].toInt();  // 匝间波形地址
-        int s = tmpSet[AddrIMPSW].toInt();  // 匝间标准波形地址
-        int k = tmpSet[c].toInt();  // 匝间采样点
-        int w = s + time*400;
-        time++;
+    int real = tmpSet[AddrIMPR1].toInt();  // 测试结果地址
+    int addr = tmpSet[AddrIMPW1].toInt();  // 测试波形地址
+    int parm = tmpSet[AddrIMPSW].toInt();  // 标准波形地址
+    int imps = msg.value(real + AddrDataS).toInt();  // 状态
+    int numb = msg.value(real + AddrDataR).toInt();  // 编号
+    int stdn = tmpSet[tmpSet[AddrIMPS1].toInt() + AddrIMPSL].toInt();  // 采样点
+    if (imps == DataTest) {
         tmpWave.clear();
         for (int i=0; i < 400; i++) {
-            tmpWave.append(msg[t + i].toInt());
-            tmpSet[w + i] = tmpWave.at(i);
+            tmpWave.append(msg[addr + i].toInt());
         }
-        if ((k == 0) || (time == k))
+        if (numb == stdn) {
             impWave = tmpWave;
+            for (int i=0; i < 400; i++) {
+                tmpSet[parm + i] = tmpWave.at(i);
+            }
+        }
+    } else {
+        tmpWave = impWave;
     }
+
     drawImpWave();
 }
 

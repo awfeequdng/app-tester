@@ -140,6 +140,7 @@ private:
     double min;
     int minb;
     QCPGraph *impLine;
+    QCPGraph *impStdd;
     QElapsedTimer t;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;

@@ -147,6 +147,7 @@ void AppTester::initButton()
     connect(btnConf, SIGNAL(clicked(bool)), this, SLOT(clickButton()));
 
     QLabel *btnLogo = new QLabel(this);
+    btnLogo->setFixedHeight(49);
     btnLogo->setPixmap(QPixmap(":/icon_aip.png"));
     btnLogo->setScaledContents(true);
     btnLayout->addWidget(btnLogo);
@@ -265,11 +266,11 @@ void AppTester::initDcrWave()
     view->setCellWidget(6, 2, dcrView);
 
     graph1 = dcrView->addGraph();
-    graph1->setPen(QPen(Qt::green, 2));
+    graph1->setPen(QPen(Qt::white, 1));
     graph2 = dcrView->addGraph();
     graph2->setPen(QPen(Qt::white, 1));
     graph3 = dcrView->addGraph();
-    graph3->setPen(QPen(Qt::white, 1));
+    graph3->setPen(QPen(Qt::green, 2));
 }
 
 void AppTester::initInrTextCG()
@@ -433,6 +434,7 @@ void AppTester::initImpWave()
     impView->xAxis->setTickLabelColor(Qt::white);
 
     impLine = impView->addGraph();
+    impStdd = impView->addGraph();
 
     view->setCellWidget(6, 0, impView);
 }
@@ -554,11 +556,13 @@ void AppTester::initSettings()
 void AppTester::drawImpWave()
 {
     impLine->setPen(QPen(Qt::green, 2));
+    impStdd->setPen(QPen(Qt::white, 2));
     if (tmpWave.isEmpty()) {
         QVector<double> x(1), y(1);
         x[0] = -1;
         y[0] = -1;
         impLine->setData(x, y);
+        impStdd->setData(x, y);
     } else {
         QVector<double> x(400), y(400);
         for (int i=0; i < 400; i++) {
@@ -566,6 +570,12 @@ void AppTester::drawImpWave()
             y[i] = tmpWave.at(i)*100/0x0400;
         }
         impLine->setData(x, y);
+        int addr = tmpSet[AddrIMPSW].toInt();
+        for (int i=0; i < 400; i++) {
+            x[i] = i;
+            y[i] =  tmpSet[addr + i].toInt()*100/0x0400;
+        }
+        impStdd->setData(x, y);
     }
     impView->replot();
 }
@@ -597,28 +607,39 @@ void AppTester::drawDcrWave()
     int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();
     QVector<double> x1(c), y1(c), y2(c), y3(c);
 
-    int max = 0;
-    int min = 0;
+    double max = 0;
+    double min = 0xffff;
     for (int i=0; i < c-1; i++) {
         x1[i] = i;
-        int t1 = tmpSet[addr + i].toInt() + tmpSet[addr + i].toInt() * stdd / 100000;
-        int t2 = tmpSet[addr + i].toInt() - tmpSet[addr + i].toInt() * stdd / 100000;
-        max = qMax(t1, t2);
-        min = qMin(t1, t2);
-        if (t1 == 0 || t2 == 0)
+        double ts = tmpSet[addr + i*2 + 0].toDouble();
+        double ps = tmpSet[addr + i*2 + 1].toDouble();
+        ts = ts * qPow(10, -ps);
+        double t1 = ts + ts * stdd / 100000;
+        double t2 = ts - ts * stdd / 100000;
+        double rr = tmpSet[real + (i+1)*4 + AddrDataR].toInt();
+        double pp = tmpSet[real + (i+1)*4 + AddrDataS].toInt();
+        rr = rr * qPow(10, -pp);
+        max = qMax(max, t1);
+        min = qMin(min, t2);
+        if (ts == 0)
             return;
+        y1[i] = t1;
+        y2[i] = t2;
+        y3[i] = rr;
     }
-    max *= 1.2;
-    min *= 0.9;
-    int sss = max - min;
+    double sss = max - min;
     for (int i=0; i < c-1; i++) {
-        x1[i] = i;
-        int t1 = tmpSet[real + i].toInt();
-        int t2 = tmpSet[addr + i].toInt() + tmpSet[addr + i].toInt() * stdd / 100000;
-        int t3 = tmpSet[addr + i].toInt() - tmpSet[addr + i].toInt() * stdd / 100000;
-        y1[i] = (t1 - min) * 100 / sss;
-        y2[i] = (t2 - min) * 100 / sss;
-        y3[i] = (t3 - min) * 100 / sss;
+        double ts = tmpSet[addr + i*2 + 0].toDouble();
+        double ps = tmpSet[addr + i*2 + 1].toDouble();
+        ts = ts * qPow(10, -ps);
+        double t1 = ts + ts * stdd / 100000;
+        double t2 = ts - ts * stdd / 100000;
+        double rr = tmpSet[real + (i+1)*4 + AddrDataR].toInt();
+        double pp = tmpSet[real + (i+1)*4 + AddrDataS].toInt();
+        rr = rr * qPow(10, -pp);
+        y1[i] = (t1 - min) * 80 / sss + 10;
+        y2[i] = (t2 - min) * 80 / sss + 10;
+        y3[i] = (rr - min) * 80 / sss + 10;
     }
     graph1->setData(x1, y1);
     graph2->setData(x1, y2);
@@ -855,14 +876,15 @@ void AppTester::recvUpdate(QTmpMap msg)
     if (this->isHidden())
         return;
     int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();
-    int addr = msg.value(AddrText).toInt();
-    if (addr >= AddrACWS1 && addr <= AddrACWS4) {
-        int t = addr % AddrACWS1;
+    int curr = msg.value(AddrText).toInt();
+    if (curr >= AddrACWS1 && curr <= AddrACWS4) {
+        int temp = 0x04;
+        int t = curr - AddrACWS1;
         int s = tmpSet[AddrACWR1 + t].toInt();
-        double j = msg[s + AddrACWJ].toInt();
-        double v = msg[s + AddrACWU].toInt();
-        double r = msg[s + AddrACWR].toInt();
-        double p = msg[s + AddrACWP].toInt();
+        double j = msg[s + temp + AddrDataJ].toInt();
+        double v = msg[s + temp + AddrDataV].toInt();
+        double r = msg[s + temp + AddrDataR].toInt();
+        double p = msg[s + temp + AddrDataS].toInt();
         QString color = (j == DataNG) ? largeNG : largeOK;
         QString judge = (j == DataNG) ? "NG" : "OK";
         r *= qPow(10, -p);
@@ -875,103 +897,111 @@ void AppTester::recvUpdate(QTmpMap msg)
         acwLabels.at(3*t + 1)->setText(color.arg(real));
         acwLabels.at(3*t + 2)->setText(color.arg(judge));
     }
-    if (addr == AddrIMPS1) {
-        QString real;
-        if (msg[AddrData].toInt() == 0) {  // 显示结果
-            int r = tmpSet.value(AddrIMPR1).toInt();  // 匝间结果地址
+    if (curr == AddrIMPS1) {
+        int real = tmpSet[AddrIMPR1].toInt();  // 测试结果地址
+        int addr = tmpSet[AddrIMPW1].toInt();  // 测试波形地址
+        int imps = msg.value(real + AddrDataS).toInt();  // 状态
+        int numb = msg.value(real + AddrDataR).toInt();  // 编号
+        if (imps == DataTest) {
+            tmpWave.clear();
+            for (int i=0; i < 400; i++) {
+                tmpWave.append(msg[addr + i].toInt());
+            }
+            drawImpWave();
+            double v = msg[real + 4*numb + AddrDataV].toDouble();
+            double r = msg[real + 4*numb + AddrDataR].toDouble();
+            double j = msg[real + 4*numb + AddrDataJ].toDouble();
+            QString okng = (j == DataNG) ? largeNG : largeOK;
+            impLabels.at(0)->setText(okng.arg(QString::number(v/1000, 'f', 3) + "kV"));
+            impLabels.at(1)->setText(okng.arg(QString::number(r/1000, 'f', r >= 10000 ? 2 : 3) + "%"));
+            impLabels.at(2)->setText(okng.arg((j == DataNG) ? "NG" : "OK"));
+        } else {
+            int p = 0;
+            int k = 0;
             for (int i=0; i < c; i++) {
                 if (i%12 == 0) {
                     if (i != 0)
                         textIMPR->insertHtml("<br></br>");
                     textIMPR->insertHtml("&nbsp;&nbsp;");
                 }
-                double tmp = msg.value(r+i).toDouble()/1000;
-                textIMPR->insertHtml(SmallOK.arg(QString::number(tmp, 'f', tmp >= 10 ? 2 : 3)));
+                double r = msg.value(real + (i+1)*4 + AddrDataR).toDouble()/1000;
+                double j = msg.value(real + (i+1)*4 + AddrDataJ).toInt();
+                QString str = (j == DataOK) ? SmallOK : SmallNG;
+                textIMPR->insertHtml(str.arg(tr("%1").arg(r, 0, 'f', r >= 10 ? 2 : 3)));
+                if (r > p) {
+                    p = r;
+                    k = i;
+                }
             }
-        } else {
-            tmpWave.clear();
-            int t = tmpSet[AddrIMPW1].toInt();  // 匝间波形地址
-            for (int i=0; i < 400; i++) {
-                tmpWave.append(msg[t + i].toInt());
-            }
-            drawImpWave();
-
-            int s = tmpSet[AddrIMPR1].toInt() + msg[AddrData].toInt() - 1;
-            double r = msg[s].toDouble()/1000;
-            real = QString::number(r, 'f', 3) + "%";
-            double j = msg[DataIMPJ].toInt();  // 匝间判定
-            double v = msg[DataIMPU].toInt();  // 匝间电压
-
-            QString color = (j == DataNG) ? largeNG : largeOK;
-            QString judge = (j == DataNG) ? "NG" : "OK";
-            QString volt = QString::number(v/1000, 'f', 3) + "kV";
-            impLabels.at(0)->setText(color.arg(volt));
-            impLabels.at(1)->setText(color.arg(real));
-            impLabels.at(2)->setText(color.arg(judge));
+            k++;
+            double v = msg[real + 4*k + AddrDataV].toDouble();
+            double r = msg[real + 4*k + AddrDataR].toDouble();
+            double j = msg[real + 4*k + AddrDataJ].toDouble();
+            QString okng = (j == DataNG) ? largeNG : largeOK;
+            impLabels.at(0)->setText(okng.arg(QString::number(v/1000, 'f', 3) + "kV"));
+            impLabels.at(1)->setText(okng.arg(QString::number(r/1000, 'f', r >= 10000 ? 2 : 3) + "%"));
+            impLabels.at(2)->setText(okng.arg((j == DataNG) ? "NG" : "OK"));
         }
     }
-    if (addr == AddrDCRS1) {
+    if (curr == AddrDCRS1) {
         textWeld->clear();
-        int r = tmpSet.value(AddrDCRR1).toInt();
-        int s = tmpSet.value(AddrDCRS1).toInt();
-        int w = tmpSet.value(AddrDCRSW).toInt();
-        int h = tmpSet[s + 1].toInt();
-        int p = 0;
+        int addr = tmpSet.value(AddrDCRR1).toInt(); // 电阻结果
         for (int i=0; i < c; i++) {
             if (i%12 == 0) {
                 if (i != 0)
                     textWeld->insertHtml("<br></br>");
                 textWeld->insertHtml("&nbsp;&nbsp;");
             }
-            tmpSet[r + i] = msg.value(r + i);
-            double std = tmpSet[w + i].toInt();
-            double tmp = msg.value(r+i).toDouble();
-            QString str = (abs(tmp-std)/std*1000*100 < h) ? SmallOK : SmallNG;
-            p = (tmp >= 10000) ? 2 : 3;
-            p = (tmp >= 100000) ? 1 : p;
-            textWeld->insertHtml(str.arg(tr("%1").arg(tmp/1000, 0, 'f', p)));
+            double r = msg.value(addr + (i+1)*4 + AddrDataR).toInt();
+            double p = msg.value(addr + (i+1)*4 + AddrDataS).toInt();
+            double j = msg.value(addr + (i+1)*4 + AddrDataJ).toInt();
+            QString str = (j == DataOK) ? SmallOK : SmallNG;
+            textWeld->insertHtml(str.arg(tr("%1").arg(r * qPow(10, -p), 0, 'f', p-1)));
             if (str == SmallNG)
                 boxChart->setClr(i);
-            qDebug() << std << tmp << h;
+            tmpSet[addr + (i+1)*4 + AddrDataR] = r;
+            tmpSet[addr + (i+1)*4 + AddrDataS] = p;
         }
         drawDcrWave();
     }
-    if (addr == AddrDCRS2) {
+    if (curr == AddrDCRS2) {
         textChip->clear();
-        int r = tmpSet.value(AddrDCRR2).toInt();
-        int s = tmpSet.value(AddrDCRS2).toInt();
-        double h = tmpSet.value(s+1).toDouble();  // 焊接电阻上限,单位uΩ
+        int addr = tmpSet.value(AddrDCRR2).toInt(); // 电阻结果
         for (int i=0; i < c; i++) {
             if (i%12 == 0) {
                 if (i != 0)
                     textChip->insertHtml("<br></br>");
                 textChip->insertHtml("&nbsp;&nbsp;");
             }
-            double tmp = msg.value(r+i).toDouble();  // 焊接电阻
-            QString str = (tmp > h) ? SmallNG : SmallOK;
-            if (tmp < 10000)
-                textChip->insertHtml(str.arg(QString::number(tmp/1000, 'f', 3)));
+            double r = msg.value(addr + (i+1)*4 + AddrDataR).toInt();
+            double p = msg.value(addr + (i+1)*4 + AddrDataS).toInt();
+            double j = msg.value(addr + (i+1)*4 + AddrDataJ).toInt();
+            QString str = (j == DataOK) ? SmallOK : SmallNG;
+            r = r * qPow(10, -p);  // 焊接电阻
+            if (r < 10.0)
+                textChip->insertHtml(str.arg(QString::number(r, 'f', p)));
             else
                 textChip->insertHtml(str.arg(QString(">10.0")));
             if (str == SmallNG)
                 boxChart->setClr(i);
         }
     }
-    if (addr == AddrDCRS3) {
+    if (curr == AddrDCRS3) {
         textDiag->clear();
-        int r = tmpSet.value(AddrDCRR3).toInt();
+        int addr = tmpSet.value(AddrDCRR3).toInt(); // 电阻结果
         for (int i=0; i < c/2; i++) {
             if (i%12 == 0) {
                 if (i != 0)
                     textDiag->insertHtml("<br></br>");
                 textDiag->insertHtml("&nbsp;&nbsp;");
             }
-            int s = tmpSet[AddrDCRS3].toInt();  // 配置地址
-            double l = tmpSet[s + 1].toDouble()/1000;
-            double h = tmpSet[s + 2].toDouble()/1000;
-            double tmp = msg.value(r+i).toDouble()/1000;
-            QString str = (tmp > l && tmp < h) ? SmallOK : SmallNG;
-            textDiag->insertHtml(str.arg(QString::number(tmp, 'f', tmp >= 10 ? 2 : 3)));
+            double r = msg.value(addr + (i+1)*4 + AddrDataR).toInt();
+            double p = msg.value(addr + (i+1)*4 + AddrDataS).toInt();
+            double j = msg.value(addr + (i+1)*4 + AddrDataJ).toInt();
+            r = r * qPow(10, -p);  // 跨间电阻
+            QString str = (j == DataOK) ? SmallOK : SmallNG;
+
+            textDiag->insertHtml(str.arg(QString::number(r, 'f', p)));
             if (str == SmallNG)
                 boxChart->setClr(i);
         }

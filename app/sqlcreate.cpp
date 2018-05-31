@@ -39,6 +39,7 @@ void SqlCreate::initTmpDat()
     tmpSet.insert(AddrType, 20000 + 2500);  // 型号信息存放在2500
 
     tmpSet.insert(AddrOther, 22000 + 0x0000);  // 零散数据地址
+
     tmpSet.insert(AddrDCRR1, 30000 + 0x0000);  // 片间结果地址
     tmpSet.insert(AddrDCRR2, 30000 + 0x0400);  // 焊接结果地址
     tmpSet.insert(AddrDCRR3, 30000 + 0x0800);  // 跨间结果地址
@@ -46,22 +47,20 @@ void SqlCreate::initTmpDat()
     tmpSet.insert(AddrACWR2, 30000 + 0x0A08);  // 轴铁结果地址
     tmpSet.insert(AddrACWR3, 30000 + 0x0A10);  // 轴线结果地址
     tmpSet.insert(AddrACWR4, 30000 + 0x0A18);  // 铁线结果地址
-    tmpSet.insert(AddrIMPR1, 30000 + 0x0A20);  // 匝间结果存放在1400
-    tmpSet.insert(AddrIMPW1, 30000 + 0x0E20);  // 匝间波形存放在1600
+    tmpSet.insert(AddrIMPR1, 30000 + 0x0A20);  // 匝间结果地址
+    tmpSet.insert(AddrIMPW1, 30000 + 0x0E20);  // 匝间波形地址
 
-
-    tmpSet.insert(AddrDCRS1, 40000 + 0x0000);  // 片间配置地址
-    tmpSet.insert(AddrDCRSW, 40000 + 0x0010);  // 焊接配置地址
-    tmpSet.insert(AddrDCRS2, 40000 + 0x0100);  // 焊接配置地址
-    tmpSet.insert(AddrDCRS3, 40000 + 0x0110);  // 跨间配置地址
-    tmpSet.insert(AddrACWS1, 40000 + 0x0120);  // 绝缘配置地址
-    tmpSet.insert(AddrACWS2, 40000 + 0x0130);  // 轴铁配置地址
-    tmpSet.insert(AddrACWS3, 40000 + 0x0140);  // 轴线配置地址
-    tmpSet.insert(AddrACWS4, 40000 + 0x0150);  // 铁线配置地址
-    tmpSet.insert(AddrIMPS1, 40000 + 0x0160);  // 匝间配置存放在3090
-    tmpSet.insert(AddrIMPSW, 40000 + 0x0170);  // 匝间波形存放在3600
-
-    tmpSet.insert(AddrModel, 40000 + 0x1000);  // 综合设置存放在3000
+    tmpSet.insert(AddrModel, 40000 + 0x0000);  // 综合设置地址
+    tmpSet.insert(AddrDCRS1, 40000 + 0x0010);  // 片间配置地址
+    tmpSet.insert(AddrDCRS2, 40000 + 0x0020);  // 焊接配置地址
+    tmpSet.insert(AddrDCRS3, 40000 + 0x0030);  // 跨间配置地址
+    tmpSet.insert(AddrACWS1, 40000 + 0x0040);  // 绝缘配置地址
+    tmpSet.insert(AddrACWS2, 40000 + 0x0050);  // 轴铁配置地址
+    tmpSet.insert(AddrACWS3, 40000 + 0x0060);  // 轴线配置地址
+    tmpSet.insert(AddrACWS4, 40000 + 0x0070);  // 铁线配置地址
+    tmpSet.insert(AddrIMPS1, 40000 + 0x0080);  // 匝间配置地址
+    tmpSet.insert(AddrDCRSW, 40000 + 0x0100);  // 焊接配置地址
+    tmpSet.insert(AddrIMPSW, 40000 + 0x0300);  // 匝间波形地址
 
     tmpSet.insert(AddrEnum, Qt::Key_Xfer);
     emit sendAppMsg(tmpSet);
@@ -413,7 +412,7 @@ void SqlCreate::initConf(QSqlQuery query)
     QStringList parm;
     parm.clear();
     from = tmpSet.value(AddrDCRS1).toInt();
-    parm << "1" << "10000" << "1" << "25000" << "500" << "" << "" << "" << "" << "";  // 片间配置
+    parm << "1" << "10000" << "1" << "25000" << "500" << "0" << "" << "" << "" << "";  // 片间配置
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
@@ -453,7 +452,7 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value(AddrACWS2).toInt();
-    parm << "1" << tr("轴铁耐压") << "1500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 轴铁配置
+    parm << "1" << tr("轴铁耐压") << "500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 轴铁配置
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
@@ -463,7 +462,7 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value(AddrACWS3).toInt();
-    parm << "1" << tr("轴线耐压") << "2500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 轴线配置
+    parm << "1" << tr("轴线耐压") << "500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 轴线配置
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
@@ -473,7 +472,7 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value(AddrACWS4).toInt();
-    parm << "1" << tr("铁线耐压") << "4500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 铁线配置
+    parm << "1" << tr("铁线耐压") << "500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 铁线配置
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);

@@ -67,6 +67,7 @@ private:
     QDoubleSpinBox *maxChip;
     QDoubleSpinBox *maxDiag;
     QDoubleSpinBox *minDiag;
+    QComboBox *grade;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
 };

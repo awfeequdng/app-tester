@@ -41,10 +41,10 @@
 #include "typsetacw.h"
 #include "typsetimp.h"
 
-const int AddrACWJ = 0x00;  // 耐压判定
-const int AddrACWU = 0x01;  // 耐压电压
-const int AddrACWR = 0x02;  // 耐压结果
-const int AddrACWP = 0x03;  // 耐压小数
+const int AddrDataV = 0x00;  // 版本
+const int AddrDataR = 0x01;  // 结果
+const int AddrDataS = 0x02;  // 状态
+const int AddrDataJ = 0x03;  // 判定
 
 const int CAN_ID_DCR = 0x0022;
 const int CAN_ID_ACW = 0x0023;
@@ -70,15 +70,18 @@ private slots:
     void putAllDat();
     void updateAll();
     void updateDat();
-    void setupDCR();
+    void setupDCR(QTmpMap map);
     void startDCR(QTmpMap map);
     void parseDCR(QByteArray msg);
+    void renewDCR();
     void setupACW();
     void startACW();
     void parseACW(QByteArray msg);
+    void renewACW();
     void setupIMP(QTmpMap map);
     void startIMP(QTmpMap map);
     void parseIMP(int id, QByteArray msg);
+    void renewIMP();
     void calc();
     void setupTest(QTmpMap msg);
     void startTest(QTmpMap msg);
@@ -95,6 +98,7 @@ private:
     QTmpMap tmpDat;
     QTmpMap tmpMsg;
     int timeOut;
+    int numb;
 };
 
 #endif // DEVSETCAN_H
