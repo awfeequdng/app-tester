@@ -85,7 +85,8 @@ private slots:
     void initImpText();
     void initImpWave();
     void initSettings();
-    void drawImpWave();
+    void initViewText();
+    void drawImpWave(int numb);
 
     void setViewSize();
     void initHistogram();
@@ -97,6 +98,9 @@ private slots:
     void clickButton();
     void recvTmpMsg(QTmpMap msg);
     void recvLedMsg(QTmpMap msg);
+    void recvDCRMsg(QTmpMap msg);
+    void recvACWMsg(QTmpMap msg);
+    void recvIMPMsg(QTmpMap msg);
     void recvUpdate(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);

@@ -196,7 +196,7 @@ void TypSetImp::initSettings()
     mView->item(0, w)->setText(tmpSet[s + w].toString());
     w = AddrIMPSA;  // 间隔
     mView->item(0, w)->setText(tmpSet[s + w].toString());
-    w = AddrIMPSF;
+    w = AddrIMPSF;  // 频率
     text->setText(tmpSet[s + w].toString());
 
     int r = tmpSet[AddrIMPSW].toInt();  // 波形存储地址
@@ -260,21 +260,19 @@ void TypSetImp::recvUpdate(QTmpMap msg)
     int imps = msg.value(real + AddrDataS).toInt();  // 状态
     int numb = msg.value(real + AddrDataR).toInt();  // 编号
     int stdn = tmpSet[tmpSet[AddrIMPS1].toInt() + AddrIMPSL].toInt();  // 采样点
+
     if (imps == DataTest) {
         tmpWave.clear();
         for (int i=0; i < 400; i++) {
             tmpWave.append(msg[addr + i].toInt());
+            tmpSet[parm + (numb-1)*400 + i] = msg[addr + i].toInt();
         }
         if (numb == stdn) {
             impWave = tmpWave;
-            for (int i=0; i < 400; i++) {
-                tmpSet[parm + i] = tmpWave.at(i);
-            }
         }
-    } else {
+    } else if (stdn != 0) {
         tmpWave = impWave;
     }
-
     drawImpWave();
 }
 

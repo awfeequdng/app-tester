@@ -640,6 +640,8 @@ void AppWindow::saveSqlite()
 
 void AppWindow::saveModels()
 {
+    QElapsedTimer tt;
+    tt.start();
     boxbar->setLabelText(tr("正在保存数据"));
     boxbar->show();
     wait(10);
@@ -663,7 +665,7 @@ void AppWindow::saveModels()
     wait(500);
     query.clear();
     boxbar->setValue(100);
-    qDebug() << "app save:" << type;
+    qDebug() << "app save:" << tr("%1ms").arg(tt.elapsed(), 4, 10, QChar('0')) << type;
 }
 
 void AppWindow::clickButtons()
@@ -804,7 +806,6 @@ int AppWindow::taskThread()
     if (taskMap.keys().contains(QString::number(currTask)))
         ret = (this->*taskMap[QString::number(currTask)])();
     if (ret == Qt::Key_Away) {
-        qDebug() << "app task:" << currTask;
         currTask++;
         currTask = (currTask >= taskMap.size()) ? 0 : currTask;
     }
@@ -854,6 +855,7 @@ int AppWindow::taskStartView()
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
     currItem = getNextItem();
+    qDebug() << "app view:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
     return Qt::Key_Away;
 }
 
@@ -865,15 +867,16 @@ int AppWindow::taskStartTest()
 
 int AppWindow::taskStartSave()
 {
-    qDebug() <<"sql time:" << t.elapsed() << "ms";
     tmpSet.insert(AddrEnum, Qt::Key_Book);
     emit sendAppMsg(tmpSet);
-    qDebug() <<"app time:" << t.elapsed() << "ms";
+    qDebug() <<"app save:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
     return Qt::Key_Away;
 }
 
 int AppWindow::taskStartBeep()
 {
+    timeOut = t.elapsed();
+    qDebug() <<"app beep:" << tr("%1ms").arg(timeOut, 4, 10, QChar('0'));
     tmpMsg.insert(AddrEnum, Qt::Key_Call);
     tmpMsg.insert(AddrText, tmpSet[DataOKNG].toInt() == DataOK ? "LEDG" : "LEDR");
     tmpMsg.insert(AddrBeep, 100);
@@ -885,30 +888,28 @@ int AppWindow::taskStartBeep()
 int AppWindow::taskClearBeep()
 {
     int ret = Qt::Key_Meta;
-    timeOut++;
-    int r = tmpSet[AddrSyst].toInt();
-    int t = tmpSet[r + (tmpSet[DataOKNG].toInt() == DataOK ? 0x07 : 0x08)].toDouble()*100;
-    if (timeOut > t) {
-        timeOut = 0;
+    int rr = tmpSet[AddrSyst].toInt();
+    int tt = tmpSet[rr + (tmpSet[DataOKNG].toInt() == DataOK ? 0x07 : 0x08)].toDouble()*100;
+    if (t.elapsed() - timeOut > tt) {
+        timeOut = t.elapsed();
         ret = Qt::Key_Away;
         tmpMsg.insert(AddrEnum, Qt::Key_Call);
         tmpMsg.insert(AddrText, tmpSet[DataOKNG].toInt() == DataOK ? "LEDG" : "LEDR");
         tmpMsg.insert(AddrBeep, 0);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
+        qDebug() <<"app wait:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
     }
     return ret;
 }
 
 int AppWindow::taskResetTest()
 {
-    int ret = Qt::Key_Meta;
     int addr = tmpSet[AddrBack].toInt();
     int test = tmpSet[addr + 7].toInt();
     int time = tmpSet[addr + 8].toInt();
     if (test == 1) {
-        timeOut++;
-        if (timeOut >= time*100) {
+        if (t.elapsed() - timeOut >= time*100) {
             for (int i=0; i < taskMap.size(); i++) {
                 if (taskMap[QString::number(i)] == &AppWindow::taskCheckPlay) {
                     currTask = i + 1;
@@ -916,10 +917,8 @@ int AppWindow::taskResetTest()
                 }
             }
         }
-    } else {
-        ret = Qt::Key_Away;
     }
-    return ret;
+    return (test == 1) ? Qt::Key_Meta : Qt::Key_Away;
 }
 
 int AppWindow::testThread()
@@ -927,14 +926,12 @@ int AppWindow::testThread()
     int ret = Qt::Key_Meta;
     if (testMap.keys().contains(QString::number(currTest))) {
         if ((this->*testMap[QString::number(currTest)])() == Qt::Key_Away) {
-            qDebug() << "app test:" << currTest;
             currTest++;
             currTest = (currTest >= testMap.size()) ? 0 : currTest;  // 测试流程
             if (currTest == 0) {
                 currItem = getNextItem();
                 if (currItem == 0)
                     ret = Qt::Key_Away;
-                qDebug() << "app next:" << currItem;
             }
         }
     }
@@ -990,7 +987,7 @@ void AppWindow::recvNewMsg(QTmpMap msg)
 #endif
     int addr = msg.value(AddrText).toInt();
     QList <int> keys = msg.keys();
-    int t = 0;
+    int tt = 0;
     switch (addr) {
     case AddrModel:
         break;
@@ -1000,9 +997,9 @@ void AppWindow::recvNewMsg(QTmpMap msg)
         if (msg[tmpSet[AddrDCRR1 + addr - AddrDCRS1].toInt() + AddrDataS].toInt() == 2) {
             testShift = Qt::Key_Away;
             for (int i=0; i < keys.size(); i++) {
-                t = keys.at(i);
-                if (t >= 30000 && t < 40000)
-                    tmpSet.insert(t, msg[t].toString());
+                tt = keys.at(i);
+                if (tt >= 30000 && tt < 40000)
+                    tmpSet.insert(tt, msg[tt].toString());
             }
         }
         if (msg[tmpSet[AddrDCRR1 + addr - AddrDCRS1].toInt() + AddrDataJ].toInt() == 1) {
@@ -1016,9 +1013,9 @@ void AppWindow::recvNewMsg(QTmpMap msg)
         if (msg[tmpSet[AddrACWR1 + addr - AddrACWS1].toInt() + AddrDataS].toInt() == 0) {
             testShift = Qt::Key_Away;
             for (int i=0; i < keys.size(); i++) {
-                t = keys.at(i);
-                if (t >= 30000 && t < 40000)
-                    tmpSet.insert(t, msg[t].toString());
+                tt = keys.at(i);
+                if (tt >= 30000 && tt < 40000)
+                    tmpSet.insert(tt, msg[tt].toString());
             }
         }
         if (msg[tmpSet[AddrACWR1 + addr - AddrACWS1].toInt() + AddrDataJ].toInt() == 1) {
@@ -1029,9 +1026,9 @@ void AppWindow::recvNewMsg(QTmpMap msg)
         if (msg[tmpSet[AddrIMPR1 + addr - AddrIMPS1].toInt() + AddrDataS].toInt() == 0) {
             testShift = Qt::Key_Away;
             for (int i=0; i < keys.size(); i++) {
-                t = keys.at(i);
-                if (t >= 30000 && t < 40000)
-                    tmpSet.insert(t, msg[t].toString());
+                tt = keys.at(i);
+                if (tt >= 30000 && tt < 40000)
+                    tmpSet.insert(tt, msg[tt].toString());
             }
         }
         if (msg[tmpSet[AddrIMPR1 + addr - AddrIMPS1].toInt() + AddrDataJ].toInt() == 1) {
@@ -1042,6 +1039,7 @@ void AppWindow::recvNewMsg(QTmpMap msg)
         break;
     }
     emit sendAppMsg(msg);
+    qDebug() << "app recv:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
 }
 
 void AppWindow::recvTmpMsg(QTmpMap msg)

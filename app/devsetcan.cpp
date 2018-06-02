@@ -227,9 +227,9 @@ void DevSetCan::parseDCR(QByteArray msg)
     int curr = currItem - AddrDCRS1;  // 第几个测试项目
     int addr = tmpSet[AddrDCRR1 + curr].toInt();  // 片间/焊接/跨间电阻结果地址
     if (cmd == 0x00) {
+        qDebug() << "dcr recv:" << msg.toHex();
         tmpSet[addr + AddrDataS] = num;  // 修改电阻板状态
         renewDCR();
-        qDebug() << "dcr recv:" << msg.toHex();
     }
     if (cmd == 0x01) {
         int numb = quint8(msg.at(2));  // 电阻序号
@@ -240,14 +240,13 @@ void DevSetCan::parseDCR(QByteArray msg)
         int rl = 0;
         quint32 real = quint32(msg.at(4)) + quint32(msg.at(5)) * 0x0100
                 + quint32(msg.at(6))*0x10000  + quint32(msg.at(7))*0x1000000;
-        real = (volt == 4 || volt == 5) ? real/1000 : real;
         real = (real > 999900) ? 999900 : real;
-        if (real > 0xFFFF) {
-            rh = real/10;
-            rl = 2;
+        if (volt == 1 || volt == 4) {
+            rh = real / 10;
+            rl = 1;
         } else {
             rh = real;
-            rl = 3;
+            rl = 0;
         }
         tmpSet[addr + 0x04*(numb+1) + AddrDataV] = volt;
         tmpSet[addr + 0x04*(numb+1) + AddrDataR] = rh;
@@ -256,7 +255,7 @@ void DevSetCan::parseDCR(QByteArray msg)
         quint32 std2 = tmpSet[conf + 2].toInt();
         double stdw = tmpSet[stdd + numb*2 + 0].toInt();  // 标准电阻
         double stdp = tmpSet[stdd + numb*2 + 1].toInt();
-        stdw = stdw * 1000 * qPow(10, -stdp);
+        stdw = stdw * 1000 * qPow(10, stdp-3);
         stdw = qMax(1.0, stdw);
         if (currItem == AddrDCRS1 && abs(real-stdw)/stdw*100*1000 >= std1) {  // 判断片间电阻是否超限
             tmpSet[addr + 0x04*(numb+1) + AddrDataJ] = DataNG;
@@ -273,15 +272,16 @@ void DevSetCan::parseDCR(QByteArray msg)
         qDebug() << "dcr calc:" << numb << volt << real << std1 << stdw << msg.toHex();
     }
     if (cmd == 0x05) {  // 温度
-        int t = quint8(msg.at(1)) + quint8(msg.at(2))*256;
-        tmpDat.insert(DataTemp, t);
+        int temp = quint8(msg.at(1)) + quint8(msg.at(2))*256;
+        tmpSet[tmpSet[AddrDCRR1].toInt() + AddrDataR] = temp;
         tmpMsg.insert(AddrEnum, Qt::Key_Shop);
-        tmpMsg.insert(DataTemp, t);
+        tmpMsg.insert(DataTemp, temp);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
     }
     if (cmd == 0x08) {  // 版本
-        tmpDat[DataDCRV] = msg;
+        int vern = quint8(msg.at(6))*256 + quint8(msg.at(7));
+        tmpSet[tmpSet[AddrDCRR1].toInt() + AddrDataV] = vern;
         qDebug() << "dcr vern:" << msg.toHex();
     }
 }
@@ -411,14 +411,28 @@ void DevSetCan::setupIMP(QTmpMap map)
     int f = tmpSet[conf + AddrIMPSF].toInt();  // 频率
     f = (map.value(AddrFreq).isNull()) ? f : map.value(AddrFreq).toInt();  // 采样配置
     // 03配置;00序号;0C电枢片数;01间隔;01F4电压;11工位;07频率
+    int volt = 1;
+    if (v >= 1010) {
+        volt = 2;
+    }
+    if (v >= 2010) {
+        volt = 3;
+    }
+    if (v >= 3010) {
+        volt = 4;
+    }
+    if (v >= 4010) {
+        volt = 5;
+    }
     QByteArray msg = QByteArray::fromHex("03000C0101F41107");
     msg[2] = quan;
     msg[3] = time;
     msg[4] = v/256;
     msg[5] = v%256;
-    msg[6] = ((v/1000+1) << 4) + c;  // 档位+次数
+    msg[6] = (volt << 4) + c;  // 档位+次数
     msg[7] = f;
     sendDevData(CAN_ID_IMP, msg);
+    qDebug() << "imp send:" << msg.toHex();
 }
 
 void DevSetCan::startIMP(QTmpMap map)
@@ -426,7 +440,7 @@ void DevSetCan::startIMP(QTmpMap map)
     int addr = tmpSet[AddrModel].toInt();  // 综合配置地址
     int tool = tmpSet[addr + 1].toInt();  // 夹具针数
     QByteArray msg = QByteArray::fromHex("010011000106");  // 01启动;00序号;11工位;0001序号
-    msg[1] = (map.value(AddrFreq).isNull()) ? 0x00 : 0x03;  // 00测试;03采样
+    msg[1] = (map.value(AddrFreq).isNull()) ? 0x00 : 0x00;  // 00测试;03采样
     msg[5] = tool;
     sendDevData(CAN_ID_IMP, msg);
     qDebug() << "imp send:" << msg.toHex();
@@ -436,21 +450,21 @@ void DevSetCan::startIMP(QTmpMap map)
 void DevSetCan::parseIMP(int id, QByteArray msg)
 {
     if (id == 0x0081) {
-        qDebug() << msg.toHex();
         quint8 cmd = quint8(msg.at(0));
         quint8 num = quint8(msg.at(1));
         int addr = tmpSet[AddrIMPR1].toInt();  // 测试结果存储地址
         if (cmd == 0x00) {
             tmpSet[addr + AddrDataS] = num;
             renewIMP();
+            qDebug() << "imp recv:" << msg.toHex();
         }
         if (cmd == 0x02) {
             tmpSet[addr + AddrDataS] = DataTest;
             numb++;
             tmpSet[addr + AddrDataR] = numb;
-            tmpSet[addr + numb*4 + AddrDataS] = quint8(msg.at(2));  // 匝间档位
+            tmpSet[addr + numb*4 + AddrDataS] = quint8(msg.at(3));  // 匝间频率
             tmpSet[addr + numb*4 + AddrDataV] = quint8(msg.at(4))*256 + (quint8)msg.at(5);  // 匝间电压
-            qDebug() << numb;
+//            qDebug() << "imp recv:" << msg.toHex() << numb;
         }
         if (cmd == 0x03) {
             if (num == 0xFF) {  // 波形结束
@@ -502,7 +516,9 @@ void DevSetCan::calc()
     int addr = tmpSet[AddrIMPR1].toInt();  // 匝间结果地址
     int conf = tmpSet[AddrIMPS1].toInt();  // 匝间配置地址
     int stdw = tmpSet[AddrIMPSW].toInt();  // 标准波形地址
+    double c = tmpSet[conf + AddrIMPSL].toDouble();  // 采样点
     double h = tmpSet[conf + AddrIMPSH].toDouble();  // 匝间上限
+    stdw += (c == 0) ? (numb-1)*400 : (c-1)*400;
     quint32 area1=0;
     quint32 area2=0;
     quint32 area3=0;
@@ -523,7 +539,6 @@ void DevSetCan::calc()
     diff = qMin(area2,area3/4)*100*1000/area1;
     diff = qMin(diff, quint32(99990));
     tmpSet[addr + 4*numb + AddrDataR] = diff;
-    qDebug() << diff << area1 << area2 << area3;
     if (diff >= h*1000) {
         tmpSet[addr + 4*numb + AddrDataJ] = DataNG;
         tmpSet[addr + AddrDataJ] = DataNG;

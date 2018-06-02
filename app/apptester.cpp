@@ -553,30 +553,72 @@ void AppTester::initSettings()
     }
 }
 
-void AppTester::drawImpWave()
+void AppTester::initViewText()
+{
+    QVector<double> x(1), y(1);
+    x[0] = -1;
+    y[0] = -1;
+    for (int i=0; i < 4; i++) {
+        int parm = tmpSet[AddrACWS1 + i].toInt();  // 高压配置地址
+        if (tmpSet[parm].toInt() == 1) {  // 项目测试
+            acwLabels.at(i*3 + 0)->setText(largeOK.arg("-.---kV"));
+            if (i == 0) {
+                acwLabels.at(3*i + 1)->setText(largeOK.arg("---.-MΩ"));
+            } else {
+                acwLabels.at(3*i + 1)->setText(largeOK.arg("-.---mA"));
+            }
+            acwLabels.at(3*i + 2)->setText(largeOK.arg("--"));
+        }
+    }
+    for (int i=0; i < 3; i++) {
+        int parm = tmpSet[AddrDCRS1 + i].toInt();  // 配置地址
+        if (tmpSet[parm].toInt() == 1) {  // 项目测试
+            if (i == 0) {
+                textWeld->clear();
+                graph1->setData(x, y);
+                graph2->setData(x, y);
+                graph3->setData(x, y);
+                dcrView->replot();
+            }
+            if (i == 1) {
+                textChip->clear();
+            }
+            if (i == 2) {
+                textDiag->clear();
+            }
+        }
+    }
+    if (1) {
+        int parm = tmpSet[AddrIMPS1].toInt();  // 匝间配置地址
+        if (tmpSet[parm].toInt() == 1) {
+            impLabels.at(0)->setText(largeOK.arg("-.---kV"));
+            impLabels.at(1)->setText(largeOK.arg("-.---%"));
+            impLabels.at(2)->setText(largeOK.arg("--"));
+            tmpWave.clear();
+            textIMPR->clear();
+            //            impLine->setData(x, y);
+            //            impStdd->setData(x, y);
+            //            impView->replot();
+        }
+    }
+}
+
+void AppTester::drawImpWave(int numb)
 {
     impLine->setPen(QPen(Qt::green, 2));
     impStdd->setPen(QPen(Qt::white, 2));
-    if (tmpWave.isEmpty()) {
-        QVector<double> x(1), y(1);
-        x[0] = -1;
-        y[0] = -1;
-        impLine->setData(x, y);
-        impStdd->setData(x, y);
-    } else {
-        QVector<double> x(400), y(400);
-        for (int i=0; i < 400; i++) {
-            x[i] = i;
-            y[i] = tmpWave.at(i)*100/0x0400;
-        }
-        impLine->setData(x, y);
-        int addr = tmpSet[AddrIMPSW].toInt();
-        for (int i=0; i < 400; i++) {
-            x[i] = i;
-            y[i] =  tmpSet[addr + i].toInt()*100/0x0400;
-        }
-        impStdd->setData(x, y);
+    QVector<double> x(400), y(400);
+    for (int i=0; i < 400; i++) {
+        x[i] = i;
+        y[i] = tmpWave.at(i)*100/0x0400;
     }
+    impLine->setData(x, y);
+    int addr = tmpSet[AddrIMPSW].toInt();
+    for (int i=0; i < 400; i++) {
+        x[i] = i;
+        y[i] =  tmpSet[addr + numb*400 + i].toInt()*100/0x0400;
+    }
+    impStdd->setData(x, y);
     impView->replot();
 }
 
@@ -842,7 +884,7 @@ void AppTester::recvLedMsg(QTmpMap msg)
 {
     QString tmp = msg.value(AddrText).toString();
     if (tmp == "LEDY") {
-        initSettings();
+        initViewText();
         btnPlay->setText(tr("停止测试"));
         textResult->setText(judgeON.arg("ON"));
         boxChart->setRun(1);
@@ -871,78 +913,10 @@ void AppTester::recvLedMsg(QTmpMap msg)
     }
 }
 
-void AppTester::recvUpdate(QTmpMap msg)
+void AppTester::recvDCRMsg(QTmpMap msg)
 {
-    if (this->isHidden())
-        return;
     int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();
     int curr = msg.value(AddrText).toInt();
-    if (curr >= AddrACWS1 && curr <= AddrACWS4) {
-        int temp = 0x04;
-        int t = curr - AddrACWS1;
-        int s = tmpSet[AddrACWR1 + t].toInt();
-        double j = msg[s + temp + AddrDataJ].toInt();
-        double v = msg[s + temp + AddrDataV].toInt();
-        double r = msg[s + temp + AddrDataR].toInt();
-        double p = msg[s + temp + AddrDataS].toInt();
-        QString color = (j == DataNG) ? largeNG : largeOK;
-        QString judge = (j == DataNG) ? "NG" : "OK";
-        r *= qPow(10, -p);
-        QString volt = QString::number(v/1000, 'f', 3) + "kV";
-        QString real = QString::number(r, 'f', 3) + "mA";
-        if (t == 0) {
-            real = (r > 500) ? ">500MΩ" : (QString::number(r, 'f', 1) + "MΩ");
-        }
-        acwLabels.at(3*t + 0)->setText(color.arg(volt));
-        acwLabels.at(3*t + 1)->setText(color.arg(real));
-        acwLabels.at(3*t + 2)->setText(color.arg(judge));
-    }
-    if (curr == AddrIMPS1) {
-        int real = tmpSet[AddrIMPR1].toInt();  // 测试结果地址
-        int addr = tmpSet[AddrIMPW1].toInt();  // 测试波形地址
-        int imps = msg.value(real + AddrDataS).toInt();  // 状态
-        int numb = msg.value(real + AddrDataR).toInt();  // 编号
-        if (imps == DataTest) {
-            tmpWave.clear();
-            for (int i=0; i < 400; i++) {
-                tmpWave.append(msg[addr + i].toInt());
-            }
-            drawImpWave();
-            double v = msg[real + 4*numb + AddrDataV].toDouble();
-            double r = msg[real + 4*numb + AddrDataR].toDouble();
-            double j = msg[real + 4*numb + AddrDataJ].toDouble();
-            QString okng = (j == DataNG) ? largeNG : largeOK;
-            impLabels.at(0)->setText(okng.arg(QString::number(v/1000, 'f', 3) + "kV"));
-            impLabels.at(1)->setText(okng.arg(QString::number(r/1000, 'f', r >= 10000 ? 2 : 3) + "%"));
-            impLabels.at(2)->setText(okng.arg((j == DataNG) ? "NG" : "OK"));
-        } else {
-            int p = 0;
-            int k = 0;
-            for (int i=0; i < c; i++) {
-                if (i%12 == 0) {
-                    if (i != 0)
-                        textIMPR->insertHtml("<br></br>");
-                    textIMPR->insertHtml("&nbsp;&nbsp;");
-                }
-                double r = msg.value(real + (i+1)*4 + AddrDataR).toDouble()/1000;
-                double j = msg.value(real + (i+1)*4 + AddrDataJ).toInt();
-                QString str = (j == DataOK) ? SmallOK : SmallNG;
-                textIMPR->insertHtml(str.arg(tr("%1").arg(r, 0, 'f', r >= 10 ? 2 : 3)));
-                if (r > p) {
-                    p = r;
-                    k = i;
-                }
-            }
-            k++;
-            double v = msg[real + 4*k + AddrDataV].toDouble();
-            double r = msg[real + 4*k + AddrDataR].toDouble();
-            double j = msg[real + 4*k + AddrDataJ].toDouble();
-            QString okng = (j == DataNG) ? largeNG : largeOK;
-            impLabels.at(0)->setText(okng.arg(QString::number(v/1000, 'f', 3) + "kV"));
-            impLabels.at(1)->setText(okng.arg(QString::number(r/1000, 'f', r >= 10000 ? 2 : 3) + "%"));
-            impLabels.at(2)->setText(okng.arg((j == DataNG) ? "NG" : "OK"));
-        }
-    }
     if (curr == AddrDCRS1) {
         textWeld->clear();
         int addr = tmpSet.value(AddrDCRR1).toInt(); // 电阻结果
@@ -956,7 +930,7 @@ void AppTester::recvUpdate(QTmpMap msg)
             double p = msg.value(addr + (i+1)*4 + AddrDataS).toInt();
             double j = msg.value(addr + (i+1)*4 + AddrDataJ).toInt();
             QString str = (j == DataOK) ? SmallOK : SmallNG;
-            textWeld->insertHtml(str.arg(tr("%1").arg(r * qPow(10, -p), 0, 'f', p-1)));
+            textWeld->insertHtml(str.arg(tr("%1").arg(QString::number(r * qPow(10, p-3), 'g', 5))));
             if (str == SmallNG)
                 boxChart->setClr(i);
             tmpSet[addr + (i+1)*4 + AddrDataR] = r;
@@ -1005,6 +979,110 @@ void AppTester::recvUpdate(QTmpMap msg)
             if (str == SmallNG)
                 boxChart->setClr(i);
         }
+    }
+}
+
+void AppTester::recvACWMsg(QTmpMap msg)
+{
+    int curr = msg.value(AddrText).toInt();
+    int temp = 0x04;
+    int t = curr - AddrACWS1;
+    int s = tmpSet[AddrACWR1 + t].toInt();
+    double j = msg[s + temp + AddrDataJ].toInt();
+    double v = msg[s + temp + AddrDataV].toInt();
+    double r = msg[s + temp + AddrDataR].toInt();
+    double p = msg[s + temp + AddrDataS].toInt();
+    QString color = (j == DataNG) ? largeNG : largeOK;
+    QString judge = (j == DataNG) ? "NG" : "OK";
+    r *= qPow(10, -p);
+    QString volt = QString::number(v/1000, 'f', 3) + "kV";
+    QString real = QString::number(r, 'f', 3) + "mA";
+    if (t == 0) {
+        real = (r > 500) ? ">500MΩ" : (QString::number(r, 'f', 1) + "MΩ");
+    }
+    acwLabels.at(3*t + 0)->setText(color.arg(volt));
+    acwLabels.at(3*t + 1)->setText(color.arg(real));
+    acwLabels.at(3*t + 2)->setText(color.arg(judge));
+}
+
+void AppTester::recvIMPMsg(QTmpMap msg)
+{
+    int parm = tmpSet[AddrIMPR1].toInt();  // 测试结果地址
+    int addr = tmpSet[AddrIMPW1].toInt();  // 测试波形地址
+    int imps = msg.value(parm + AddrDataS).toInt();  // 状态
+    int numb = msg.value(parm + AddrDataR).toInt();  // 编号
+    int stdn = tmpSet[tmpSet[AddrIMPS1].toInt() + AddrIMPSL].toInt();  // 采样点
+    if (imps == DataTest) {  // 测试状态更新波形
+        tmpWave.clear();
+        for (int i=0; i < 400; i++) {
+            tmpWave.append(msg[addr + i].toInt());
+        }
+        double volt = msg[parm + 4*numb + AddrDataV].toDouble();
+        double real = msg[parm + 4*numb + AddrDataR].toDouble();
+        double isok = msg[parm + 4*numb + AddrDataJ].toDouble();
+        QString okng = (isok == DataNG) ? largeNG : largeOK;
+        impLabels.at(0)->setText(okng.arg(QString::number(volt/1000, 'f', 3) + "kV"));
+        impLabels.at(1)->setText(okng.arg(QString::number(real/1000, 'f', real >= 10000 ? 2 : 3) + "%"));
+        impLabels.at(2)->setText(okng.arg((isok == DataNG) ? "NG" : "OK"));
+        if (numb == 1) {
+            prev = 1;
+            impWave = tmpWave;
+        } else {
+            if (real > msg[parm + 4*prev + AddrDataR].toDouble()) {
+                prev = numb;
+                impWave = tmpWave;
+            }
+        }
+    } else {  // 测试完成更新结果
+        int time = tmpSet[tmpSet[AddrModel].toInt()].toInt();
+        int impt = tmpSet[AddrIMPS1].toInt() + AddrIMPSA;
+        time = (time%2 == 0 && time/2  == tmpSet[impt].toInt()) ? time/2 : time;
+        for (int i=0; i < time; i++) {
+            if (i%12 == 0) {
+                if (i != 0)
+                    textIMPR->insertHtml("<br></br>");
+                textIMPR->insertHtml("&nbsp;&nbsp;");
+            }
+            double real = msg.value(parm + (i+1)*4 + AddrDataR).toDouble()/1000;
+            double isok = msg.value(parm + (i+1)*4 + AddrDataJ).toInt();
+            QString str = (isok == DataOK) ? SmallOK : SmallNG;
+            textIMPR->insertHtml(str.arg(tr("%1").arg(real, 0, 'f', real >= 10 ? 2 : 3)));
+        }
+        double v = msg[parm + 4*prev + AddrDataV].toDouble();
+        double r = msg[parm + 4*prev + AddrDataR].toDouble();
+        double j = msg[parm + 4*prev + AddrDataJ].toDouble();
+        QString okng = (j == DataNG) ? largeNG : largeOK;
+        impLabels.at(0)->setText(okng.arg(QString::number(v/1000, 'f', 3) + "kV"));
+        impLabels.at(1)->setText(okng.arg(QString::number(r/1000, 'f', r >= 10000 ? 2 : 3) + "%"));
+        impLabels.at(2)->setText(okng.arg((j == DataNG) ? "NG" : "OK"));
+        tmpWave = impWave;
+        numb = prev;
+    }
+    drawImpWave((stdn == 0) ? numb-1 : stdn);
+}
+
+void AppTester::recvUpdate(QTmpMap msg)
+{
+    if (this->isHidden())
+        return;
+    int curr = msg.value(AddrText).toInt();
+    switch (curr) {
+    case AddrDCRS1:
+    case AddrDCRS2:
+    case AddrDCRS3:
+        recvDCRMsg(msg);
+        break;
+    case AddrACWS1:
+    case AddrACWS2:
+    case AddrACWS3:
+    case AddrACWS4:
+        recvACWMsg(msg);
+        break;
+    case AddrIMPS1:
+        recvIMPMsg(msg);
+        break;
+    default:
+        break;
     }
 }
 

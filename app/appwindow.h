@@ -144,8 +144,8 @@ private:
     int taskShift;
     int testShift;
     int currItem;
-    int timeOut;
-    int timeTst;
+    qint64 timeOut;
+    qint64 timeTst;
     QElapsedTimer t;
 
     QTmpMap tmpSet;

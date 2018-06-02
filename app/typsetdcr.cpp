@@ -275,7 +275,7 @@ void TypSetDcr::initSettings()
         if (i < c) {
             double t = tmpSet[r + i*2 + 0].toDouble();
             double p = tmpSet[r + i*2 + 1].toDouble();
-            t = t*qPow(10, -p);
+            t = t*qPow(10, p-3);
             view->item(i%6, (i/6)*2+1)->setText(tr("%1").arg(t, 0, 'f', p));
         } else {
             view->item(i%6, (i/6)*2+1)->setText("");

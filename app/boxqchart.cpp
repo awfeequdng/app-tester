@@ -84,7 +84,7 @@ void BoxQChart::paintEvent(QPaintEvent *e)
 void BoxQChart::drawPie(QPainter *painter)
 {  // 外圈扇形
     painter->save();
-    double angle = 360/m_count;
+    double angle = 360.0/m_count;
     double startAngle = 90-angle/2;
     int radius = SCALE*48/100;
 
