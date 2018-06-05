@@ -18,19 +18,21 @@ void SqlCreate::initSqlDir()
     bool ok = !dir.exists("nandflash") ? dir.mkdir("nandflash") : true;
     if (ok) {
         initTmpDat();
-        openRecord(dir.exists("./nandflash/record.db"));
+        openBackup(dir.exists("./nandflash/backup.db"));
         openSystem(dir.exists("./nandflash/system.db"));
         openConfig(dir.exists("./nandflash/config.db"));
+        openRecord(dir.exists("./nandflash/record.db"));
     }
 }
 
 void SqlCreate::initTmpDat()
 {
-    tmpSet.insert(AddrBack, 20000 + 2020);  // 后台数据存放在2020
-    tmpSet.insert(AddrDCRB, 20000 + 2040);  // 电阻后台存放在2040
-    tmpSet.insert(AddrINRB, 20000 + 2060);  // 绝缘后台存放在2060
-    tmpSet.insert(AddrACWB, 20000 + 2080);  // 交耐后台存放在2080
-    tmpSet.insert(AddrIMPB, 20000 + 2100);  // 匝间后台存放在2100
+    tmpSet.insert(AddrBack, 10000 + 0x00);  // 后台数据地址
+    tmpSet.insert(AddrDCRB, 10000 + 0x10);  // 电阻后台地址
+    tmpSet.insert(AddrINRB, 10000 + 0x20);  // 绝缘后台地址
+    tmpSet.insert(AddrACWB, 10000 + 0x30);  // 交耐后台地址
+    tmpSet.insert(AddrIMPB, 10000 + 0x40);  // 匝间后台地址
+
     tmpSet.insert(AddrSyst, 20000 + 2120);  // 系统设置存放在2120
     tmpSet.insert(AddrInfo, 20000 + 2140);  // 系统网络存放在2140
     tmpSet.insert(AddrLoad, 20000 + 2160);  // 数据上传存放在2160
@@ -66,26 +68,33 @@ void SqlCreate::initTmpDat()
     emit sendAppMsg(tmpSet);
 }
 
-void SqlCreate::openRecord(bool isExist)
+void SqlCreate::openBackup(bool isExist)
 {
     if (!isExist) {
-        QFile file("./nandflash/record.db");
+        QFile file("./nandflash/backup.db");
         file.open(QIODevice::ReadWrite | QIODevice::Text);
         file.close();
     }
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "record");
-    db.setDatabaseName("./nandflash/record.db");
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "backup");
+    db.setDatabaseName("./nandflash/backup.db");
     if (!db.open()) {
-        qDebug() << "record:" << db.lastError();
+        qWarning() << "backup:" << db.lastError();
         return;
     }
     if (!isExist) {
         QSqlQuery query(db);
         QString cmd;
-        cmd = "create table if not exists aip_record (";
-        cmd += "R_UUID bigint primary key, R_GUID bigint,R_ITEM integer,R_TEXT text)";
-        if (!query.exec(cmd))
-            qDebug() << "aip_record:" << query.lastError();
+        cmd = "create table if not exists aip_backup (";
+        cmd += "uuid integer primary key, parm text)";
+        if (!query.exec(cmd)) {
+            qWarning() << "aip_backup:" << query.lastError();
+        }
+        db.transaction();
+        initBack(query);
+        initINRB(query);
+        initACWB(query);
+        initIMPB(query);
+        db.commit();
         query.clear();
     }
 }
@@ -100,25 +109,27 @@ void SqlCreate::openSystem(bool isExist)
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "system");
     db.setDatabaseName("./nandflash/system.db");
     if (!db.open()) {
-        qDebug() << "system:" << db.lastError();
+        qWarning() << "system:" << db.lastError();
         return;
     }
     if (!isExist) {
         QSqlQuery query(db);
         QString cmd;
+        cmd = "create table if not exists aip_sqlite (";
+        cmd += "R_UUID bigint, R_ITEM integer,R_QUAN integer,";
+        cmd += "R_OKNG integer,primary key (R_UUID,R_ITEM))";
+        if (!query.exec(cmd)) {
+            qWarning() << "aip_sqlite:" << query.lastError();
+        }
         cmd = "create table if not exists aip_system (";
         cmd += "uuid integer primary key, parm text)";
         if (!query.exec(cmd)) {
-            qDebug() << "aip_system:" << query.lastError();
+            qWarning() << "aip_system:" << query.lastError();
         }
         db.transaction();
         initMisc(query);
-        initBack(query);
         initSyst(query);
         initInfo(query);
-        initINRB(query);
-        initACWB(query);
-        initIMPB(query);
         initLoad(query);
         initShow(query);
         initUser(query);
@@ -138,7 +149,7 @@ void SqlCreate::openConfig(bool isExist)
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "config");
     db.setDatabaseName("./nandflash/config.db");
     if (!db.open()) {
-        qDebug() << "config:" << db.lastError();
+        qWarning() << "config:" << db.lastError();
         return;
     }
     if (!isExist) {
@@ -146,7 +157,7 @@ void SqlCreate::openConfig(bool isExist)
         QString cmd = "create table if not exists aip_config (";
         cmd += "uuid integer primary key, parm text)";
         if (!query.exec(cmd)) {
-            qDebug() << "aip_config:" << query.lastError();
+            qWarning() << "aip_config:" << query.lastError();
         }
         db.transaction();
         initConf(query);
@@ -155,24 +166,27 @@ void SqlCreate::openConfig(bool isExist)
     }
 }
 
-void SqlCreate::initMisc(QSqlQuery query)
-{  // 零散数据
-    int from = tmpSet.value(AddrOther).toInt();
-    QStringList parm;
-    parm << "22500"  // 当前型号
-         << "22300"  // 当前用户
-         << "1"  // 自动保存
-         << "0";  // 日志输出
-
-    for (int i=parm.size(); i < 10; i++) {
-        parm << "";
+void SqlCreate::openRecord(bool isExist)
+{
+    if (!isExist) {
+        QFile file("./nandflash/record.db");
+        file.open(QIODevice::ReadWrite | QIODevice::Text);
+        file.close();
     }
-    for (int i=0; i < parm.size(); i++) {
-        query.prepare("insert into aip_system values(?,?)");
-        query.addBindValue(from + i);
-        query.addBindValue(parm.at(i));
-        if (!query.exec())
-            qDebug() << "aip_system" << query.lastError();
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "record");
+    db.setDatabaseName("./nandflash/record.db");
+    if (!db.open()) {
+        qWarning() << "record:" << db.lastError();
+        return;
+    }
+    if (!isExist) {
+        QSqlQuery query(db);
+        QString cmd;
+        cmd = "create table if not exists aip_record (";
+        cmd += "R_UUID bigint, R_ITEM integer,R_TEXT text,primary key (R_UUID,R_ITEM))";
+        if (!query.exec(cmd))
+            qWarning() << "aip_record:" << query.lastError();
+        query.clear();
     }
 }
 
@@ -193,11 +207,96 @@ void SqlCreate::initBack(QSqlQuery query)
     parm << "6000";         // 连接端口
 
     for (int i=0; i < parm.size(); i++) {
+        query.prepare("insert into aip_backup values(?,?)");
+        query.addBindValue(from + i);
+        query.addBindValue(parm.at(i));
+        if (!query.exec())
+            qWarning() << "aip_system" << query.lastError();
+    }
+}
+
+void SqlCreate::initINRB(QSqlQuery query)
+{  // 参数校准
+    int from = tmpSet.value(AddrINRB).toInt();
+    QStringList parm;
+    parm << "500"
+         << "1000"
+         << "100"
+         << "500"
+         << "50"
+         << "500"
+         << "50"
+         << "500";
+    for (int i=0; i < parm.size(); i++) {
+        query.prepare("insert into aip_backup values(?,?)");
+        query.addBindValue(from + i);
+        query.addBindValue(parm.at(i));
+        if (!query.exec())
+            qWarning() << "aip_backup" << query.lastError();
+    }
+
+}
+
+void SqlCreate::initACWB(QSqlQuery query)
+{
+    int from = tmpSet.value(AddrACWB).toInt();
+    QStringList parm;
+    parm << "500"
+         << "4500"
+         << "300"
+         << "1500"
+         << "10"
+         << "300";
+    for (int i=0; i < parm.size(); i++) {
+        query.prepare("insert into aip_backup values(?,?)");
+        query.addBindValue(from + i);
+        query.addBindValue(parm.at(i));
+        if (!query.exec())
+            qWarning() << "aip_backup" << query.lastError();
+    }
+}
+
+void SqlCreate::initIMPB(QSqlQuery query)
+{
+    int from = tmpSet.value(AddrIMPB).toInt();
+    QStringList parm;
+    parm << "500"
+         << "1000"
+         << "1000"
+         << "2000"
+         << "2000"
+         << "3000"
+         << "3000"
+         << "4000"
+         << "4000"
+         << "5000";
+    for (int i=0; i < parm.size(); i++) {
+        query.prepare("insert into aip_backup values(?,?)");
+        query.addBindValue(from + i);
+        query.addBindValue(parm.at(i));
+        if (!query.exec())
+            qWarning() << "aip_backup" << query.lastError();
+    }
+}
+
+void SqlCreate::initMisc(QSqlQuery query)
+{  // 零散数据
+    int from = tmpSet.value(AddrOther).toInt();
+    QStringList parm;
+    parm << "22500"  // 当前型号
+         << "22300"  // 当前用户
+         << "1"  // 自动保存
+         << "0";  // 日志输出
+
+    for (int i=parm.size(); i < 10; i++) {
+        parm << "";
+    }
+    for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_system values(?,?)");
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_system" << query.lastError();
+            qWarning() << "aip_system" << query.lastError();
     }
 }
 
@@ -220,7 +319,7 @@ void SqlCreate::initSyst(QSqlQuery query)
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_system" << query.lastError();
+            qWarning() << "aip_system" << query.lastError();
     }
 }
 
@@ -241,73 +340,10 @@ void SqlCreate::initInfo(QSqlQuery query)
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_system" << query.lastError();
+            qWarning() << "aip_system" << query.lastError();
     }
 }
 
-void SqlCreate::initINRB(QSqlQuery query)
-{  // 参数校准
-    int from = tmpSet.value(AddrINRB).toInt();
-    QStringList parm;
-    parm << "500"
-         << "1000"
-         << "100"
-         << "500"
-         << "50"
-         << "500"
-         << "50"
-         << "500";
-    for (int i=0; i < parm.size(); i++) {
-        query.prepare("insert into aip_system values(?,?)");
-        query.addBindValue(from + i);
-        query.addBindValue(parm.at(i));
-        if (!query.exec())
-            qDebug() << "aip_system" << query.lastError();
-    }
-
-}
-
-void SqlCreate::initACWB(QSqlQuery query)
-{
-    int from = tmpSet.value(AddrACWB).toInt();
-    QStringList parm;
-    parm << "500"
-         << "4500"
-         << "300"
-         << "1500"
-         << "10"
-         << "300";
-    for (int i=0; i < parm.size(); i++) {
-        query.prepare("insert into aip_system values(?,?)");
-        query.addBindValue(from + i);
-        query.addBindValue(parm.at(i));
-        if (!query.exec())
-            qDebug() << "aip_system" << query.lastError();
-    }
-}
-
-void SqlCreate::initIMPB(QSqlQuery query)
-{
-    int from = tmpSet.value(AddrIMPB).toInt();
-    QStringList parm;
-    parm << "500"
-         << "1000"
-         << "1000"
-         << "2000"
-         << "2000"
-         << "3000"
-         << "3000"
-         << "4000"
-         << "4000"
-         << "5000";
-    for (int i=0; i < parm.size(); i++) {
-        query.prepare("insert into aip_system values(?,?)");
-        query.addBindValue(from + i);
-        query.addBindValue(parm.at(i));
-        if (!query.exec())
-            qDebug() << "aip_system" << query.lastError();
-    }
-}
 
 void SqlCreate::initLoad(QSqlQuery query)
 {  // 数据上传
@@ -330,7 +366,7 @@ void SqlCreate::initLoad(QSqlQuery query)
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_system" << query.lastError();
+            qWarning() << "aip_system" << query.lastError();
     }
 }
 
@@ -365,7 +401,7 @@ void SqlCreate::initShow(QSqlQuery query)
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_system" << query.lastError();
+            qWarning() << "aip_system" << query.lastError();
     }
 }
 
@@ -385,7 +421,7 @@ void SqlCreate::initUser(QSqlQuery query)
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_system" << query.lastError();
+            qWarning() << "aip_system" << query.lastError();
     }
 }
 
@@ -402,7 +438,7 @@ void SqlCreate::initType(QSqlQuery query)
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_system" << query.lastError();
+            qWarning() << "aip_system" << query.lastError();
     }
 }
 
@@ -418,7 +454,7 @@ void SqlCreate::initConf(QSqlQuery query)
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_config" << query.lastError();
+            qWarning() << "aip_config" << query.lastError();
     }
     parm.clear();
     from = tmpSet.value(AddrDCRS2).toInt();
@@ -428,7 +464,7 @@ void SqlCreate::initConf(QSqlQuery query)
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_config" << query.lastError();
+            qWarning() << "aip_config" << query.lastError();
     }
     parm.clear();
     from = tmpSet.value(AddrDCRS3).toInt();
@@ -438,47 +474,47 @@ void SqlCreate::initConf(QSqlQuery query)
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_config" << query.lastError();
+            qWarning() << "aip_config" << query.lastError();
     }
     parm.clear();
     from = tmpSet.value(AddrACWS1).toInt();
-    parm << "1" << tr("绝缘电阻") << "500" << "10" << "0" << "500" << "0" << "0" << "" << "";  // 绝缘配置
+    parm << "1" << tr("绝缘电阻") << "500" << "5" << "0" << "500" << "0" << "0" << "" << "";  // 绝缘配置
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_config" << query.lastError();
+            qWarning() << "aip_config" << query.lastError();
     }
     parm.clear();
     from = tmpSet.value(AddrACWS2).toInt();
-    parm << "1" << tr("轴铁耐压") << "500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 轴铁配置
+    parm << "1" << tr("轴铁耐压") << "500" << "5" << "500" << "0" << "0" << "0" << "" << "";  // 轴铁配置
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_config" << query.lastError();
+            qWarning() << "aip_config" << query.lastError();
     }
     parm.clear();
     from = tmpSet.value(AddrACWS3).toInt();
-    parm << "1" << tr("轴线耐压") << "500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 轴线配置
+    parm << "1" << tr("轴线耐压") << "500" << "5" << "500" << "0" << "0" << "0" << "" << "";  // 轴线配置
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_config" << query.lastError();
+            qWarning() << "aip_config" << query.lastError();
     }
     parm.clear();
     from = tmpSet.value(AddrACWS4).toInt();
-    parm << "1" << tr("铁线耐压") << "500" << "10" << "500" << "0" << "0" << "0" << "" << "";  // 铁线配置
+    parm << "1" << tr("铁线耐压") << "500" << "5" << "500" << "0" << "0" << "0" << "" << "";  // 铁线配置
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_config" << query.lastError();
+            qWarning() << "aip_config" << query.lastError();
     }
     parm.clear();
     from = tmpSet.value(AddrIMPS1).toInt();
@@ -488,7 +524,7 @@ void SqlCreate::initConf(QSqlQuery query)
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_config" << query.lastError();
+            qWarning() << "aip_config" << query.lastError();
     }
     parm.clear();
     from = tmpSet.value(AddrModel).toInt();
@@ -498,7 +534,7 @@ void SqlCreate::initConf(QSqlQuery query)
         query.addBindValue(from + i);
         query.addBindValue(parm.at(i));
         if (!query.exec())
-            qDebug() << "aip_config" << query.lastError();
+            qWarning() << "aip_config" << query.lastError();
     }
 }
 

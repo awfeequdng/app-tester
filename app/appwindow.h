@@ -91,6 +91,7 @@ private slots:
     int initUpload();
     int initSdcard();
     int initUnqual();
+    int readBackup();
     int readSystem();
     int readConfig();
     int sendSqlite();
@@ -100,6 +101,7 @@ private slots:
     int initThread();
     void initButton(QString title, QString name);
     void showBoxPop(QString text, int t);
+    void saveBackup();
     void saveSqlite();
     void saveModels();
     void clickButtons();

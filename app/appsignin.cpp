@@ -275,6 +275,7 @@ void AppSignin::saveSettings()
     tmpSet[r + AddrSave] = autosave->isChecked() ? 1 : 0;
     tmpSet[r + AddrLast] = QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss");
     tmpSet.insert(AddrEnum, Qt::Key_Save);
+    tmpSet.insert(AddrText, "aip_system");
     emit sendAppMsg(tmpSet);
 
     tmpMsg.insert(AddrEnum, Qt::Key_Game);

@@ -52,7 +52,7 @@ void AppTester::initLayout()
         view->setSpan(i, 2, 1, 2);
     }
     for (int i=1; i < 5; i+=2) {
-        view->setSpan(i, 2, 2, 2);
+        view->setSpan(i, 0, 2, 2);
     }
 
     mLayout = new QVBoxLayout(this);
@@ -186,7 +186,7 @@ void AppTester::initDcrWeld()
 
     QFrame *frame = new QFrame(this);
     frame->setLayout(layout);
-    view->setCellWidget(1, 2, frame);
+    view->setCellWidget(1, 0, frame);
 }
 
 void AppTester::initDcrChip()
@@ -206,7 +206,7 @@ void AppTester::initDcrChip()
 
     QFrame *frame = new QFrame(this);
     frame->setLayout(layout);
-    view->setCellWidget(3, 2, frame);
+    view->setCellWidget(3, 0, frame);
 }
 
 void AppTester::initDcrDiag()
@@ -236,20 +236,20 @@ void AppTester::initDcrDiag()
 
     QFrame *frame = new QFrame(this);
     frame->setLayout(layout);
-    view->setCellWidget(5, 2, frame);
+    view->setCellWidget(5, 0, frame);
 }
 
 void AppTester::initDcrWave()
 {
     dcrView = new BoxQLabel(this);
     connect(dcrView, SIGNAL(clicked()), this, SLOT(dcrResize()));
-    view->setCellWidget(6, 2, dcrView);
+    view->setCellWidget(6, 0, dcrView);
 }
 
 void AppTester::initInrTextCG()
 {
     QFrame *frame = new QFrame(this);
-    view->setCellWidget(4, 0, frame);
+    view->setCellWidget(4, 2, frame);
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
@@ -274,7 +274,7 @@ void AppTester::initInrTextCG()
 void AppTester::initAcwTextAC()
 {
     QFrame *frame = new QFrame(this);
-    view->setCellWidget(1, 0, frame);
+    view->setCellWidget(1, 2, frame);
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
@@ -299,7 +299,7 @@ void AppTester::initAcwTextAC()
 void AppTester::initAcwTextAL()
 {
     QFrame *frame = new QFrame(this);
-    view->setCellWidget(2, 0, frame);
+    view->setCellWidget(2, 2, frame);
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
@@ -324,7 +324,7 @@ void AppTester::initAcwTextAL()
 void AppTester::initAcwTextLC()
 {
     QFrame *frame = new QFrame(this);
-    view->setCellWidget(3, 0, frame);
+    view->setCellWidget(3, 2, frame);
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
@@ -379,14 +379,14 @@ void AppTester::initImpText()
 
     QFrame *frame = new QFrame(this);
     frame->setLayout(layout);
-    view->setCellWidget(5, 0, frame);
+    view->setCellWidget(5, 2, frame);
 }
 
 void AppTester::initImpWave()
 {
     impView = new BoxQLabel(this);
     connect(impView, SIGNAL(clicked()), this, SLOT(impResize()));
-    view->setCellWidget(6, 0, impView);
+    view->setCellWidget(6, 2, impView);
 }
 
 void AppTester::initSettings()
@@ -455,6 +455,8 @@ void AppTester::initSettings()
 
         tmpWave.clear();
         textIMPR->clear();
+        impView->setZero();
+        impView->clear();
     }
     if (1) {
         int r = tmpSet[AddrDCRS1].toInt();  // 配置地址
@@ -464,8 +466,8 @@ void AppTester::initSettings()
         tt = tt.arg(QString::number(tmpSet[r+1].toDouble()/1000, 'f', 3));
         dcrTitles.at(0)->setText(tt);
         textWeld->clear();
-
         dcrView->setZero();
+        dcrView->update();
     }
     if (2) {
         int r = tmpSet[AddrDCRS2].toInt();  // 配置地址
@@ -517,6 +519,7 @@ void AppTester::initViewText()
             if (i == 0) {
                 textWeld->clear();
                 dcrView->setZero();
+                dcrView->update();
             }
             if (i == 1) {
                 textChip->clear();
@@ -534,6 +537,8 @@ void AppTester::initViewText()
             impLabels.at(2)->setText(largeOK.arg("--"));
             tmpWave.clear();
             textIMPR->clear();
+            impView->setZero();
+            impView->update();
         }
     }
 }
@@ -615,6 +620,7 @@ void AppTester::drawDcrWave()
     dcrView->setWave(y1, 1);
     dcrView->setWave(y2, 2);
     dcrView->setWave(y3, 0);
+    dcrView->update();
 }
 
 void AppTester::initAllRate()
@@ -687,7 +693,7 @@ void AppTester::dcrResize()
             view->hideRow(i);
         }
         for (int i=0; i < 4; i++) {
-            if (i == 2) {
+            if (i == 0) {
                 continue;
             }
             view->hideColumn(i);
@@ -712,7 +718,7 @@ void AppTester::impResize()
             view->hideRow(i);
         }
         for (int i=0; i < 4; i++) {
-            if (i == 0) {
+            if (i == 2) {
                 continue;
             }
             view->hideColumn(i);

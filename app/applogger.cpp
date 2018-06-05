@@ -162,9 +162,10 @@ void AppLogger::initLayout()
 }
 
 void AppLogger::saveSettings()
-{  // 调试信息输出保存在0x001F
+{
     tmpSet[DataSave] = QString::number(combo->currentIndex());
     tmpSet.insert(AddrEnum, Qt::Key_Save);
+    tmpSet.insert(AddrText, "aip_system");
     emit sendAppMsg(tmpSet);
 }
 

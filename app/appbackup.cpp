@@ -149,6 +149,7 @@ void AppBackup::saveSettings()
         tmpSet[r + i] = txts.at(i)->text();
     }
     tmpSet.insert(AddrEnum, Qt::Key_Save);
+    tmpSet.insert(AddrText, "aip_backup");
     emit sendAppMsg(tmpSet);
 }
 

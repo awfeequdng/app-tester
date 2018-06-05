@@ -107,8 +107,9 @@ void SqlUpload::saveSettings()
     for (int i=0; i < ctrls.size(); i++) {  // 备用配置存放在0x0128~0x012F
         config[QString::number(i+0x00E0+8)] = ctrls.at(i)->text();
     }
-    config.insert("enum", Qt::Key_Save);
-    emit sendAppMap(config);
+//    config.insert("enum", Qt::Key_Save);
+//    config.insert(AddrText, "aip_system");
+//    emit sendAppMap(config);
 }
 
 void SqlUpload::recvAppMap(QVariantMap msg)

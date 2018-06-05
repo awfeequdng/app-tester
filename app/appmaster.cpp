@@ -100,6 +100,7 @@ void AppMaster::initLineBar()
     boxGroup = new QComboBox(this);
     boxGroup->setFixedSize(97, 40);
     boxGroup->addItems(roles);
+    boxGroup->setView(new QListView);
     win.append(boxGroup);
 
     for (int i=0; i < tmp.size(); i++) {
@@ -173,6 +174,7 @@ void AppMaster::initSettings()
 void AppMaster::saveSettings()
 {
     tmpSet.insert(AddrEnum, Qt::Key_Save);
+    tmpSet.insert(AddrText, "aip_system");
     emit sendAppMsg(tmpSet);
 }
 

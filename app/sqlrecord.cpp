@@ -35,59 +35,15 @@ void SqlRecord::initLayout()
 
 void SqlRecord::initViewBar()
 {
-    QStringList header;
-    header << tr("UUID") << tr("GUID") << tr("NUMB")
-           << tr("测试日期") << tr("测试时间") << tr("测试型号") << tr("测试判定");
-    mView = new QSqlTableModel(this, QSqlDatabase::database("record"));
-    mView->setTable("aip_record");
-    mView->setFilter("numb=0");
-    mView->setSort(0, Qt::DescendingOrder);
-    mView->select();
-    if (mView->columnCount() >= header.size()) {
-        for (int i=0; i < header.size(); i++)
-            mView->setHeaderData(i, Qt::Horizontal, header.at(i));
-    }
-
-    view = new QTableView(this);
-    view->setModel(mView);
-    view->verticalHeader()->setVisible(false);
-    view->setSelectionMode(QAbstractItemView::SingleSelection);
-    view->setSelectionBehavior(QAbstractItemView::SelectRows);
-#if (QT_VERSION <= QT_VERSION_CHECK(5, 0, 0))
-    view->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
-#else
-    view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-#endif
-    connect(view, SIGNAL(clicked(QModelIndex)), this, SLOT(clickIndex(QModelIndex)));
+    view = new BoxQLabel(this);
     boxLayout->addWidget(view);
-    boxLayout->setStretch(0, 1);
-
-
-    QStringList items;
-    items << tr("UUID") << tr("GUID") << tr("NUMB")
-          << tr("测试项目") << tr("测试参数") << tr("测试结果") << tr("测试判定");
-    mItem = new QSqlTableModel(this, QSqlDatabase::database("record"));
-    mItem->setTable("aip_record");
-    mItem->setFilter("numb>100");
-    mItem->select();
-    if (mItem->columnCount() >= header.size()) {
-        for (int i=0; i < items.size(); i++)
-            mItem->setHeaderData(i, Qt::Horizontal, items.at(i));
+    QVector<double> value(27);
+    for (int i=0; i < 9; i++) {
+        value[i*3 + 0] = 0;
+        value[i*3 + 1] = 0;
+        value[i*3 + 2] = 0;
     }
-
-    item = new QTableView(this);
-    item->hide();
-    item->setModel(mItem);
-    item->verticalHeader()->setVisible(false);
-    item->setSelectionMode(QAbstractItemView::SingleSelection);
-    item->setSelectionBehavior(QAbstractItemView::SelectRows);
-#if (QT_VERSION <= QT_VERSION_CHECK(5, 0, 0))
-    item->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
-#else
-    item->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-#endif
-    boxLayout->addWidget(item);
-    boxLayout->setStretch(1, 2);
+    view->setData(value, 3);
 }
 
 void SqlRecord::initTextBar()
@@ -95,42 +51,38 @@ void SqlRecord::initTextBar()
     QHBoxLayout *layout = new QHBoxLayout;
     boxLayout->addLayout(layout);
 
-    type = new QComboBox(this);
-    type->setEditable(true);
-    type->setFixedSize(125, 44);
-    layout->addWidget(new QLabel(tr("测试型号"), this));
-    layout->addWidget(type);
+//    type = new QComboBox(this);
+//    type->setEditable(true);
+//    type->setFixedHeight(40);
+//    layout->addWidget(new QLabel(tr("测试型号"), this));
+//    layout->addWidget(type);
 
     from = new QDateEdit(this);
-    from->setFixedSize(125, 44);
+    from->setFixedHeight(40);
     from->setDisplayFormat("yyyy-MM-dd");
     layout->addWidget(new QLabel(tr("起始日期"), this));
     layout->addWidget(from);
 
     stop = new QDateEdit(this);
-    stop->setFixedSize(125, 44);
+    stop->setFixedHeight(40);
     stop->setDate(QDate::currentDate());
     stop->setDisplayFormat("yyyy-MM-dd");
     layout->addWidget(new QLabel(tr("结束日期"), this));
     layout->addWidget(stop);
-}
 
-void SqlRecord::initButtonBar()
-{
-    QHBoxLayout *layout = new QHBoxLayout;
-    boxLayout->addLayout(layout);
+    layout->addStretch();
 
     QPushButton *btnSelect = new QPushButton(this);
     btnSelect->setText(tr("查询数据"));
     btnSelect->setFixedSize(97, 44);
     layout->addWidget(btnSelect);
     connect(btnSelect, SIGNAL(clicked(bool)), this, SLOT(recvSelect()));
+}
 
-    QPushButton *btnDetail = new QPushButton(this);
-    btnDetail->setText(tr("显示详细"));
-    btnDetail->setFixedSize(97, 44);
-    layout->addWidget(btnDetail);
-    connect(btnDetail, SIGNAL(clicked(bool)), this, SLOT(recvDetail()));
+void SqlRecord::initButtonBar()
+{
+    QHBoxLayout *layout = new QHBoxLayout;
+    boxLayout->addLayout(layout);
 
     layout->addStretch();
 
@@ -149,17 +101,39 @@ void SqlRecord::initButtonBar()
 
 void SqlRecord::recvSelect()
 {
-    QDateTime t;
-    t.setDate(from->date());
-    quint64 id_from = quint64(t.toMSecsSinceEpoch()) << 20;
-    t.setDate(stop->date().addDays(1));
-    quint64 id_stop = quint64(t.toMSecsSinceEpoch()) << 20;
-    QString filter = tr("uuid>=%1 and uuid<=%2 and numb=0").arg(id_from).arg(id_stop);
-    if (!type->currentText().isEmpty())
-        filter.append(tr(" and rslt = '%1'").arg(type->currentText()));
-    mView->setFilter(filter);
-    mView->setSort(0, Qt::DescendingOrder);
-    mView->select();
+    tmpQuan.clear();
+    tmpOKNG.clear();
+    qint64 t1 = from->date().toJulianDay();
+    qint64 t2 = stop->date().toJulianDay();
+
+    QSqlQuery query(QSqlDatabase::database("system"));
+    query.prepare("select * from aip_sqlite where R_UUID >= ? and R_UUID <= ?");
+    query.addBindValue(t1);
+    query.addBindValue(t2);
+    if (!query.exec())
+        qWarning() << "aip_sqlite:" << query.lastError();
+    while (query.next()) {
+        int item = query.value(1).toInt();
+        int quan = query.value(2).toInt();
+        int okng = query.value(3).toInt();
+        tmpQuan[item] = tmpQuan[item].toInt() + quan;
+        tmpOKNG[item] = tmpOKNG[item].toInt() + okng;
+    }
+    QVector<double> value(27);
+    QList<int> ids;
+    ids << AddrModel << AddrDCRS1 << AddrDCRS2 << AddrDCRS3 << AddrACWS1
+        << AddrACWS2 << AddrACWS3 << AddrACWS4 << AddrIMPS1;
+    for (int i=0; i < ids.size(); i++) {
+        int addr = tmpSet[ids.at(i)].toInt();
+        int quan = tmpQuan[addr].toInt();
+        int okng = tmpOKNG[addr].toInt();
+        value[i*3 + 0] = quan;
+        value[i*3 + 1] = okng;
+        value[i*3 + 2] = quan - okng;
+    }
+    view->setData(value, 3);
+
+    view->update();
 }
 
 void SqlRecord::recvDetail()
@@ -207,18 +181,21 @@ void SqlRecord::clickIndex(QModelIndex index)
     }
 }
 
+void SqlRecord::recvAppMsg(QTmpMap msg)
+{
+    int c = msg.value(AddrEnum).toInt();
+    switch (c) {
+    case Qt::Key_Copy:
+        tmpSet = msg;
+        break;
+    default:
+        break;
+    }
+}
+
 void SqlRecord::showEvent(QShowEvent *e)
 {
     this->setFocus();
-    if (mView->columnCount() > 4) {
-        view->hideColumn(0);
-        view->hideColumn(1);
-        view->hideColumn(2);
-    }
-    if (mItem->columnCount() > 4) {
-        item->hideColumn(0);
-        item->hideColumn(1);
-        item->hideColumn(2);
-    }
+    recvSelect();
     e->accept();
 }

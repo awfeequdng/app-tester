@@ -229,7 +229,9 @@ void TypSetImp::saveSettings()
     tmpSet[s + w] = mView->item(0, w)->text();
     w = AddrIMPSF;  // 频率
     tmpSet[s + w] = text->text();
-    tmpSet.insert(AddrEnum, Qt::Key_Memo);
+
+    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    tmpSet.insert(AddrText, "aip_config");
     emit sendAppMsg(tmpSet);
 }
 

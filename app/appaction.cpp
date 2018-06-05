@@ -112,6 +112,7 @@ void AppAction::saveSettings()
         }
     }
     tmpSet.insert(AddrEnum, Qt::Key_Save);
+    tmpSet.insert(AddrText, "aip_system");
     emit sendAppMsg(tmpSet);
 }
 

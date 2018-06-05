@@ -130,10 +130,7 @@ void AppSystem::initDelegate()
     QStringList tmp3;
     tmp3 << "0" << "1" << "2" << "3" << "4" << "5" << "6" << "7" << "8" << "9";
     texts.at(3)->addItems(tmp3);
-
-    QStringList tmp4;
-    tmp4 << "0" << "1" << "2" << "3" << "4" << "5";
-    texts.at(4)->addItems(tmp4);
+    texts.at(4)->addItems(tmp3);
 }
 
 void AppSystem::initSettings()
@@ -170,6 +167,7 @@ void AppSystem::saveSettings()
         tmpSet[s + i] = ctrls.at(i)->text();
     }
     tmpSet.insert(AddrEnum, Qt::Key_Save);
+    tmpSet.insert(AddrText, "aip_system");
     emit sendAppMsg(tmpSet);
 
     QSettings *set = new QSettings("./nandflash/userinfo.txt", QSettings::IniFormat);

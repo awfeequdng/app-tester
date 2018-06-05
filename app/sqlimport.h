@@ -15,6 +15,7 @@
 
 #include "sqlsnowid.h"
 #include "appdefine.h"
+#include "typsetimp.h"
 
 class SqlImport : public QObject
 {
@@ -24,9 +25,14 @@ public:
 
 signals:
 
-public slots:
-    void recvAppDat(QTmpMap msg);
+private slots:
+    void initSqlDat();
+    void saveSqlite(QTmpMap msg);
+    void saveRecord(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
+private:
+    QTmpMap tmpQuan;
+    QTmpMap tmpOKNG;
 
 };
 

@@ -378,7 +378,7 @@ void DevSetCan::parseACW(QByteArray msg)
             tmpSet[addr + AddrDataJ] = DataNG;
         }
         tmpSet[addr + AddrDataS] = DataTest;  // 修改高压板状态
-        renewACW();
+//        renewACW();
     }
     if (cmd == 0x08) {  // 版本
         tmpSet[AddrDataV + curr] = quint8(msg.at(6))*256 + quint8(msg.at(7));

@@ -14,6 +14,7 @@
 #include <QLayout>
 #include <QWidget>
 #include <QVariant>
+#include <QListView>
 #include <QLineEdit>
 #include <QGroupBox>
 #include <QDateTime>

@@ -38,16 +38,17 @@ public slots:
     void initSqlDir();
 public slots:
     void initTmpDat();
-    void openRecord(bool isExist);
+    void openBackup(bool isExist);
     void openSystem(bool isExist);
     void openConfig(bool isExist);
-    void initMisc(QSqlQuery query);
+    void openRecord(bool isExist);
     void initBack(QSqlQuery query);
-    void initSyst(QSqlQuery query);
-    void initInfo(QSqlQuery query);
     void initINRB(QSqlQuery query);
     void initACWB(QSqlQuery query);
     void initIMPB(QSqlQuery query);
+    void initMisc(QSqlQuery query);
+    void initSyst(QSqlQuery query);
+    void initInfo(QSqlQuery query);
     void initLoad(QSqlQuery query);
     void initShow(QSqlQuery query);
     void initUser(QSqlQuery query);

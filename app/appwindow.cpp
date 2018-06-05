@@ -170,6 +170,8 @@ int AppWindow::  initScreen()
     names << tr("正在初始化数据分析");
     initMap[names.size()] = &AppWindow::initSqlDir;
     names << tr("正在创建配置数据库");
+    initMap[names.size()] = &AppWindow::readBackup;
+    names << tr("正在读取后台数据库");
     initMap[names.size()] = &AppWindow::readSystem;
     names << tr("正在读取配置数据库");
     initMap[names.size()] = &AppWindow::readConfig;
@@ -411,8 +413,7 @@ int AppWindow::initRecord()
     QString name = "record";
     SqlRecord *app = new SqlRecord(this);
     app->setObjectName(name);
-    //    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    //    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
+    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
     initButton(tr("数据管理"), name);
@@ -458,6 +459,20 @@ int AppWindow::initUnqual()
     return Qt::Key_Away;
 }
 
+int AppWindow::readBackup()
+{
+    QString name = "aip_backup";
+    QSqlQuery query(QSqlDatabase::database("backup"));
+    query.exec("select * from aip_backup");
+    while (query.next()) {
+        int uuid = query.value(0).toInt();
+        tmpSet[uuid] = query.value(1).toString();
+    }
+    query.clear();
+    qDebug() << "app read:" << name;
+    return Qt::Key_Away;
+}
+
 int AppWindow::readSystem()
 {
     QString name = "aip_system";
@@ -465,7 +480,6 @@ int AppWindow::readSystem()
     query.exec("select * from aip_system");
     while (query.next()) {
         int uuid = query.value(0).toInt();
-        //        if (uuid >= 2000 && uuid < 3000)  // 系统设置区
         tmpSet[uuid] = query.value(1).toString();
     }
     query.clear();
@@ -612,6 +626,32 @@ void AppWindow::showBoxPop(QString text, int t)
     boxbar->setValue((t+1)*100/initMap.size());
 }
 
+void AppWindow::saveBackup()
+{
+    boxbar->setLabelText(tr("正在保存数据"));
+    boxbar->show();
+    wait(10);
+    QString name = "backup";
+    QSqlQuery query(QSqlDatabase::database(name));
+    QList<int> uuids = tmpSet.keys();
+    QSqlDatabase::database(name).transaction();
+    for (int i=0; i < uuids.size(); i++) {
+        int uuid = uuids.at(i);
+        if (uuid < 20000 && uuid >= 10000) {
+            query.prepare("replace into aip_backup values(?,?)");
+            query.addBindValue(uuid);
+            query.addBindValue(tmpSet[uuid]);
+            query.exec();
+        }
+        boxbar->setValue(i*50/uuids.size());
+    }
+    QSqlDatabase::database(name).commit();
+    boxbar->setValue(99);
+    wait(500);
+    query.clear();
+    boxbar->setValue(100);
+}
+
 void AppWindow::saveSqlite()
 {
     boxbar->setLabelText(tr("正在保存数据"));
@@ -623,7 +663,7 @@ void AppWindow::saveSqlite()
     QSqlDatabase::database(name).transaction();
     for (int i=0; i < uuids.size(); i++) {
         int uuid = uuids.at(i);
-        if (uuid < 20000 && uuid >= 10000) {
+        if (uuid < 30000 && uuid >= 20000) {
             query.prepare("replace into aip_system values(?,?)");
             query.addBindValue(uuid);
             query.addBindValue(tmpSet[uuid]);
@@ -1070,12 +1110,12 @@ void AppWindow::recvAppMsg(QTmpMap msg)
         break;
     case Qt::Key_Save:
         tmpSet = msg;
-        saveSqlite();
-        sendSqlite();
-        break;
-    case Qt::Key_Memo:
-        tmpSet = msg;
-        saveModels();
+        if (msg.value(AddrText).toString() == "aip_backup")
+            saveBackup();
+        if (msg.value(AddrText).toString() == "aip_system")
+            saveSqlite();
+        if (msg.value(AddrText).toString() == "aip_config")
+            saveModels();
         sendSqlite();
         break;
     case Qt::Key_Play:

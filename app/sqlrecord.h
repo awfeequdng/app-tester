@@ -26,6 +26,10 @@
 #include <QSqlQuery>
 #include <QSqlDatabase>
 #include <QSqlTableModel>
+#include <QSqlError>
+
+#include "appdefine.h"
+#include "boxqlabel.h"
 
 class SqlRecord : public QWidget
 {
@@ -46,6 +50,7 @@ private slots:
     void recvExportDate();
     void recvDetail();
     void clickIndex(QModelIndex index);
+    void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
     QComboBox *type;
@@ -53,14 +58,18 @@ private:
     QDateEdit *stop;
     QVBoxLayout *boxLayout;
 
+    BoxQLabel *view;
+
     QString sqlName;
-    QTableView *view;
     QSqlTableModel *mView;
 
     QTableView *item;
     QSqlTableModel *mItem;
 
     QVariantMap tmpMap;
+    QTmpMap tmpSet;
+    QTmpMap tmpQuan;
+    QTmpMap tmpOKNG;
 };
 
 #endif // SQLRECORD_H

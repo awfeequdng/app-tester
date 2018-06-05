@@ -22,6 +22,10 @@ public slots:
 private slots:
     void setLine(QPainter *painter, QVector<double> r);
     void linearSmooth(QPainter *painter, QVector<double> r);
+    void drawDcrWave(QPainter *painter);
+    void drawImpWave(QPainter *painter);
+    void drawTstCurr(QPainter *painter);
+    void drawAllQuan(QPainter *painter);
     void paintEvent(QPaintEvent *);
     void mousePressEvent(QMouseEvent *e);
 private:

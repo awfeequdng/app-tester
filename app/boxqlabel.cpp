@@ -95,79 +95,169 @@ void BoxQLabel::linearSmooth(QPainter *painter, QVector<double> r)
     }
 }
 
-void BoxQLabel::paintEvent(QPaintEvent *)
+void BoxQLabel::drawDcrWave(QPainter *painter)
 {
     int w = this->width();
     int h = this->height();
+    int wt = (h > 200) ? 80 : 30;
+    int ws = (h % wt == 0) ? h / wt : h / wt + 1;
+    int th = (w > 500) ? 200 : 100;
+    int wh = (w % th == 0) ? w / th : w / th + 1;
+    painter->setPen(QPen(Qt::gray, 1, Qt::DotLine));
+    for (int i=1; i < ws; i++) {  // 横线
+        painter->drawLine(QPoint(0, h*i/ws), QPoint(w, h*i/ws));
+    }
+    for (int i=1; i < wh; i++) {  // 坚线
+        painter->drawLine(QPoint(w*i/wh, 0), QPoint(w*i/wh, h));
+    }
+    // 画电阻波形
+    painter->setPen(QPen(Qt::white, 1, Qt::SolidLine));
+    setLine(painter, std1);
+    setLine(painter, std2);
+    painter->setPen(QPen(Qt::green, 1, Qt::SolidLine));
+    setLine(painter, real);
+}
 
-    QPainter *painter = new QPainter(this);
-    painter->setRenderHint(QPainter::Antialiasing, true);
+void BoxQLabel::drawImpWave(QPainter *painter)
+{
+    int w = this->width();
+    int h = this->height();
+    int wt = (h > 200) ? 80 : 30;
+    int ws = (h % wt == 0) ? h / wt : h / wt + 1;
+    int th = (w > 500) ? 200 : 100;
+    int wh = (w % th == 0) ? w / th : w / th + 1;
+    painter->setPen(QPen(Qt::gray, 1, Qt::DotLine));
+    for (int i=1; i < ws; i++) {  // 横线
+        painter->drawLine(QPoint(0, h*i/ws), QPoint(w, h*i/ws));
+    }
+    for (int i=1; i < wh; i++) {  // 坚线
+        painter->drawLine(QPoint(w*i/wh, 0), QPoint(w*i/wh, h));
+    }
+    // 画匝间波形
+    painter->setPen(QPen(Qt::white, 1, Qt::SolidLine));
+    linearSmooth(painter, std1);
+    painter->setPen(QPen(Qt::green, 1, Qt::SolidLine));
+    linearSmooth(painter, real);
+}
 
-    if (mode == 0 || mode == 1) {  // 匝间与电阻画网络线
-        painter->setPen(QPen(Qt::gray, 1, Qt::DotLine));
-        int wt = (h > 200) ? 80 : 30;
-        int ws = (h % wt == 0) ? h / wt : h / wt + 1;
-        int th = (w > 500) ? 200 : 100;
-        int wh = (w % th == 0) ? w / th : w / th + 1;
-        for (int i=1; i < ws; i++) {  // 横线
-            painter->drawLine(QPoint(0, h*i/ws), QPoint(w, h*i/ws));
-        }
-        for (int i=1; i < wh; i++) {  // 坚线
-            painter->drawLine(QPoint(w*i/wh, 0), QPoint(w*i/wh, h));
-        }
+void BoxQLabel::drawTstCurr(QPainter *painter)
+{
+    int w = this->width();
+    int h = this->height();
+    double q1 = quan[0];
+    double q2 = quan[1];
+    double q3 = quan[2];
+    QFontMetricsF fm(painter->font());
+    double f1 = fm.size(Qt::TextSingleLine, "OK").width();
+    double f2 = fm.size(Qt::TextSingleLine, QString::number(q1)).width();
+    painter->drawText(1 * w / 6 - f1/2, h-20, "ALL");
+    painter->drawText(3 * w / 6 - f1/2, h-20, "OK");
+    painter->drawText(5 * w / 6 - f1/2, h-20, "NG");
+    painter->drawText(1 * w / 6 - f2/2, h-5, QString::number(q1));
+    painter->drawText(3 * w / 6 - f2/2, h-5, QString::number(q2));
+    painter->drawText(5 * w / 6 - f2/2, h-5, QString::number(q3));
+
+    painter->setPen(QPen(Qt::blue));
+    painter->setBrush(QBrush(Qt::blue));
+    painter->drawRect(0 * w / 3 + 5, 5, w / 3 - 5, h - 40);
+
+    if (q1 == 0) {
+        q1 = 1;
+        q2 = 1;
+        q3 = 0;
     }
-    if (mode == 0) {  // 画匝间波形
-        painter->setPen(QPen(Qt::white, 1, Qt::SolidLine));
-        linearSmooth(painter, std1);
-        painter->setPen(QPen(Qt::green, 1, Qt::SolidLine));
-        linearSmooth(painter, real);
-    }
-    if (mode == 1) {  // 画电阻波形
-        painter->setPen(QPen(Qt::white, 1, Qt::SolidLine));
-        setLine(painter, std1);
-        setLine(painter, std2);
-        painter->setPen(QPen(Qt::green, 1, Qt::SolidLine));
-        setLine(painter, real);
-    }
-    if (mode == 2) {
-        double q1 = quan[0];
-        double q2 = quan[1];
-        double q3 = quan[2];
+
+    double x1 = 1 * w / 3 + 5;
+    double x2 = 2 * w / 3 + 5;
+    double y1 = 5 + (q3) / q1 * 0.75 * h;
+    double y2 = 5 + (q2) / q1 * 0.75 * h;
+    double h1 = h - y1 - 35;
+    double h2 = h - y2 - 35;
+    painter->setPen(QPen(Qt::green));
+    painter->setBrush(QBrush(Qt::green));
+    painter->drawRect(x1, y1, w / 3 - 5, h1);
+
+    painter->setPen(QPen(Qt::red));
+    painter->setBrush(QBrush(Qt::red));
+    painter->drawRect(x2, y2, w / 3 - 5, h2);
+}
+
+void BoxQLabel::drawAllQuan(QPainter *painter)
+{
+    int w = this->width();
+    int h = this->height();
+    QFont font = painter->font();
+    font.setPixelSize(10);
+    painter->setFont(font);
+    QStringList tmp;
+    tmp << tr("总数") << "合格" << "淘汰"
+        << tr("片间") << "合格" << "淘汰"
+        << tr("焊接") << "合格" << "淘汰"
+        << tr("跨间") << "合格" << "淘汰"
+        << tr("绝缘") << "合格" << "淘汰"
+        << tr("轴铁") << "合格" << "淘汰"
+        << tr("轴线") << "合格" << "淘汰"
+        << tr("铁线") << "合格" << "淘汰"
+        << tr("匝间") << "合格" << "淘汰";
+    for(int i=0; i < quan.size()/3; i++) {
+        painter->setPen(QPen(Qt::white));
+        double q1 = quan[i*3 + 0];
+        double q2 = quan[i*3 + 1];
+        double q3 = quan[i*3 + 2];
         QFontMetricsF fm(painter->font());
-        double f1 = fm.size(Qt::TextSingleLine, "OK").width();
+        double f1 = fm.size(Qt::TextSingleLine, tmp.at(0)).width();
         double f2 = fm.size(Qt::TextSingleLine, QString::number(q1)).width();
-        painter->drawText(1 * w / 6 - f1/2, h-20, "ALL");
-        painter->drawText(3 * w / 6 - f1/2, h-20, "OK");
-        painter->drawText(5 * w / 6 - f1/2, h-20, "NG");
-        painter->drawText(1 * w / 6 - f2/2, h-5, QString::number(q1));
-        painter->drawText(3 * w / 6 - f2/2, h-5, QString::number(q2));
-        painter->drawText(5 * w / 6 - f2/2, h-5, QString::number(q3));
 
-        painter->setPen(QPen(Qt::blue));
-        painter->setBrush(QBrush(Qt::blue));
-        painter->drawRect(0 * w / 3 + 5, 5, w / 3 - 5, h * 0.75);
+        painter->drawText((i*6 + 1) * w / quan.size()/2 - f1/2, h-20, tmp.at(i*3 + 0));
+        painter->drawText((i*6 + 3) * w / quan.size()/2 - f1/2, h-20, tmp.at(i*3 + 1));
+        painter->drawText((i*6 + 5) * w / quan.size()/2 - f1/2, h-20, tmp.at(i*3 + 2));
+        painter->drawText((i*6 + 1) * w / quan.size()/2 - f2/2, h-5, QString::number(q1));
+        painter->drawText((i*6 + 3) * w / quan.size()/2 - f2/2, h-5, QString::number(q2));
+        painter->drawText((i*6 + 5) * w / quan.size()/2 - f2/2, h-5, QString::number(q3));
 
         if (q1 == 0) {
-            q1 = 1;
-            q2 = 1;
-            q3 = 0;
+            continue;
         }
+        painter->setPen(QPen(Qt::blue));
+        painter->setBrush(QBrush(Qt::blue));
+        painter->drawRect((i*6 + 0) * w / quan.size()/2 + 2, 5, w / quan.size() - 2, h - 40);
 
-        double x1 = 1 * w / 3 + 5;
-        double x2 = 2 * w / 3 + 5;
-        double y1 = 5 + (q3) / q1 * 0.75 * h;
-        double y2 = 5 + (q2) / q1 * 0.75 * h;
-        double h1 = h * 0.75 - y1 + 5;
-        double h2 = h * 0.75 - y2 + 5;
+        double x1 = (i*3 + 1) * w / quan.size() + 2;
+        double x2 = (i*3 + 2) * w / quan.size() + 0;
+        double y1 = 5 + (q3) / q1 * (h - 40);
+        double y2 = 5 + (q2) / q1 * (h - 40);
+        double h1 = h - y1 - 34;
+        double h2 = h - y2 - 34;
         painter->setPen(QPen(Qt::green));
         painter->setBrush(QBrush(Qt::green));
-        painter->drawRect(x1, y1, w / 3 - 5, h1);
+        painter->drawRect(x1, y1, w / quan.size() - 3, h1);
 
         painter->setPen(QPen(Qt::red));
         painter->setBrush(QBrush(Qt::red));
-        painter->drawRect(x2, y2, w / 3 - 5, h2);
+        painter->drawRect(x2, y2, w / quan.size() - 5, h2);
     }
+}
 
+void BoxQLabel::paintEvent(QPaintEvent *)
+{
+    QPainter *painter = new QPainter(this);
+    painter->setRenderHint(QPainter::Antialiasing, true);
+    switch (mode) {
+    case 0:
+        drawImpWave(painter);
+        break;
+    case 1:
+        drawDcrWave(painter);
+        break;
+    case 2:
+        drawTstCurr(painter);
+        break;
+    case 3:
+        drawAllQuan(painter);
+        break;
+    default:
+        break;
+    }
     painter->end();
 }
 
