@@ -14,6 +14,7 @@ SqlImport::SqlImport(QObject *parent) : QObject(parent)
 
 void SqlImport::recvAppDat(QTmpMap msg)
 {
+    QSqlDatabase::database("record").transaction();
     QSqlQuery query(QSqlDatabase::database("record"));
     SqlSnowId snow;
     quint64 guid = snow.getId();
@@ -61,6 +62,7 @@ void SqlImport::recvAppDat(QTmpMap msg)
             }
         }
     }
+    QSqlDatabase::database("record").commit();
 }
 
 void SqlImport::recvAppMsg(QTmpMap msg)

@@ -19,7 +19,7 @@ void AppTester::initUI()
     initLayout();
     initStatus();
     initWorker();
-    initHistogram();
+    initAllRate();
     initResult();
     initQChart();
     initButton();
@@ -27,7 +27,6 @@ void AppTester::initUI()
     initDcrChip();
     initDcrDiag();
     initDcrWave();
-    drawDcrWave();
     initInrTextCG();
     initAcwTextAC();
     initAcwTextAL();
@@ -134,13 +133,13 @@ void AppTester::initButton()
     btnLayout->setMargin(3);
     btnLayout->setSpacing(6);
 
-    QPushButton *btnHome = new QPushButton("开机主页", this);
+    btnHome = new QPushButton("开机主页", this);
     btnLayout->addWidget(btnHome);
     btnHome->setObjectName("author");
     btnHome->setMinimumSize(97, 44);
     connect(btnHome, SIGNAL(clicked(bool)), this, SLOT(clickButton()));
 
-    QPushButton *btnConf = new QPushButton("型号管理", this);
+    btnConf = new QPushButton("型号管理", this);
     btnLayout->addWidget(btnConf);
     btnConf->setObjectName("config");
     btnConf->setMinimumSize(97, 44);
@@ -242,35 +241,9 @@ void AppTester::initDcrDiag()
 
 void AppTester::initDcrWave()
 {
-    dcrView = new QCustomPlot(this);
-    connect(dcrView, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(dcrResize()));
-    dcrView->setBackground(QBrush(QColor("#121922"))); //设置背景色
-    dcrView->xAxis->grid()->setPen(Qt::NoPen);
-    dcrView->yAxis->grid()->setPen(QPen(Qt::darkGreen, 1, Qt::DotLine));
-    dcrView->xAxis->setTicks(false);
-    dcrView->xAxis->setTickLabels(false);
-    dcrView->yAxis->setTicks(false);
-    dcrView->yAxis->setTickLabels(false);
-    dcrView->axisRect()->setMinimumMargins(QMargins(0, 0, 0, 0));
-    dcrView->axisRect()->setMargins(QMargins(0, 0, 0, 0));
-    dcrView->xAxis->setBasePen(QPen(Qt::darkGreen, 1, Qt::DotLine));
-    dcrView->yAxis->setBasePen(Qt::NoPen);
-    dcrView->xAxis2->setBasePen(Qt::NoPen);
-    dcrView->yAxis2->setBasePen(Qt::NoPen);
-    dcrView->yAxis->setRange(0, 105);
-
-    dcrView->xAxis->setTickLabelColor(Qt::white);
-    dcrView->xAxis->setLabelColor(Qt::white);
-    dcrView->xAxis->setTickLabelColor(Qt::white);
-
+    dcrView = new BoxQLabel(this);
+    connect(dcrView, SIGNAL(clicked()), this, SLOT(dcrResize()));
     view->setCellWidget(6, 2, dcrView);
-
-    graph1 = dcrView->addGraph();
-    graph1->setPen(QPen(Qt::white, 1));
-    graph2 = dcrView->addGraph();
-    graph2->setPen(QPen(Qt::white, 1));
-    graph3 = dcrView->addGraph();
-    graph3->setPen(QPen(Qt::green, 2));
 }
 
 void AppTester::initInrTextCG()
@@ -411,31 +384,8 @@ void AppTester::initImpText()
 
 void AppTester::initImpWave()
 {
-    impView = new QCustomPlot(this);
-    connect(impView, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(impResize()));
-    impView->setBackground(QBrush(QColor("#121922"))); //设置背景色
-    impView->xAxis->grid()->setPen(Qt::NoPen);
-    impView->yAxis->grid()->setPen(QPen(Qt::darkGreen, 1, Qt::DotLine));
-    impView->xAxis->setTicks(false);
-    impView->xAxis->setTickLabels(false);
-    impView->yAxis->setTicks(false);
-    impView->yAxis->setTickLabels(false);
-    impView->axisRect()->setMinimumMargins(QMargins(0, 0, 0, 0));
-    impView->axisRect()->setMargins(QMargins(0, 0, 0, 0));
-    impView->xAxis->setBasePen(QPen(Qt::darkGreen, 1, Qt::DotLine));
-    impView->yAxis->setBasePen(Qt::NoPen);
-    impView->xAxis2->setBasePen(Qt::NoPen);
-    impView->yAxis2->setBasePen(Qt::NoPen);
-    impView->xAxis->setRange(0, 400);
-    impView->yAxis->setRange(0, 105);
-
-    impView->xAxis->setTickLabelColor(Qt::white);
-    impView->xAxis->setLabelColor(Qt::white);
-    impView->xAxis->setTickLabelColor(Qt::white);
-
-    impLine = impView->addGraph();
-    impStdd = impView->addGraph();
-
+    impView = new BoxQLabel(this);
+    connect(impView, SIGNAL(clicked()), this, SLOT(impResize()));
     view->setCellWidget(6, 0, impView);
 }
 
@@ -515,13 +465,7 @@ void AppTester::initSettings()
         dcrTitles.at(0)->setText(tt);
         textWeld->clear();
 
-        QVector<double> x(1), y(1);
-        x[0] = -1;
-        y[0] = -1;
-        graph1->setData(x, y);
-        graph2->setData(x, y);
-        graph3->setData(x, y);
-        dcrView->replot();
+        dcrView->setZero();
     }
     if (2) {
         int r = tmpSet[AddrDCRS2].toInt();  // 配置地址
@@ -555,9 +499,6 @@ void AppTester::initSettings()
 
 void AppTester::initViewText()
 {
-    QVector<double> x(1), y(1);
-    x[0] = -1;
-    y[0] = -1;
     for (int i=0; i < 4; i++) {
         int parm = tmpSet[AddrACWS1 + i].toInt();  // 高压配置地址
         if (tmpSet[parm].toInt() == 1) {  // 项目测试
@@ -575,10 +516,7 @@ void AppTester::initViewText()
         if (tmpSet[parm].toInt() == 1) {  // 项目测试
             if (i == 0) {
                 textWeld->clear();
-                graph1->setData(x, y);
-                graph2->setData(x, y);
-                graph3->setData(x, y);
-                dcrView->replot();
+                dcrView->setZero();
             }
             if (i == 1) {
                 textChip->clear();
@@ -596,30 +534,21 @@ void AppTester::initViewText()
             impLabels.at(2)->setText(largeOK.arg("--"));
             tmpWave.clear();
             textIMPR->clear();
-            //            impLine->setData(x, y);
-            //            impStdd->setData(x, y);
-            //            impView->replot();
         }
     }
 }
 
 void AppTester::drawImpWave(int numb)
 {
-    impLine->setPen(QPen(Qt::green, 2));
-    impStdd->setPen(QPen(Qt::white, 2));
-    QVector<double> x(400), y(400);
-    for (int i=0; i < 400; i++) {
-        x[i] = i;
-        y[i] = tmpWave.at(i)*100/0x0400;
-    }
-    impLine->setData(x, y);
+    QVector<double> stds(400), real(400);
     int addr = tmpSet[AddrIMPSW].toInt();
     for (int i=0; i < 400; i++) {
-        x[i] = i;
-        y[i] =  tmpSet[addr + numb*400 + i].toInt()*100/0x0400;
+        real[i] = tmpWave.at(i)*100/0x0400;
+        stds[i] = tmpSet[addr + numb*400 + i].toInt()*100/0x0400;
     }
-    impStdd->setData(x, y);
-    impView->replot();
+    impView->setWave(real, 0);
+    impView->setWave(stds, 1);
+    impView->update();
 }
 
 void AppTester::setViewSize()
@@ -651,7 +580,7 @@ void AppTester::drawDcrWave()
 
     double max = 0;
     double min = 0xffff;
-    for (int i=0; i < c-1; i++) {
+    for (int i=0; i < c; i++) {
         x1[i] = i;
         double ts = tmpSet[addr + i*2 + 0].toDouble();
         double ps = tmpSet[addr + i*2 + 1].toDouble();
@@ -670,7 +599,7 @@ void AppTester::drawDcrWave()
         y3[i] = rr;
     }
     double sss = max - min;
-    for (int i=0; i < c-1; i++) {
+    for (int i=0; i < c; i++) {
         double ts = tmpSet[addr + i*2 + 0].toDouble();
         double ps = tmpSet[addr + i*2 + 1].toDouble();
         ts = ts * qPow(10, -ps);
@@ -683,94 +612,37 @@ void AppTester::drawDcrWave()
         y2[i] = (t2 - min) * 80 / sss + 10;
         y3[i] = (rr - min) * 80 / sss + 10;
     }
-    graph1->setData(x1, y1);
-    graph2->setData(x1, y2);
-    graph3->setData(x1, y3);
-    dcrView->xAxis->setRange(1.1, c-2);
-    dcrView->replot();
+    dcrView->setWave(y1, 1);
+    dcrView->setWave(y2, 2);
+    dcrView->setWave(y3, 0);
 }
 
-void AppTester::initHistogram()
+void AppTester::initAllRate()
 {
     countAll = 0;
     countOk = 0;
-    histogram = new QCustomPlot(this);
-    QStringList colors;
-    colors << "blue" << "green" << "red";
-    for (int i=0; i < 3; i++) {
-        bars.append(new QCPBars(histogram->xAxis, histogram->yAxis));
-        bars.at(i)->setWidth(0.9);
-        bars.at(i)->setPen(Qt::NoPen);
-        bars.at(i)->setBrush(QColor(colors.at(i)));
-    }
 
-    QLinearGradient plotGradient;
-    plotGradient.setStart(0, 0);
-    plotGradient.setFinalStop(0, 350);
-    plotGradient.setColorAt(0, QColor(80, 80, 80));
-    plotGradient.setColorAt(1, QColor(50, 50, 50));
-    histogram->setBackground(plotGradient);
+    QVector<double> y(3);
+    y[0] = countAll;
+    y[1] = countOk;
+    y[2] = countAll - countOk;
 
-    QVector<double> ticks;
-    QVector<QString> labels;
-    ticks << 1 << 2 << 3;
-    labels << "ALL\n0" << "OK\n0" << "NG\n0";
-    QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
-    textTicker->addTicks(ticks, labels);
-    histogram->xAxis->setTicker(textTicker);
-    histogram->xAxis->setTickLength(0, 1);  // x轴标尺步长
-
-    histogram->xAxis->setBasePen(Qt::NoPen);
-    histogram->yAxis->setBasePen(Qt::NoPen);
-    histogram->xAxis2->setBasePen(Qt::NoPen);
-    histogram->yAxis2->setBasePen(Qt::NoPen);
-    histogram->xAxis->grid()->setVisible(false);
-    histogram->yAxis->grid()->setVisible(false);
-    histogram->xAxis->setTickLabelColor(Qt::white);
-    histogram->yAxis->setTicks(false);
-    histogram->xAxis->setLabelColor(Qt::white);
-    histogram->setBackground(QBrush(QColor("#121922"))); //设置背景色
-    histogram->axisRect()->setMinimumMargins(QMargins(3, 9, 3, 0));  // 左上右下
-    histogram->rescaleAxes();
-    histogram->xAxis->setRange(0.5, 3.5);  // x轴范围
-    histogram->yAxis->setRange(0, 101);    // y轴范围
-    histogram->xAxis->setPadding(1);
-    histogram->yAxis->setPadding(1);
-    histogram->xAxis->setTickLabelPadding(1);
-
-    view->setCellWidget(0, 1, histogram);
+    allView = new BoxQLabel(this);
+    allView->setData(y, 2);
+    view->setCellWidget(0, 1, allView);
 }
 
-void AppTester::drawHistogram()
+void AppTester::drawAllRate()
 {
     if (countAll == 0)
         return;
-    QVector<double> x1(1), y1(1);
-    QVector<double> x2(1), y2(1);
-    QVector<double> x3(1), y3(1);
+    QVector<double> y(3);
+    y[0] = countAll;
+    y[1] = countOk;
+    y[2] = countAll - countOk;
 
-    x1[0] = 1;
-    x2[0] = 2;
-    x3[0] = 3;
-    y1[0] = 100;
-    y2[0] = (100*countOk)/countAll;
-    y3[0] = (100*(countAll - countOk))/countAll;
-
-    bars.at(0)->setData(x1, y1);
-    bars.at(1)->setData(x2, y2);
-    bars.at(2)->setData(x3, y3);
-
-    QVector<double> ticks;
-    QVector<QString> labels;
-    ticks << 1 << 2 << 3;
-    labels << (QString("ALL\n%1").arg(countAll))
-           << (QString("OK\n%1").arg(countOk))
-           << (QString("NG\n%1").arg(countAll - countOk));
-    QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
-    textTicker->addTicks(ticks, labels);
-    histogram->xAxis->setTicker(textTicker);
-
-    histogram->replot();
+    allView->setData(y, 2);
+    allView->update();
 }
 
 void AppTester::boxResize()
@@ -883,33 +755,28 @@ void AppTester::recvTmpMsg(QTmpMap msg)
 void AppTester::recvLedMsg(QTmpMap msg)
 {
     QString tmp = msg.value(AddrText).toString();
-    if (tmp == "LEDY") {
+    if (msg.value(AddrBeep).isNull() && tmp == "LEDY") {
         initViewText();
+        btnHome->setEnabled(false);
+        btnConf->setEnabled(false);
         btnPlay->setText(tr("停止测试"));
         textResult->setText(judgeON.arg("ON"));
         boxChart->setRun(1);
-#ifdef __arm__
-        view->setEnabled(false);
-#endif
-    } else {
+    } else if (msg.value(AddrBeep).toInt() > 0) {
         boxChart->setRun(0);
-        view->setEnabled(true);
+        btnHome->setEnabled(true);
+        btnConf->setEnabled(true);
         btnPlay->setText(tr("启动测试"));
-    }
-    if (tmp == "LEDG") {
-        if (msg.value(AddrBeep).toInt() > 0) {
+        if (tmp == "LEDG") {
             countAll++;
             countOk++;
             textResult->setText(judgeOK);
-            drawHistogram();
         }
-    }
-    if (tmp == "LEDR") {
-        if (msg.value(AddrBeep).toInt() > 0) {
+        if (tmp == "LEDR") {
             countAll++;
             textResult->setText(judgeNG);
-            drawHistogram();
         }
+        drawAllRate();
     }
 }
 
@@ -1111,7 +978,6 @@ void AppTester::showEvent(QShowEvent *e)
 {
     this->setFocus();
     initSettings();
-    drawDcrWave();
     setViewSize();
     e->accept();
 }

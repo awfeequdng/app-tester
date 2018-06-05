@@ -509,6 +509,7 @@ void DevSetCan::renewIMP()
     tmpDat.insert(AddrText, currItem);
     emit sendAppMsg(tmpDat);
     tmpDat.clear();
+//    qDebug() << "imp show:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
 }
 
 void DevSetCan::calc()

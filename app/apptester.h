@@ -31,6 +31,7 @@
 
 #include "lib/qcustomplot.h"
 #include "boxqchart.h"
+#include "boxqlabel.h"
 
 #include "appdefine.h"
 
@@ -89,8 +90,8 @@ private slots:
     void drawImpWave(int numb);
 
     void setViewSize();
-    void initHistogram();
-    void drawHistogram();
+    void initAllRate();
+    void drawAllRate();
     void boxResize();
     void dcrResize();
     void impResize();
@@ -107,8 +108,8 @@ private slots:
 private:
     QTableWidget *status;
     QVBoxLayout *mLayout;
-    QCustomPlot *dcrView;
-    QCustomPlot *impView;
+//    QCustomPlot *dcrView;
+//    QCustomPlot *impView;
     QTableWidget *view;
     QLabel *textResult;
     QLabel *textWorker;
@@ -133,6 +134,8 @@ private:
     QTextBrowser *textDiag;
     QTextBrowser *textIMPR;
 
+    QPushButton *btnHome;
+    QPushButton *btnConf;
     QPushButton *btnPlay;
 
     BoxQChart *boxChart;
@@ -148,6 +151,10 @@ private:
     QElapsedTimer t;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
+
+    BoxQLabel *impView;
+    BoxQLabel *dcrView;
+    BoxQLabel *allView;
 };
 
 #endif // APPTESTER_H

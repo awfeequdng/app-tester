@@ -110,9 +110,9 @@ void DevSerial::recvAppMsg(QTmpMap msg)
 {
     int c = msg.value(0).toInt();
     switch (c) {
-    case Qt::Key_Call:
-        if (!msg.value(AddrText).isNull())
-            com->write(msg.value(AddrText).toString().toUtf8());
+//    case Qt::Key_Call:
+//        if (!msg.value(AddrText).isNull())
+//            com->write(msg.value(AddrText).toString().toUtf8());
     default:
         break;
     }

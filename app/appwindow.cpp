@@ -889,22 +889,22 @@ int AppWindow::taskClearBeep()
 {
     int ret = Qt::Key_Meta;
     int rr = tmpSet[AddrSyst].toInt();
-    int tt = tmpSet[rr + (tmpSet[DataOKNG].toInt() == DataOK ? 0x07 : 0x08)].toDouble()*100;
-    if (t.elapsed() - timeOut > tt) {
+    int tt = tmpSet[rr + (tmpSet[DataOKNG].toInt() == DataOK ? 0x07 : 0x08)].toDouble()*1000;
+    if (t.elapsed() - timeOut >= tt) {
         timeOut = t.elapsed();
         ret = Qt::Key_Away;
         tmpMsg.insert(AddrEnum, Qt::Key_Call);
-        tmpMsg.insert(AddrText, tmpSet[DataOKNG].toInt() == DataOK ? "LEDG" : "LEDR");
         tmpMsg.insert(AddrBeep, 0);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
-        qDebug() <<"app wait:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
+        qDebug() <<"app wait:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0')) << tt;
     }
     return ret;
 }
 
 int AppWindow::taskResetTest()
 {
+    qDebug() <<"app zero:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
     int addr = tmpSet[AddrBack].toInt();
     int test = tmpSet[addr + 7].toInt();
     int time = tmpSet[addr + 8].toInt();
@@ -1099,9 +1099,6 @@ void AppWindow::recvAppMsg(QTmpMap msg)
         emit sendAppMsg(msg);
         break;
     case Qt::Key_WLAN:
-        emit sendAppMsg(msg);
-        break;
-    case Qt::Key_Call:
         emit sendAppMsg(msg);
         break;
     case Qt::Key_News:
