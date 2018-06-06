@@ -1,3 +1,11 @@
+/*******************************************************************************
+ * Copyright [2018] <青岛艾普智能仪器有限公司>
+ * All rights reserved.
+ *
+ * version:     0.1
+ * author:      zhaonanlin
+ * brief:       QLabel显示波形
+*******************************************************************************/
 #ifndef BOXQLABEL_H
 #define BOXQLABEL_H
 
@@ -26,7 +34,7 @@ private slots:
     void drawImpWave(QPainter *painter);
     void drawTstCurr(QPainter *painter);
     void drawAllQuan(QPainter *painter);
-    void paintEvent(QPaintEvent *);
+    void paintEvent(QPaintEvent *e);
     void mousePressEvent(QMouseEvent *e);
 private:
     QVector<double> std1;

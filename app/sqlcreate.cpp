@@ -234,7 +234,6 @@ void SqlCreate::initINRB(QSqlQuery query)
         if (!query.exec())
             qWarning() << "aip_backup" << query.lastError();
     }
-
 }
 
 void SqlCreate::initACWB(QSqlQuery query)
@@ -352,7 +351,7 @@ void SqlCreate::initLoad(QSqlQuery query)
     parm << tr("0") // 上传模式
          << tr("192.168.1.2") // 网络地址
          << tr("sa") // 登录用户
-         << tr("Abc++123")// 登录密码
+         << tr("Abc++123")  // 登录密码
          << tr("aip-server") // 数据库名
          << tr("1433") // 网络端口
          << tr("0")
@@ -360,7 +359,7 @@ void SqlCreate::initLoad(QSqlQuery query)
          << tr("sa")
          << tr("123")
          << tr("aip-server")
-         << tr("1433") ;
+         << tr("1433");
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_system values(?,?)");
         query.addBindValue(from + i);
@@ -448,7 +447,7 @@ void SqlCreate::initConf(QSqlQuery query)
     QStringList parm;
     parm.clear();
     from = tmpSet.value(AddrDCRS1).toInt();
-    parm << "1" << "10000" << "1" << "25000" << "500" << "0" << "" << "" << "" << "";  // 片间配置
+    parm << "1" << "10000" << "1" << "25000" << "500" << "0" << "" << "" << "" << "";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
@@ -458,7 +457,7 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value(AddrDCRS2).toInt();
-    parm << "1" << "100" << "" << "" << "" << "" << "" << "" << "" << "";  // 焊接配置
+    parm << "1" << "100" << "" << "" << "" << "" << "" << "" << "" << "";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
@@ -468,7 +467,7 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value(AddrDCRS3).toInt();
-    parm << "1" << "500" << "1500" << "" << "" << "" << "" << "" << "" << "";  // 跨间配置
+    parm << "1" << "500" << "1500" << "" << "" << "" << "" << "" << "" << "";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
@@ -478,7 +477,7 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value(AddrACWS1).toInt();
-    parm << "1" << tr("绝缘电阻") << "500" << "5" << "0" << "500" << "0" << "0" << "" << "";  // 绝缘配置
+    parm << "1" << tr("绝缘电阻") << "500" << "5" << "0" << "500" << "0" << "0" << "" << "";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
@@ -488,7 +487,7 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value(AddrACWS2).toInt();
-    parm << "1" << tr("轴铁耐压") << "500" << "5" << "500" << "0" << "0" << "0" << "" << "";  // 轴铁配置
+    parm << "1" << tr("轴铁耐压") << "500" << "5" << "500" << "0" << "0" << "0" << "" << "";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
@@ -498,7 +497,7 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value(AddrACWS3).toInt();
-    parm << "1" << tr("轴线耐压") << "500" << "5" << "500" << "0" << "0" << "0" << "" << "";  // 轴线配置
+    parm << "1" << tr("轴线耐压") << "500" << "5" << "500" << "0" << "0" << "0" << "" << "";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
@@ -508,7 +507,7 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value(AddrACWS4).toInt();
-    parm << "1" << tr("铁线耐压") << "500" << "5" << "500" << "0" << "0" << "0" << "" << "";  // 铁线配置
+    parm << "1" << tr("铁线耐压") << "500" << "5" << "500" << "0" << "0" << "0" << "" << "";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
@@ -518,7 +517,7 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value(AddrIMPS1).toInt();
-    parm << "1" << tr("匝间测试") << "500" << "1" << "15" << "2" << "0" << "1"<< "1" << "7";  // 匝间
+    parm << "1" << tr("匝间测试") << "500" << "1" << "15" << "2" << "0" << "1"<< "1" << "7";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);

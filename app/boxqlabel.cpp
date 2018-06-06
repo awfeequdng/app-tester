@@ -1,3 +1,11 @@
+/*******************************************************************************
+ * Copyright [2018] <青岛艾普智能仪器有限公司>
+ * All rights reserved.
+ *
+ * version:     0.1
+ * author:      zhaonanlin
+ * brief:       QLabel显示波形
+*******************************************************************************/
 #include "boxqlabel.h"
 
 BoxQLabel::BoxQLabel(QWidget *parent) : QLabel(parent)
@@ -50,7 +58,7 @@ void BoxQLabel::setLine(QPainter *painter, QVector<double> r)
         xx[i] = i * w / (s - 1);
         yy[i] = r.at(i);
     }
-    QPoint p1,p2;
+    QPoint p1, p2;
     for (int i=0; i < s-1; i++) {
         p1.setX(xx[i + 0]);
         p1.setY(h - yy[i+0] * h / 100);
@@ -74,18 +82,23 @@ void BoxQLabel::linearSmooth(QPainter *painter, QVector<double> r)
         xx[i] = i * w / s;
         yy[i] = r.at(i);
     }
-    out[0] = (13.0*yy[0] + 10.0*yy[1] + 7.0*yy[2] + 4.0*yy[3] + yy[4] - 2.0*yy[5] - 5.0*yy[6]) / 28.0;
-    out[1] = (5.0*yy[0] + 4.0*yy[1] + 3*yy[2] + 2*yy[3] + yy[4] - yy[6] ) / 14.0;
-    out[2] = (7.0*yy[0] + 6.0*yy [1] + 5.0*yy[2] + 4.0*yy[3] + 3.0*yy[4] + 2.0*yy[5] + yy[6]) / 28.0;
+    out[0] = (13.0*yy[0] + 10.0*yy[1] + 7.0*yy[2] + 4.0*yy[3] +
+            yy[4] - 2.0*yy[5] - 5.0*yy[6]) / 28.0;
+    out[1] = (5.0*yy[0] + 4.0*yy[1] + 3*yy[2] + 2*yy[3] + yy[4] - yy[6]) / 14.0;
+    out[2] = (7.0*yy[0] + 6.0*yy[1] + 5.0*yy[2] + 4.0*yy[3] +
+            3.0*yy[4] + 2.0*yy[5] + yy[6]) / 28.0;
 
     for (int i=3; i <= s-4; i++) {
         out[i] = (yy[i-3] + yy[i-2] + yy[i-1] + yy[i] + yy[i+1] + yy[i+2] + yy[i+3]) / 7.0;
     }
-    out[s-3] = (7.0*yy[s-1] + 6.0*yy [s-2] + 5.0*yy[s-3] + 4.0*yy[s-4] + 3.0*yy[s-5] + 2.0*yy[s-6] + yy[s-7]) / 28.0;
-    out[s-2] = (5.0*yy[s-1] + 4.0*yy[s-2] + 3.0*yy[s-3] + 2.0*yy[s-4] + yy[s-5] - yy[s-7] ) / 14.0;
-    out[s-1] = (13.0*yy[s-1] + 10.0*yy[s-2] + 7.0*yy[s-3] + 4*yy[s-4] + yy[s-5] - 2*yy[s-6] - 5*yy[s-7] ) / 28.0;
+    out[s-3] = (7.0*yy[s-1] + 6.0*yy[s-2] + 5.0*yy[s-3] + 4.0*yy[s-4] +
+            3.0*yy[s-5] + 2.0*yy[s-6] + yy[s-7]) / 28.0;
+    out[s-2] = (5.0*yy[s-1] + 4.0*yy[s-2] + 3.0*yy[s-3] + 2.0*yy[s-4] +
+            yy[s-5] - yy[s-7]) / 14.0;
+    out[s-1] = (13.0*yy[s-1] + 10.0*yy[s-2] + 7.0*yy[s-3] + 4*yy[s-4] +
+            yy[s-5] - 2*yy[s-6] - 5*yy[s-7]) / 28.0;
 
-    QPoint p1,p2;
+    QPoint p1, p2;
     for (int i=0; i < s-1; i++) {
         p1.setX(xx[i + 0]);
         p1.setY(h - out[i+0] * h / 100);
@@ -199,7 +212,7 @@ void BoxQLabel::drawAllQuan(QPainter *painter)
         << tr("轴线") << "合格" << "淘汰"
         << tr("铁线") << "合格" << "淘汰"
         << tr("匝间") << "合格" << "淘汰";
-    for(int i=0; i < quan.size()/3; i++) {
+    for (int i=0; i < quan.size() / 3; i++) {
         painter->setPen(QPen(Qt::white));
         double q1 = quan[i*3 + 0];
         double q2 = quan[i*3 + 1];
@@ -238,7 +251,7 @@ void BoxQLabel::drawAllQuan(QPainter *painter)
     }
 }
 
-void BoxQLabel::paintEvent(QPaintEvent *)
+void BoxQLabel::paintEvent(QPaintEvent *e)
 {
     QPainter *painter = new QPainter(this);
     painter->setRenderHint(QPainter::Antialiasing, true);
@@ -259,6 +272,7 @@ void BoxQLabel::paintEvent(QPaintEvent *)
         break;
     }
     painter->end();
+    e->accept();
 }
 
 void BoxQLabel::mousePressEvent(QMouseEvent *e)

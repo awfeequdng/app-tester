@@ -41,7 +41,6 @@ HEADERS += \
     app/devserial.h \
     app/devsetcan.h \
     app/devsetrtc.h \
-    app/devsystem.h \
     app/sqlcreate.h \
     app/sqlexport.h \
     app/sqlimport.h \
@@ -85,7 +84,6 @@ SOURCES += \
     app/devserial.cpp \
     app/devsetcan.cpp \
     app/devsetrtc.cpp \
-    app/devsystem.cpp \
     app/main.cpp \
     app/sqlcreate.cpp \
     app/sqlexport.cpp \

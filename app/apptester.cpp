@@ -894,8 +894,9 @@ void AppTester::recvIMPMsg(QTmpMap msg)
         double real = msg[parm + 4*numb + AddrDataR].toDouble();
         double isok = msg[parm + 4*numb + AddrDataJ].toDouble();
         QString okng = (isok == DataNG) ? largeNG : largeOK;
+        QString tmp = QString::number(real/1000, 'f', real >= 10000 ? 2 : 3) + "%";
         impLabels.at(0)->setText(okng.arg(QString::number(volt/1000, 'f', 3) + "kV"));
-        impLabels.at(1)->setText(okng.arg(QString::number(real/1000, 'f', real >= 10000 ? 2 : 3) + "%"));
+        impLabels.at(1)->setText(okng.arg(tmp));
         impLabels.at(2)->setText(okng.arg((isok == DataNG) ? "NG" : "OK"));
         if (numb == 1) {
             prev = 1;

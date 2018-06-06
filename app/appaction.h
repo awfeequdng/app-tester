@@ -28,11 +28,7 @@
 #include "appdefine.h"
 #include "appmaster.h"
 
-
-
-//const int AddrName = 0x00;
 const int AddrMark = 0x01;
-//const int AddrRole = 0x02;
 const int AddrForm = 0x03;
 
 #define A_ROW 25

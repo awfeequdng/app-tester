@@ -31,7 +31,6 @@ void AppWindow::initUI()
     initLayout();
     initAuthor();
     QTimer::singleShot(100, this, SLOT(initScreen()));
-    //    this->setWindowFlags(Qt::FramelessWindowHint);
 }
 
 int AppWindow::initTitle()

@@ -182,7 +182,7 @@ void TypConfig::initButtonBar()
 void TypConfig::initSettings()
 {
     int p = page->text().toInt() - 1;    // 页码
-    int r = tmpSet[AddrType].toInt() ;
+    int r = tmpSet[AddrType].toInt();
     int s = r + C_ROW*p;       // 起始地址
     for (int i=0; i < C_ROW; i++) {
         int t = s + i;

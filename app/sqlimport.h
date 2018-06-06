@@ -33,7 +33,6 @@ private slots:
 private:
     QTmpMap tmpQuan;
     QTmpMap tmpOKNG;
-
 };
 
 #endif // SQLIMPORT_H

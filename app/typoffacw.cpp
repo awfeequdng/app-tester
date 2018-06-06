@@ -57,13 +57,13 @@ void TypOffAcw::initBoxINR()
         QLineEdit *txt2 = new QLineEdit(this);
         QLineEdit *txt3 = new QLineEdit(this);
         QLineEdit *txt4 = new QLineEdit(this);
-        real->addWidget(new QLabel(tr("实测1")), 0 ,0);
+        real->addWidget(new QLabel(tr("实测1")), 0 , 0);
         real->addWidget(txt1, 0, 1);
-        real->addWidget(new QLabel(tr("实测2")), 0 ,2);
+        real->addWidget(new QLabel(tr("实测2")), 0 , 2);
         real->addWidget(txt2, 0, 3);
-        real->addWidget(new QLabel(tr("计算K")), 1 ,0);
+        real->addWidget(new QLabel(tr("计算K")), 1 , 0);
         real->addWidget(txt3, 1, 1);
-        real->addWidget(new QLabel(tr("计算B")), 1 ,2);
+        real->addWidget(new QLabel(tr("计算B")), 1 , 2);
         real->addWidget(txt4, 1, 3);
         inrboxs.append(txt1);
         inrboxs.append(txt2);
@@ -103,7 +103,7 @@ void TypOffAcw::initBoxACW()
     acw->setLayout(layout);
 
     QStringList names;
-    names << "500V" << "4500V" << "3mA" << "15mA" << "0mA" << "3mA" ;
+    names << "500V" << "4500V" << "3mA" << "15mA" << "0mA" << "3mA";
     for (int i=0; i < names.size()/2; i++) {
         QHBoxLayout *btn = new QHBoxLayout;
         QPushButton *btn1 = new QPushButton(this);
@@ -122,13 +122,13 @@ void TypOffAcw::initBoxACW()
         QLineEdit *txt2 = new QLineEdit(this);
         QLineEdit *txt3 = new QLineEdit(this);
         QLineEdit *txt4 = new QLineEdit(this);
-        real->addWidget(new QLabel(tr("实测1")), 0 ,0);
+        real->addWidget(new QLabel(tr("实测1")), 0 , 0);
         real->addWidget(txt1, 0, 1);
-        real->addWidget(new QLabel(tr("实测2")), 0 ,2);
+        real->addWidget(new QLabel(tr("实测2")), 0 , 2);
         real->addWidget(txt2, 0, 3);
-        real->addWidget(new QLabel(tr("计算K")), 1 ,0);
+        real->addWidget(new QLabel(tr("计算K")), 1 , 0);
         real->addWidget(txt3, 1, 1);
-        real->addWidget(new QLabel(tr("计算B")), 1 ,2);
+        real->addWidget(new QLabel(tr("计算B")), 1 , 2);
         real->addWidget(txt4, 1, 3);
         acwboxs.append(txt1);
         acwboxs.append(txt2);
@@ -199,20 +199,20 @@ void TypOffAcw::calcINR()
         int a = inrboxs.at(i*4 + 0)->text().toInt();
         int c = inrboxs.at(i*4 + 1)->text().toInt();
         if (i == 0) {
-            k=(c-a)*1024/500;       //  k=(bn-md)/(bc-ad);  // (U2-U1)*1024/500;
-            b=a+500-500*k/1024;     //  b=(mc-an)/(bc-ad);  // U1+500-500*k/1024
+            k = (c-a)*1024/500;       //  k = (bn-md)/(bc-ad);  // (U2-U1)*1024/500;
+            b = a+500-500*k/1024;     //  b = (mc-an)/(bc-ad);  // U1+500-500*k/1024
         }
         if (i == 1) {
-            k=400*1024/((c-a));
-            b=600-(a)*k/1024;
+            k = 400*1024/((c-a));
+            b = 600-(a)*k/1024;
         }
         if (i == 2) {
-            k=450*1024/((c-a));
-            b=550-(a)*k/1024;
+            k = 450*1024/((c-a));
+            b = 550-(a)*k/1024;
         }
         if (i == 3) {
-            k=450*1024/((c-a));
-            b=550-(a)*k/1024;
+            k = 450*1024/((c-a));
+            b = 550-(a)*k/1024;
         }
         inrboxs.at(i*4 + 2)->setText(QString::number(k));
         inrboxs.at(i*4 + 3)->setText(QString::number(b));
@@ -239,16 +239,16 @@ void TypOffAcw::calcACW()
         int a = acwboxs.at(i*4 + 0)->text().toInt();
         int c = acwboxs.at(i*4 + 1)->text().toInt();
         if (i == 0) {
-            k=(c-a)*1024/4000;       //  k=(bn-md)/(bc-ad);  // (U2-U1)*1024/500;
-            b=a+500-500*k/1024;     //  b=(mc-an)/(bc-ad);  // U1+500-500*k/1024
+            k = (c-a)*1024/4000;       //  k = (bn-md)/(bc-ad);  // (U2-U1)*1024/500;
+            b = a+500-500*k/1024;     //  b = (mc-an)/(bc-ad);  // U1+500-500*k/1024
         }
         if (i == 1) {
-            k=(c-a)*1024/(1500-300);
-            b=500+a-k*300/1024;
+            k = (c-a)*1024/(1500-300);
+            b = 500+a-k*300/1024;
         }
         if (i == 2) {
-            k=(c-a)*1024/(300-10);
-            b=500+a-k*10/1024;
+            k = (c-a)*1024/(300-10);
+            b = 500+a-k*10/1024;
         }
         acwboxs.at(i*4 + 2)->setText(QString::number(k));
         acwboxs.at(i*4 + 3)->setText(QString::number(b));

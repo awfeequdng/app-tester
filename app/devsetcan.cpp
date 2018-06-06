@@ -257,7 +257,7 @@ void DevSetCan::parseDCR(QByteArray msg)
         double stdp = tmpSet[stdd + numb*2 + 1].toInt();
         stdw = stdw * 1000 * qPow(10, stdp-3);
         stdw = qMax(1.0, stdw);
-        if (currItem == AddrDCRS1 && abs(real-stdw)/stdw*100*1000 >= std1) {  // 判断片间电阻是否超限
+        if (currItem == AddrDCRS1 && abs(real-stdw)/stdw*100*1000 >= std1) {
             tmpSet[addr + 0x04*(numb+1) + AddrDataJ] = DataNG;
             tmpSet[addr + AddrDataJ] = DataNG;
         }
@@ -463,8 +463,7 @@ void DevSetCan::parseIMP(int id, QByteArray msg)
             numb++;
             tmpSet[addr + AddrDataR] = numb;
             tmpSet[addr + numb*4 + AddrDataS] = quint8(msg.at(3));  // 匝间频率
-            tmpSet[addr + numb*4 + AddrDataV] = quint8(msg.at(4))*256 + (quint8)msg.at(5);  // 匝间电压
-//            qDebug() << "imp recv:" << msg.toHex() << numb;
+            tmpSet[addr + numb*4 + AddrDataV] = quint8(msg.at(4))*256 + (quint8)msg.at(5);
         }
         if (cmd == 0x03) {
             if (num == 0xFF) {  // 波形结束
@@ -520,9 +519,9 @@ void DevSetCan::calc()
     double c = tmpSet[conf + AddrIMPSL].toDouble();  // 采样点
     double h = tmpSet[conf + AddrIMPSH].toDouble();  // 匝间上限
     stdw += (c == 0) ? (numb-1)*400 : (c-1)*400;
-    quint32 area1=0;
-    quint32 area2=0;
-    quint32 area3=0;
+    quint32 area1 = 0;
+    quint32 area2 = 0;
+    quint32 area3 = 0;
     quint32 diff = 0;
     for (int i=1; i < wave.size()-1; i++) {
         int a1 = tmpSet[stdw + i].toInt();
@@ -537,7 +536,7 @@ void DevSetCan::calc()
         int c3 = wave.at(i + 1);
         area3 += abs((b1+b2*2+b3)-(c1+c2*2+c3));
     }
-    diff = qMin(area2,area3/4)*100*1000/area1;
+    diff = qMin(area2, area3/4)*100*1000/area1;
     diff = qMin(diff, quint32(99990));
     tmpSet[addr + 4*numb + AddrDataR] = diff;
     if (diff >= h*1000) {
@@ -561,21 +560,17 @@ void DevSetCan::setupTest(QTmpMap msg)
         setupIMP(msg);
         startIMP(msg);
     }
-    if (msg.value(AddrText).toInt() == AddrDCRB) {  // 电阻校准
-        if (msg.value(AddrData).toInt() == 0x00) {
-
-        }
-        if (msg.value(AddrData).toInt() == 0xFE) {
-
-        }
-        if (msg.value(AddrData).toInt() == 0xFF) {
-
-        }
-    }
+//    if (msg.value(AddrText).toInt() == AddrDCRB) {  // 电阻校准
+//        if (msg.value(AddrData).toInt() == 0x00) {
+//        }
+//        if (msg.value(AddrData).toInt() == 0xFE) {
+//        }
+//        if (msg.value(AddrData).toInt() == 0xFF) {
+//        }
+//    }
     if (msg.value(AddrText).toInt() == AddrACWB) {  // 高压校准
-        if (msg.value(AddrData).toInt() == 0x00) {
-
-        }
+//        if (msg.value(AddrData).toInt() == 0x00) {
+//        }
         if (msg.value(AddrData).toInt() == 0xFE) {
             sendDevData(CAN_ID_ACW, QByteArray::fromHex("06FE"));
         }
@@ -583,17 +578,14 @@ void DevSetCan::setupTest(QTmpMap msg)
             sendDevData(CAN_ID_ACW, QByteArray::fromHex("06FF"));
         }
     }
-    if (msg.value(AddrText).toInt() == AddrIMPB) {  // 匝间校准
-        if (msg.value(AddrData).toInt() == 0x00) {
-
-        }
-        if (msg.value(AddrData).toInt() == 0xFE) {
-
-        }
-        if (msg.value(AddrData).toInt() == 0xFF) {
-
-        }
-    }
+//    if (msg.value(AddrText).toInt() == AddrIMPB) {  // 匝间校准
+//        if (msg.value(AddrData).toInt() == 0x00) {
+//        }
+//        if (msg.value(AddrData).toInt() == 0xFE) {
+//        }
+//        if (msg.value(AddrData).toInt() == 0xFF) {
+//        }
+//    }
 }
 
 void DevSetCan::startTest(QTmpMap map)

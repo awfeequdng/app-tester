@@ -65,7 +65,6 @@ void AppBackup::initBoxText()
     save->setFixedSize(97, 44);
     btn->addWidget(save);
     connect(save, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
-
 }
 
 void AppBackup::initMacText()
@@ -260,7 +259,6 @@ void AppBackup::recvAppVer(QTmpMap msg)
         v += QString::number(quint8(tmp.at(6))%16);
         nets.at(8)->setText(v);
     }
-
 }
 
 void AppBackup::recvAppMsg(QTmpMap msg)

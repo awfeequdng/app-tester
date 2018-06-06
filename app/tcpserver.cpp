@@ -1,3 +1,11 @@
+/*******************************************************************************
+ * Copyright [2018] <青岛艾普智能仪器有限公司>
+ * All rights reserved.
+ *
+ * version:     0.1
+ * author:      zhaonanlin
+ * brief:       TCP服务端
+*******************************************************************************/
 #include "tcpserver.h"
 
 TcpServer::TcpServer(QObject *parent) : QTcpServer(parent)
@@ -51,7 +59,6 @@ void TcpServer::recvSocket()
             return;
         in >> msg;
         recver.append(msg);
-//        qDebug() << "tcp recv:" << msg;
         frameSize = 0;
     }
 }
@@ -68,7 +75,6 @@ void TcpServer::sendSocket()
     out.device()->seek(0);
     out << (qint64)(msg.size()-sizeof(qint64));
     socket->write(msg);
-//    qDebug() << "tcp send:" << dat;
 }
 
 void TcpServer::recvTcpXml()
@@ -123,7 +129,6 @@ void TcpServer::recvAppMsg(QTmpMap dat)
             if (!dat.value(keys.at(t)).toString().isEmpty()) {
                 QString name = QString("_%1").arg(keys.at(t), 4, 16, QChar('0'));
                 QDomElement element = doc.createElement(name);
-//                QDomElement element = doc.createElement("_" + QString::number(keys.at(t)));
                 QDomText text = doc.createTextNode(dat.value(keys.at(t)).toString());
                 element.appendChild(text);
                 root.appendChild(element);
