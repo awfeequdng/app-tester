@@ -120,11 +120,14 @@ private slots:
     int taskStartBeep();
     int taskClearBeep();
     int taskResetTest();
+    int taskCheckStop();
     int testThread();
     int testClearData();
     int testStartSend();
     int testStartTest();
     int getNextItem();
+    void showBarCode();
+    virtual void keyReleaseEvent(QKeyEvent *e);
     void recvNewMsg(QTmpMap msg);
     void recvTmpMsg(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
@@ -156,6 +159,9 @@ private:
     QStringList users;
     QList<int> roles;
     QList<int> forms;
+
+    QString barcode;
+    QTimer *scanner;
 };
 
 #endif // APPWINDOW_H

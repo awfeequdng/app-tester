@@ -25,6 +25,7 @@ signals:
     void clicked();
 public slots:
     void setZero();
+    void setText(QString text, int mode);
     void setData(QVector<double> values, int mode);
     void setWave(QVector<double> values, int mode);
 private slots:
@@ -34,6 +35,7 @@ private slots:
     void drawImpWave(QPainter *painter);
     void drawTstCurr(QPainter *painter);
     void drawAllQuan(QPainter *painter);
+    void drawAllText(QPainter *painter);
     void paintEvent(QPaintEvent *e);
     void mousePressEvent(QMouseEvent *e);
 private:
@@ -42,6 +44,7 @@ private:
     QVector<double> real;
     QVector<double> quan;
     quint8 mode;
+    QString str1,str2,str3,str4;
 };
 
 #endif // BOXQLABEL_H

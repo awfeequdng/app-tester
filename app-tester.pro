@@ -58,7 +58,6 @@ HEADERS += \
     app/typsetdcr.h \
     app/typsetimp.h \
     app/udpsocket.h \
-    lib/qcustomplot.h \
     app/tcpserver.h \
     app/boxqlabel.h
 
@@ -102,7 +101,6 @@ SOURCES += \
     app/typsetdcr.cpp \
     app/typsetimp.cpp \
     app/udpsocket.cpp \
-    lib/qcustomplot.cpp \
     app/tcpserver.cpp \
     app/boxqlabel.cpp
 

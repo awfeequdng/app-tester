@@ -89,6 +89,12 @@ void TypSetDcr::initWeldBar()
 
     layout->addStretch();
 
+    QComboBox *box1 = new QComboBox(this);
+    box1->setView(new QListView);
+    box1->addItem(tr("挂钩顺序"));
+    box1->setFixedSize(97, 40);
+    layout->addWidget(box1);
+
     QComboBox *box = new QComboBox(this);
     box->setView(new QListView);
     box->addItem(tr("自动排序"));
@@ -156,11 +162,16 @@ void TypSetDcr::initDiagBar()
 
     layout->addStretch();
 
-    QComboBox *box = new QComboBox(this);
-    box->setView(new QListView);
-    box->addItem(tr("挂钩顺序"));
-    box->setFixedSize(97, 40);
-    layout->addWidget(box);
+    diagUpper = new QComboBox(this);
+    diagUpper->setView(new QListView);
+    diagUpper->setFixedSize(97, 40);
+    diagUpper->addItem(tr("自动"));
+    diagUpper->addItem(tr("<1000Ω"));
+    diagUpper->addItem(tr("<100Ω"));
+    diagUpper->addItem(tr("<10Ω"));
+    diagUpper->addItem(tr("<1Ω"));
+    diagUpper->addItem(tr("<50mΩ"));
+    layout->addWidget(diagUpper);
 }
 
 void TypSetDcr::initViewBar()
@@ -229,11 +240,11 @@ void TypSetDcr::initButtons()
     grade->setView(new QListView);
     grade->setFixedSize(97, 40);
     grade->addItem(tr("自动"));
-    grade->addItem(tr("100Ω+"));
-    grade->addItem(tr("10Ω+"));
-    grade->addItem(tr("1Ω+"));
-    grade->addItem(tr("50mΩ+"));
-    grade->addItem(tr("50mΩ-"));
+    grade->addItem(tr("<1000Ω"));
+    grade->addItem(tr("<100Ω"));
+    grade->addItem(tr("<10Ω"));
+    grade->addItem(tr("<1Ω"));
+    grade->addItem(tr("<50mΩ"));
     layout->addWidget(grade);
 
     QPushButton *btnCell = new QPushButton(this);
@@ -268,15 +279,20 @@ void TypSetDcr::initSettings()
     boxDiag->setChecked(tmpSet[s + 0] == "1" ? Qt::Checked : Qt::Unchecked);
     minDiag->setValue(tmpSet[s + 1].toDouble()/1000);
     maxDiag->setValue(tmpSet[s + 2].toDouble()/1000);
+    diagUpper->setCurrentIndex(tmpSet[s + 3].toDouble());
+}
 
+void TypSetDcr::initViewData()
+{
     int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();
     int r = tmpSet[AddrDCRSW].toInt();
     for (int i=0; i < 36; i++) {
         if (i < c) {
             double t = tmpSet[r + i*2 + 0].toDouble();
             double p = tmpSet[r + i*2 + 1].toDouble();
-            t = t*qPow(10, p-3);
-            view->item(i%6, (i/6)*2+1)->setText(tr("%1").arg(t, 0, 'f', p));
+            p = (p > 3) ? p-3 : p;
+            t = t * qPow(10, -p);
+            view->item(i%6, (i/6)*2+1)->setText(QString::number(t, 'f', p));
         } else {
             view->item(i%6, (i/6)*2+1)->setText("");
         }
@@ -302,6 +318,18 @@ void TypSetDcr::saveSettings()
     tmpSet[s + 0] = boxDiag->isChecked() ? "1" : "0";
     tmpSet[s + 1] = QString::number(minDiag->value()*1000);
     tmpSet[s + 2] = QString::number(maxDiag->value()*1000);
+    tmpSet[s + 3] = QString::number(diagUpper->currentIndex());
+
+//    s = tmpSet[AddrDCRSW].toInt();
+//    for (int i=0; i < 72; i++) {
+//        if (view->item(i%6, (i/6)*2 + 1)->text().isEmpty())
+//            break;
+//        double p = tmpSet[s + i*2 + 1].toDouble();
+//        p = (p > 3) ? p-3 : p;
+//        double r = view->item(i%6, (i/6)*2 + 1)->text().toDouble();
+//        tmpSet[s + i*2] = r * qPow(10, p);
+//        qDebug() << s + i*2 << r*qPow(10, p) << p;
+//    }
 
     tmpSet.insert(AddrEnum, Qt::Key_Save);
     tmpSet.insert(AddrText, "aip_config");
@@ -331,7 +359,7 @@ void TypSetDcr::recvUpdate(QTmpMap msg)
         tmpSet[r + i*2 + 0] = msg[s + t*(i + 1) + AddrDataR];
         tmpSet[r + i*2 + 1] = msg[s + t*(i + 1) + AddrDataS];
     }
-    initSettings();
+    initViewData();
 }
 
 void TypSetDcr::recvAppMsg(QTmpMap msg)
@@ -354,6 +382,7 @@ void TypSetDcr::recvAppMsg(QTmpMap msg)
 void TypSetDcr::showEvent(QShowEvent *e)
 {
     initSettings();
+    initViewData();
     e->accept();
 }
 

@@ -18,7 +18,6 @@ void TypSetImp::initUI()
     initLayout();
     initViewBar();
     initWaveBar();
-    drawImpWave();
     initButtons();
     initDelegate();
 }
@@ -87,29 +86,8 @@ void TypSetImp::initWaveBar()
     layout->setMargin(0);
     box->setLayout(layout);
 
-    impView = new QCustomPlot(this);
+    impView = new BoxQLabel(this);
     layout->addWidget(impView);
-    impView->setBackground(QBrush(QColor("#121922"))); //设置背景色
-    impView->xAxis->grid()->setPen(Qt::NoPen);
-    impView->yAxis->grid()->setPen(QPen(Qt::darkGreen, 1, Qt::DotLine));
-    impView->xAxis->setTicks(false);
-    impView->xAxis->setTickLabels(false);
-    impView->yAxis->setTicks(false);
-    impView->yAxis->setTickLabels(false);
-    impView->axisRect()->setMinimumMargins(QMargins(0, 0, 0, 0));
-    impView->axisRect()->setMargins(QMargins(0, 0, 0, 0));
-    impView->xAxis->setBasePen(QPen(Qt::darkGreen, 1, Qt::DotLine));
-    impView->yAxis->setBasePen(Qt::NoPen);
-    impView->xAxis2->setBasePen(Qt::NoPen);
-    impView->yAxis2->setBasePen(Qt::NoPen);
-    impView->xAxis->setRange(0, 400);
-    impView->yAxis->setRange(0, 103);
-
-    impView->xAxis->setTickLabelColor(Qt::white);
-    impView->xAxis->setLabelColor(Qt::white);
-    impView->xAxis->setTickLabelColor(Qt::white);
-
-    impLine = impView->addGraph();
 }
 
 void TypSetImp::initButtons()
@@ -148,25 +126,6 @@ void TypSetImp::initButtons()
     btnSave->setText(tr("保存"));
     layout->addWidget(btnSave);
     connect(btnSave, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
-}
-
-void TypSetImp::drawImpWave()
-{
-    impLine->setPen(QPen(Qt::green, 2));
-    if (tmpWave.isEmpty()) {
-        QVector<double> x(1), y(1);
-        x[0] = -1;
-        y[0] = -1;
-        impLine->setData(x, y);
-    } else {
-        QVector<double> x(400), y(400);
-        for (int i=0; i < 400; i++) {
-            x[i] = i;
-            y[i] = tmpWave.at(i)*100/0x0400;
-        }
-        impLine->setData(x, y);
-    }
-    impView->replot();
 }
 
 void TypSetImp::initDelegate()
@@ -233,6 +192,20 @@ void TypSetImp::saveSettings()
     tmpSet.insert(AddrEnum, Qt::Key_Save);
     tmpSet.insert(AddrText, "aip_config");
     emit sendAppMsg(tmpSet);
+}
+
+void TypSetImp::drawImpWave()
+{
+    if (tmpWave.isEmpty()) {
+        impView->setZero();
+    } else {
+        QVector<double> y(400);
+        for (int i=0; i < 400; i++) {
+            y[i] = tmpWave.at(i)*100/0x0400;
+        }
+        impView->setWave(y, 0);
+    }
+    impView->update();
 }
 
 void TypSetImp::waveUpdate()

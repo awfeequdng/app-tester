@@ -116,6 +116,8 @@ int AppWindow::initDevice()
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), can, SLOT(recvAppMsg(QTmpMap)));
     connect(can, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
 #endif
+    scanner = new QTimer(this);
+    connect(scanner, SIGNAL(timeout()), this, SLOT(showBarCode()));
     return Qt::Key_Away;
 }
 
@@ -914,13 +916,14 @@ int AppWindow::taskStartSave()
 
 int AppWindow::taskStartBeep()
 {
-    timeOut = t.elapsed();
-    qDebug() <<"app beep:" << tr("%1ms").arg(timeOut, 4, 10, QChar('0'));
+    int addr = tmpSet[AddrSyst].toInt();
+    int beep = tmpSet[addr + SystBeep].toInt() * 10 + 9;
     tmpMsg.insert(AddrEnum, Qt::Key_Call);
-    tmpMsg.insert(AddrText, tmpSet[DataOKNG].toInt() == DataOK ? "LEDG" : "LEDR");
-    tmpMsg.insert(AddrBeep, 100);
+    tmpMsg.insert(AddrBeep, beep);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
+    timeOut = t.elapsed();
+    qDebug() <<"app beep:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
     return Qt::Key_Away;
 }
 
@@ -933,6 +936,7 @@ int AppWindow::taskClearBeep()
         timeOut = t.elapsed();
         ret = Qt::Key_Away;
         tmpMsg.insert(AddrEnum, Qt::Key_Call);
+        tmpMsg.insert(AddrText, tmpSet[DataOKNG].toInt() == DataOK ? "LEDG" : "LEDR");
         tmpMsg.insert(AddrBeep, 0);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
@@ -958,6 +962,25 @@ int AppWindow::taskResetTest()
         }
     }
     return (test == 1) ? Qt::Key_Meta : Qt::Key_Away;
+}
+
+int AppWindow::taskCheckStop()
+{
+    if (currTask > taskMap.values().indexOf(&AppWindow::taskCheckPlay)) {
+        tmpMsg.insert(AddrEnum, Qt::Key_Send);
+        tmpMsg.insert(AddrText, AddrDCRSW);
+        emit sendAppMsg(tmpMsg);
+        tmpMsg.clear();
+        currTask = taskMap.values().indexOf(&AppWindow::taskStartBeep);
+    } else {
+        tmpMsg.insert(AddrEnum, Qt::Key_Call);
+        tmpMsg.insert(AddrText, "LED1");
+        tmpMsg.insert(AddrBeep, 0);
+        emit sendAppMsg(tmpMsg);
+        tmpMsg.clear();
+    }
+//    taskClearData();
+    return Qt::Key_Away;
 }
 
 int AppWindow::testThread()
@@ -1017,6 +1040,25 @@ int AppWindow::getNextItem()
         }
     }
     return item;
+}
+
+void AppWindow::showBarCode()
+{
+    int pAddr = tmpSet[AddrSyst].toInt();
+    int pCode = tmpSet[pAddr + SystCode].toInt();
+    int pSize = tmpSet[pAddr + SystSize].toInt();
+    barcode = barcode.mid(pCode, pSize);
+    tmpSet[DataCode] = barcode;
+    sendSqlite();
+    scanner->stop();
+    barcode.clear();
+}
+
+void AppWindow::keyReleaseEvent(QKeyEvent *e)
+{
+    barcode.append(e->text());
+    scanner->start(200);
+    e->accept();
 }
 
 void AppWindow::recvNewMsg(QTmpMap msg)
@@ -1121,12 +1163,7 @@ void AppWindow::recvAppMsg(QTmpMap msg)
         taskShift = Qt::Key_Play;
         break;
     case Qt::Key_Stop:  // 停止测试
-        taskClearData();
-        tmpMsg.insert(AddrEnum, Qt::Key_Call);
-        tmpMsg.insert(AddrText, "LED1");
-        tmpMsg.insert(AddrBeep, 0);
-        emit sendAppMsg(tmpMsg);
-        tmpMsg.clear();
+        taskCheckStop();
         break;
     case Qt::Key_Word:  // 调入参数
         tmpSet = msg;

@@ -25,6 +25,16 @@
 
 #include "appdefine.h"
 
+const int SystArea = 0x00;
+const int SystTest = 0x01;
+const int SystMode = 0x02;
+const int SystRate = 0x03;
+const int SystBeep = 0x04;
+const int SystCode = 0x05;
+const int SystSize = 0x06;
+const int SystTime = 0x07;
+const int SystWarn = 0x08;
+
 class AppSystem : public QWidget
 {
     Q_OBJECT

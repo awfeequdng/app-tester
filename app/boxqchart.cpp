@@ -10,6 +10,7 @@
 
 BoxQChart::BoxQChart(QWidget *parent) : QLabel(parent)
 {
+    m_turn = 0;
     m_start = 0;
     m_lenth = 0;
     m_timer = 0;
@@ -32,13 +33,20 @@ void BoxQChart::setNum(int num)
         m_width = 28;
     if (num <= 8)
         m_width = 24;
-    nums.clear();
+    pies.clear();
+    rows.clear();
     this->update();
 }
 
-void BoxQChart::setClr(int num)
+void BoxQChart::setRow(int num)
 {
-    nums.append(num);
+    rows.append(num);
+    this->update();
+}
+
+void BoxQChart::setPie(int num)
+{
+    pies.append(num);
     this->update();
 }
 
@@ -48,6 +56,11 @@ void BoxQChart::setRun(int num)
     if (num > 0) {
         m_timer = 0;
     }
+}
+
+void BoxQChart::setTurn(int turn)
+{
+    m_turn = turn;
 }
 
 void BoxQChart::setStr()
@@ -73,7 +86,9 @@ void BoxQChart::paintEvent(QPaintEvent *e)
     int side = qMin(width(), height());
     painter.translate(width()/2, height()/2);
     painter.scale(side/SCALE, side /SCALE);
+    drawRow(&painter);
     drawPie(&painter);
+    drawTurn(&painter);
     drawCrown(&painter);
     drawTitle(&painter);
     drawScaleNum(&painter);
@@ -81,13 +96,12 @@ void BoxQChart::paintEvent(QPaintEvent *e)
     e->accept();
 }
 
-void BoxQChart::drawPie(QPainter *painter)
-{  // 外圈扇形
+void BoxQChart::drawRow(QPainter *painter)
+{
     painter->save();
     double angle = 360.0/m_count;
-    double startAngle = 90-angle/2;
-    int radius = SCALE*48/100;
-
+    double startAngle = 90-angle;
+    int radius = SCALE*49/100;
     int t = 1;
     if (m_count <= 36)
         t = 2;
@@ -95,10 +109,36 @@ void BoxQChart::drawPie(QPainter *painter)
         t = 3;
     if (m_count <= 8)
         t = 4;
+    painter->setBrush(QBrush(QColor("#121912")));
+    for (int i=0; i < m_count; i++) {
+        if (rows.contains(i)) {
+            painter->setPen(QPen(QColor("#FF0000"), 2, Qt::SolidLine));
+        } else {
+            painter->setPen(QPen(Qt::darkYellow, 2, Qt::SolidLine));
+        }
+        painter->drawPie(-radius, -radius, radius << 1, radius << 1,
+                         int(startAngle*16), int((angle-t)*16));
+        startAngle -= angle;
+    }
+    painter->restore();
+}
 
+void BoxQChart::drawPie(QPainter *painter)
+{  // 外圈扇形
+    painter->save();
+    double angle = 360.0/m_count;
+    double startAngle = 90-angle/2;
+    int radius = SCALE*46/100;
+    int t = 1;
+    if (m_count <= 36)
+        t = 2;
+    if (m_count <= 12)
+        t = 3;
+    if (m_count <= 8)
+        t = 4;
     painter->setPen(QPen(Qt::transparent));
     for (int i=0; i < m_count; i++) {
-        if (nums.contains(i)) {
+        if (pies.contains(i)) {
             painter->setBrush(QBrush(QColor("#FF0000")));
         } else {
             painter->setBrush(QBrush(QColor(Qt::darkYellow)));
@@ -109,6 +149,33 @@ void BoxQChart::drawPie(QPainter *painter)
         painter->drawPie(-radius, -radius, radius << 1, radius << 1,
                          int(startAngle*16), int((angle-t)*16));
         startAngle -= angle;
+    }
+    painter->restore();
+}
+
+void BoxQChart::drawTurn(QPainter *painter)
+{
+    painter->save();
+    int radius = SCALE*65/100;
+    int t = 1;
+    if (m_count <= 36)
+        t = 2;
+    if (m_count <= 12)
+        t = 3;
+    if (m_count <= 8)
+        t = 4;
+    if (m_turn >= 2)
+        painter->setPen(QPen(QColor("#FF0000"), 2, Qt::SolidLine));
+    else
+        painter->setPen(QPen(Qt::darkYellow, 2, Qt::SolidLine));
+    if (m_turn%2 == 0) {
+        painter->drawArc(-radius, -radius, radius << 1, radius << 1, int(-30*16), int((72-t)*16));
+        painter->drawLine(radius-17, radius/2, radius - 4, radius/2 - 12);
+        painter->drawLine(radius-18, radius/2, radius - 17, radius/2 - 17);
+    } else {
+        painter->drawArc(-radius, -radius, radius << 1, radius << 1, int(140*16), int((72-t)*16));
+        painter->drawLine(-radius+17, radius/2, -radius + 4, radius/2 - 12);
+        painter->drawLine(-radius+18, radius/2, -radius + 16, radius/2 - 17);
     }
     painter->restore();
 }

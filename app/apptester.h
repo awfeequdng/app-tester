@@ -29,7 +29,6 @@
 #include <QGraphicsScene>
 #include <QStandardItemModel>
 
-#include "lib/qcustomplot.h"
 #include "boxqchart.h"
 #include "boxqlabel.h"
 
@@ -52,7 +51,7 @@ const QString titleOK = "<p style='font-size:11pt;color:#FFFFFF;' align='left'>"
 const QString titleNG = "<p style='font-size:11pt;color:#666666;' align='left'>";
 const QString largeOK = "<p style='font-size:15pt;color:#00FF00;' align='center'>%1</p>";
 const QString largeNG = "<p style='font-size:15pt;color:#FF0000;' align='center'>%1</p>";
-const QString largeON = "<p style='font-size:15pt;color:#666666;' align='center'>%1</p>";
+const QString largeEN = "<p style='font-size:15pt;color:#666666;' align='center'>%1</p>";
 
 const QString judgeOK = "<p style='font-size:64pt;color:#00FF00;'align='center'><b>OK</b></p>";
 const QString judgeNG = "<p style='font-size:64pt;color:#FF0000;'align='center'><b>NG</b></p>";
@@ -72,25 +71,25 @@ private slots:
     void initStatus();
     void initWorker();
     void initResult();
+    void initQuRate();
     void initQChart();
     void initButton();
-    void initDcrWeld();
-    void initDcrChip();
-    void initDcrDiag();
-    void initDcrWave();
-    void drawDcrWave();
-    void initInrTextCG();
-    void initAcwTextAC();
-    void initAcwTextAL();
-    void initAcwTextLC();
-    void initImpText();
-    void initImpWave();
+    void initTextDCR1();
+    void initTextDCR2();
+    void initTextDCR3();
+    void initWaveDCRW();
+    void initTextACW4();
+    void initTextACW1();
+    void initTextACW2();
+    void initTextACW3();
+    void initTextIMP1();
+    void initWaveIMPW();
     void initSettings();
-    void initViewText();
-    void drawImpWave(int numb);
+    void initTextView();
+    void drawWaveDCRW();
+    void drawWaveIMPW(int numb);
+    void showViewSize();
 
-    void setViewSize();
-    void initAllRate();
     void drawAllRate();
     void boxResize();
     void dcrResize();
@@ -105,22 +104,15 @@ private slots:
     void recvUpdate(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
+
 private:
     QTableWidget *status;
     QVBoxLayout *mLayout;
-//    QCustomPlot *dcrView;
-//    QCustomPlot *impView;
     QTableWidget *view;
     QLabel *textResult;
     QLabel *textWorker;
-    QCustomPlot *histogram;
-    QList<QCPBars*> bars;
-    quint32 countOk;
-    quint32 countAll;
-
-    QCPGraph *graph1;
-    QCPGraph *graph2;
-    QCPGraph *graph3;
+    quint32 testOK;
+    quint32 testQu;
 
     QList<QLabel*> dcrTitles;
     QList<QLabel*> dcrLabels;
@@ -129,9 +121,9 @@ private:
     QList<QLabel*> impLabels;
     QList<QLabel*> impTitles;
 
-    QTextBrowser *textWeld;
-    QTextBrowser *textChip;
-    QTextBrowser *textDiag;
+    QTextBrowser *textDCR1;
+    QTextBrowser *textDCR2;
+    QTextBrowser *textDCR3;
     QTextBrowser *textIMPR;
 
     QPushButton *btnHome;
@@ -146,8 +138,6 @@ private:
     double prev;
     double min;
     int minb;
-    QCPGraph *impLine;
-    QCPGraph *impStdd;
     QElapsedTimer t;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;

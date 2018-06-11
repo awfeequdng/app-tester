@@ -48,6 +48,7 @@ private slots:
     void initViewBar();
     void initButtons();
     void initSettings();
+    void initViewData();
     void saveSettings();
     void clickButtons();
     void sample();
@@ -70,6 +71,7 @@ private:
     QComboBox *grade;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
+    QComboBox *diagUpper;
 };
 
 #endif // TYPSETDCR_H

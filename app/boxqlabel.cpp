@@ -21,6 +21,26 @@ void BoxQLabel::setZero()
     real.clear();
 }
 
+void BoxQLabel::setText(QString text, int mode)
+{
+    switch (mode) {
+    case 0:
+        str1 = text;
+        break;
+    case 1:
+        str2 = text;
+        break;
+    case 2:
+        str3 = text;
+        break;
+    case 3:
+        str4 = text;
+        break;
+    default:
+        break;
+    }
+}
+
 void BoxQLabel::setData(QVector<double> values, int numb)
 {
     quan = values;
@@ -212,42 +232,74 @@ void BoxQLabel::drawAllQuan(QPainter *painter)
         << tr("轴线") << "合格" << "淘汰"
         << tr("铁线") << "合格" << "淘汰"
         << tr("匝间") << "合格" << "淘汰";
-    for (int i=0; i < quan.size() / 3; i++) {
-        painter->setPen(QPen(Qt::white));
-        double q1 = quan[i*3 + 0];
-        double q2 = quan[i*3 + 1];
-        double q3 = quan[i*3 + 2];
-        QFontMetricsF fm(painter->font());
-        double f1 = fm.size(Qt::TextSingleLine, tmp.at(0)).width();
-        double f2 = fm.size(Qt::TextSingleLine, QString::number(q1)).width();
+    double ww = quan.value(0);
+    if (ww != 0) {
+        for (int i=0; i < quan.size() / 3; i++) {
+            painter->setPen(QPen(Qt::white));
+            double q1 = quan[i*3 + 0];
+            double q2 = quan[i*3 + 1];
+            double q3 = quan[i*3 + 2];
+            QFontMetricsF fm(painter->font());
+            double f1 = fm.size(Qt::TextSingleLine, tmp.at(0)).width();
+            double f2 = fm.size(Qt::TextSingleLine, QString::number(q1)).width();
 
-        painter->drawText((i*6 + 1) * w / quan.size()/2 - f1/2, h-20, tmp.at(i*3 + 0));
-        painter->drawText((i*6 + 3) * w / quan.size()/2 - f1/2, h-20, tmp.at(i*3 + 1));
-        painter->drawText((i*6 + 5) * w / quan.size()/2 - f1/2, h-20, tmp.at(i*3 + 2));
-        painter->drawText((i*6 + 1) * w / quan.size()/2 - f2/2, h-5, QString::number(q1));
-        painter->drawText((i*6 + 3) * w / quan.size()/2 - f2/2, h-5, QString::number(q2));
-        painter->drawText((i*6 + 5) * w / quan.size()/2 - f2/2, h-5, QString::number(q3));
+            painter->drawText((i*6 + 1) * w / quan.size()/2 - f1/2, h-20, tmp.at(i*3 + 0));
+            painter->drawText((i*6 + 3) * w / quan.size()/2 - f1/2, h-20, tmp.at(i*3 + 1));
+            painter->drawText((i*6 + 5) * w / quan.size()/2 - f1/2, h-20, tmp.at(i*3 + 2));
+            painter->drawText((i*6 + 1) * w / quan.size()/2 - f2/2, h-5, QString::number(q1));
+            painter->drawText((i*6 + 3) * w / quan.size()/2 - f2/2, h-5, QString::number(q2));
+            painter->drawText((i*6 + 5) * w / quan.size()/2 - f2/2, h-5, QString::number(q3));
 
-        if (q1 == 0) {
-            continue;
+            double x1 = (i*6 + 0) * w / quan.size()/2 + 2;
+            double x2 = (i*3 + 1) * w / quan.size() + 2;
+            double x3 = (i*3 + 2) * w / quan.size() + 0;
+            double y1 = 5 + (ww - q1) / ww * (h - 40);
+            double y2 = 5 + (ww - q2) / ww * (h - 40);
+            double y3 = 5 + (ww - q3) / ww * (h - 40);
+            double h1 = h - y1 - 34;
+            double h2 = h - y2 - 34;
+            double h3 = h - y3 - 34;
+
+            painter->setPen(QPen(Qt::blue));
+            painter->setBrush(QBrush(Qt::blue));
+            painter->drawRect(x1, y1, w / quan.size() - 2, h1);
+
+            painter->setPen(QPen(Qt::green));
+            painter->setBrush(QBrush(Qt::green));
+            painter->drawRect(x2, y2, w / quan.size() - 3, h2);
+
+            painter->setPen(QPen(Qt::red));
+            painter->setBrush(QBrush(Qt::red));
+            painter->drawRect(x3, y3, w / quan.size() - 5, h3);
         }
-        painter->setPen(QPen(Qt::blue));
-        painter->setBrush(QBrush(Qt::blue));
-        painter->drawRect((i*6 + 0) * w / quan.size()/2 + 2, 5, w / quan.size() - 2, h - 40);
+    }
+}
 
-        double x1 = (i*3 + 1) * w / quan.size() + 2;
-        double x2 = (i*3 + 2) * w / quan.size() + 0;
-        double y1 = 5 + (q3) / q1 * (h - 40);
-        double y2 = 5 + (q2) / q1 * (h - 40);
-        double h1 = h - y1 - 34;
-        double h2 = h - y2 - 34;
-        painter->setPen(QPen(Qt::green));
-        painter->setBrush(QBrush(Qt::green));
-        painter->drawRect(x1, y1, w / quan.size() - 3, h1);
-
-        painter->setPen(QPen(Qt::red));
-        painter->setBrush(QBrush(Qt::red));
-        painter->drawRect(x2, y2, w / quan.size() - 5, h2);
+void BoxQLabel::drawAllText(QPainter *painter)
+{
+    QFontMetricsF fm(this->font());
+    int w = this->width();
+    int h = this->height();
+    painter->setPen(QPen(Qt::white));
+    if (!str1.isEmpty()) {
+        int x = 2;
+        int y = 2 + fm.size(Qt::TextSingleLine, str1).height();
+        painter->drawText(x, y, str1);
+    }
+    if (!str2.isEmpty()) {
+        int x = w - 2 - fm.size(Qt::TextSingleLine, str2).width();
+        int y = 2 + fm.size(Qt::TextSingleLine, str2).height();
+        painter->drawText(x, y, str2);
+    }
+    if (!str3.isEmpty()) {
+        int x = w - 0 - fm.size(Qt::TextSingleLine, str3).width();
+        int y = h - 5;
+        painter->drawText(x, y, str3);
+    }
+    if (!str4.isEmpty()) {
+        int x = 2;
+        int y = h -5;
+        painter->drawText(x, y, str4);
     }
 }
 
@@ -271,6 +323,7 @@ void BoxQLabel::paintEvent(QPaintEvent *e)
     default:
         break;
     }
+    drawAllText(painter);
     painter->end();
     e->accept();
 }

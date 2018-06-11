@@ -78,6 +78,7 @@ void AppSignin::initTitleBar()
 void AppSignin::initLoginBar()
 {
     isOk = false;
+    isAuto = false;
     QGridLayout *layout = new QGridLayout;
     layout->setMargin(5);
     layout->setSpacing(5);
@@ -261,6 +262,7 @@ void AppSignin::initSettings()
     if (a == 1) {
         autosign->setChecked(true);
         if (!isOk) {
+            isAuto = true;
             checkSignin();
         }
     }
@@ -275,7 +277,10 @@ void AppSignin::saveSettings()
     tmpSet[r + AddrSave] = autosave->isChecked() ? 1 : 0;
     tmpSet[r + AddrLast] = QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss");
     tmpSet.insert(AddrEnum, Qt::Key_Save);
-    tmpSet.insert(AddrText, "aip_system");
+    if (isAuto)
+        isAuto = false;
+    else
+        tmpSet.insert(AddrText, "aip_system");
     emit sendAppMsg(tmpSet);
 
     tmpMsg.insert(AddrEnum, Qt::Key_Game);

@@ -63,6 +63,7 @@ private:
     QList<QComboBox*> inputs;
 
     bool isOk;
+    bool isAuto;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
 };

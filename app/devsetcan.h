@@ -51,7 +51,6 @@ const int CAN_ID_ACW = 0x0023;
 const int CAN_ID_IMP = 0x0024;
 const int CAN_ID_WAVE = 0x0481;
 
-
 class DevSetCan : public QObject
 {
     Q_OBJECT
@@ -73,6 +72,8 @@ private slots:
     void setupDCR(QTmpMap map);
     void startDCR(QTmpMap map);
     void parseDCR(QByteArray msg);
+    void orderDCR();
+    void judgeDCR();
     void renewDCR();
     void setupACW();
     void startACW();
@@ -85,6 +86,7 @@ private slots:
     void calc();
     void setupTest(QTmpMap msg);
     void startTest(QTmpMap msg);
+    void resetTest(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
 private:
     int fd;
@@ -99,6 +101,10 @@ private:
     QTmpMap tmpMsg;
     int timeOut;
     int numb;
+    QTmpMap tmpDCR;
+    QTmpMap tmpPer;
+    QTmpMap tmpRow;
+    int currTemp;
 };
 
 #endif // DEVSETCAN_H

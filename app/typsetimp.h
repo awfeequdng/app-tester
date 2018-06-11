@@ -28,8 +28,7 @@
 #include "boxqmodel.h"
 #include "boxqitems.h"
 #include "boxdouble.h"
-
-#include "lib/qcustomplot.h"
+#include "boxqlabel.h"
 
 #include "appdefine.h"
 #include "typconfig.h"
@@ -59,18 +58,17 @@ private slots:
     void initViewBar();
     void initWaveBar();
     void initButtons();
-    void drawImpWave();
     void initDelegate();
     void initSettings();
     void saveSettings();
+    void drawImpWave();
     void waveUpdate();
     void recvUpdate(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
     QVBoxLayout *boxLayout;
-    QCustomPlot *impView;
-    QCPGraph *impLine;
+    BoxQLabel *impView;
     QTableView *view;
     BoxQModel *mView;
     QLabel *text;

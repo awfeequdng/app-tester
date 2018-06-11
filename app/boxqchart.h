@@ -35,12 +35,16 @@ signals:
     void sendClick();
 public:
     void setNum(int num);
-    void setClr(int num);
+    void setRow(int num);
+    void setPie(int num);
     void setRun(int num);
+    void setTurn(int turn);
 protected:
     void mouseReleaseEvent(QMouseEvent *e);
     void paintEvent(QPaintEvent *event);
+    void drawRow(QPainter *painter);
     void drawPie(QPainter *painter);
+    void drawTurn(QPainter *painter);
     void drawCrown(QPainter *painter);
     void drawTitle(QPainter *painter);
     void drawScaleNum(QPainter *painter);
@@ -53,7 +57,9 @@ private:
     int m_timer;
     int m_lenth;
     int m_start;
-    QList<int> nums;
+    int m_turn;
+    QList<int> pies;
+    QList<int> rows;
 };
 
 #endif // BOXQCHART_H
