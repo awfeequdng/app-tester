@@ -28,8 +28,27 @@
 #include <QTableWidgetItem>
 #include <QListView>
 
-#include "appdefine.h"
+#include "main.h"
 #include "typconfig.h"
+
+const int ISCKDCR1 = 0x00;
+const int SMAXDCR1 = 0x01;
+const int ISTMDCR1 = 0x02;
+const int TEMPDCR1 = 0x03;
+const int TIMEDCR1 = 0x04;
+const int GEARDCR1 = 0x05;
+
+const int ISCHDCR2 = 0x01;
+const int SMAXDCR2 = 0x02;
+
+const int ISCHDCR3 = 0x00;
+const int SMINDCR3 = 0x01;
+const int SMAXDCR3 = 0x02;
+const int GEARDCR3 = 0x03;
+const int RMINDCR3 = 0x04;
+const int GMINDCR3 = 0x05;
+const int RMAXDCR3 = 0x06;
+const int GMAXDCR3 = 0x07;
 
 class TypSetDcr : public QWidget
 {
@@ -50,7 +69,6 @@ private slots:
     void initSettings();
     void initViewData();
     void saveSettings();
-    void clickButtons();
     void sample();
     void recvUpdate(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
@@ -68,10 +86,9 @@ private:
     QDoubleSpinBox *maxChip;
     QDoubleSpinBox *maxDiag;
     QDoubleSpinBox *minDiag;
-    QComboBox *grade;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
-    QComboBox *diagUpper;
+    int currItem;
 };
 
 #endif // TYPSETDCR_H

@@ -13,6 +13,7 @@
 #include <QDebug>
 #include <QWidget>
 #include <QLayout>
+#include <QProcess>
 #include <QGroupBox>
 #include <QDateEdit>
 #include <QComboBox>
@@ -28,7 +29,7 @@
 #include <QSqlTableModel>
 #include <QSqlError>
 
-#include "appdefine.h"
+#include "main.h"
 #include "boxqlabel.h"
 
 class SqlRecord : public QWidget
@@ -37,13 +38,15 @@ class SqlRecord : public QWidget
 public:
     explicit SqlRecord(QWidget *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
+    void sendAppMap(QTmpMap msg);
 private slots:
     void initUI();
     void initLayout();
     void initViewBar();
     void initTextBar();
     void initButtonBar();
+    void existsFlashDisk();
+    void deleteFlashDisk();
 
     void recvSelect();
     void recvExportAll();
@@ -58,6 +61,8 @@ private:
     QDateEdit *stop;
     QVBoxLayout *boxLayout;
 
+    QLabel *text;
+
     BoxQLabel *view;
 
     QString sqlName;
@@ -70,6 +75,9 @@ private:
     QTmpMap tmpSet;
     QTmpMap tmpQuan;
     QTmpMap tmpOKNG;
+    quint32 timeOut;
+    QElapsedTimer t;
+    QString path;
 };
 
 #endif // SQLRECORD_H

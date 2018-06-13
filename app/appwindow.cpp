@@ -51,7 +51,7 @@ int AppWindow::initTitle()
 
     QDateTime t(dt, tt);
     verNumb = QString("V-%1").arg(t.toString("yyMMdd-hhmm"));
-    qDebug() << "app data:" << verNumb;
+    qDebug() << "app vern:" << verNumb;
     this->setWindowTitle(tr("电枢测试仪%1").arg(verNumb));
     return Qt::Key_Away;
 }
@@ -167,8 +167,6 @@ int AppWindow::  initScreen()
     names << tr("正在初始化上传管理");
     initMap[names.size()] = &AppWindow::initSdcard;
     names << tr("正在初始化历史数据");
-    initMap[names.size()] = &AppWindow::initUnqual;
-    names << tr("正在初始化数据分析");
     initMap[names.size()] = &AppWindow::initSqlDir;
     names << tr("正在创建配置数据库");
     initMap[names.size()] = &AppWindow::readBackup;
@@ -404,6 +402,7 @@ int AppWindow::initImport()
     sql = new QThread(this);
     sql->start();
     SqlImport *app = new SqlImport;
+    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     app->moveToThread(sql);
     return Qt::Key_Away;
@@ -416,7 +415,6 @@ int AppWindow::initRecord()
     app->setObjectName(name);
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
-
     initButton(tr("数据管理"), name);
     return Qt::Key_Away;
 }
@@ -426,37 +424,23 @@ int AppWindow::initUpload()
     QString name = "upload";
     SqlUpload *app = new SqlUpload(this);
     app->setObjectName(name);
-    //    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    //    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
+    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
-
     initButton(tr("数据上传"), name);
     return Qt::Key_Away;
 }
 
 int AppWindow::initSdcard()
 {
+#ifdef __arm__
     QString name = "sdcard";
     SqlSdcard *app = new SqlSdcard(this);
     app->setObjectName(name);
-    //    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    //    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
+    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
-
     initButton(tr("数据历史"), name);
-    return Qt::Key_Away;
-}
-
-int AppWindow::initUnqual()
-{
-    QString name = "unqual";
-    SqlUnqual *app = new SqlUnqual(this);
-    app->setObjectName(name);
-    //    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    //    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
-    stack->addWidget(app);
-
-    initButton(tr("数据分析"), name);
+#endif
     return Qt::Key_Away;
 }
 
@@ -679,7 +663,7 @@ void AppWindow::saveSqlite()
     boxbar->setValue(100);
 }
 
-void AppWindow::saveModels()
+void AppWindow::saveConfig()
 {
     QElapsedTimer tt;
     tt.start();
@@ -839,7 +823,7 @@ void AppWindow::cloudAntimation()
 
 int AppWindow::taskThread()
 {
-    tmpMsg.insert(AddrEnum, Qt::Key_Plus);
+    tmpMsg.insert(AddrEnum, Qt::Key_Time);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 
@@ -908,7 +892,8 @@ int AppWindow::taskStartTest()
 
 int AppWindow::taskStartSave()
 {
-    tmpSet.insert(AddrEnum, Qt::Key_Book);
+    tmpSet.insert(AddrEnum, Qt::Key_Save);  // 存储数据
+    tmpSet.insert(AddrText, "aip_record");
     emit sendAppMsg(tmpSet);
     qDebug() <<"app save:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
     return Qt::Key_Away;
@@ -979,7 +964,7 @@ int AppWindow::taskCheckStop()
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
     }
-//    taskClearData();
+    //    taskClearData();
     return Qt::Key_Away;
 }
 
@@ -1059,6 +1044,30 @@ void AppWindow::keyReleaseEvent(QKeyEvent *e)
     barcode.append(e->text());
     scanner->start(200);
     e->accept();
+}
+
+void AppWindow::loopBoxbar()
+{
+    int t = 0;
+    while (1) {
+        if (boxbar->isHidden())
+            break;
+        boxbar->setValue(t);
+        wait(100);
+        t = (t + 1) % 100;
+    }
+}
+
+void AppWindow::recvSqlMsg(QTmpMap msg)
+{
+    if (msg.value(AddrText).toString() == "copy") {  // 开始备份
+        boxbar->setLabelText(tr("正在备份数据"));
+        boxbar->show();
+        QTimer::singleShot(10, this, SLOT(loopBoxbar()));
+    }
+    if (msg.value(AddrText).toString() == "over") {  // 备份完成
+        boxbar->setValue(100);
+    }
 }
 
 void AppWindow::recvNewMsg(QTmpMap msg)
@@ -1149,14 +1158,24 @@ void AppWindow::recvAppMsg(QTmpMap msg)
         tmpSet[DataSign] = 0;
         recvAppShow("signin");
         break;
+    case Qt::Key_Copy:
+        recvSqlMsg(msg);
+        break;
     case Qt::Key_Save:
         tmpSet = msg;
-        if (msg.value(AddrText).toString() == "aip_backup")
+        if (msg.value(AddrText).toString() == "aip_backup") {  // 后台参数保存
             saveBackup();
-        if (msg.value(AddrText).toString() == "aip_system")
+        }
+        if (msg.value(AddrText).toString() == "aip_system") {  // 系统参数保存
             saveSqlite();
-        if (msg.value(AddrText).toString() == "aip_config")
-            saveModels();
+        }
+        if (msg.value(AddrText).toString() == "aip_config") {  // 配置参数保存
+            saveConfig();
+        }
+        if (msg.value(AddrText).toString() == "aip_reload") {  // 重新加载参数
+            saveSqlite();
+            readConfig();
+        }
         sendSqlite();
         break;
     case Qt::Key_Play:
@@ -1164,12 +1183,6 @@ void AppWindow::recvAppMsg(QTmpMap msg)
         break;
     case Qt::Key_Stop:  // 停止测试
         taskCheckStop();
-        break;
-    case Qt::Key_Word:  // 调入参数
-        tmpSet = msg;
-        saveSqlite();
-        readConfig();
-        sendSqlite();
         break;
     case Qt::Key_Time:
         emit sendAppMsg(msg);

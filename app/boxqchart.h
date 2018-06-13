@@ -21,7 +21,7 @@
 
 #include <cmath>
 
-#include "appdefine.h"
+#include "main.h"
 
 #define PI 3.1415926
 #define SCALE 200.0

@@ -488,15 +488,16 @@ void AppTester::initSettings()
         int c = tmpSet[r+0].toInt();
         double l = tmpSet[r + 1].toDouble();
         double h = tmpSet[r + 2].toDouble();
-        double g = tmpSet[tmpSet[AddrDCRS1].toInt()+5].toDouble();
-        QString tt = c == 1 ? titleOK : titleNG;
-        QString gg = g < 4 ? "Ω" : "mΩ";
+        double g = tmpSet[tmpSet[AddrDCRS3].toInt()+3].toDouble();
         h = g < 4 ? h/1000 : h;
         l = g < 4 ? l/1000 : l;
+        QString tt = c == 1 ? titleOK : titleNG;
+        QString gg = g < 4 ? "Ω" : "mΩ";
+        g = (g > 3) ? g-3 : g;
 
         tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;%2:%3~%4%5</p>";
         tt = tt.arg("跨间电阻").arg("均值");
-        tt = tt.arg(QString::number(l, 'f', 3)).arg(QString::number(h, 'f', 3));
+        tt = tt.arg(QString::number(l, 'f', 3)).arg(QString::number(h, 'f', g));
         tt = tt.arg(gg);
         dcrTitles.at(2)->setText(tt);
         textDCR3->clear();

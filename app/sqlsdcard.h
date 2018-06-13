@@ -10,15 +10,18 @@
 #define SQLSDCARD_H
 
 #include <QLabel>
+#include <QTimer>
 #include <QDebug>
 #include <QWidget>
 #include <QLayout>
+#include <QProcess>
 #include <QGroupBox>
 #include <QDateEdit>
 #include <QShowEvent>
 #include <QTableView>
 #include <QHeaderView>
 #include <QPushButton>
+#include <QElapsedTimer>
 #include <QFileSystemModel>
 #include <QMessageBox>
 
@@ -27,13 +30,16 @@
 #include <QSqlDatabase>
 #include <QSqlTableModel>
 
+#include "main.h"
+
+
 class SqlSdcard : public QWidget
 {
     Q_OBJECT
 public:
     explicit SqlSdcard(QWidget *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initUI();
     void initLayout();
@@ -48,7 +54,6 @@ private:
 
     QDateEdit *from;
     QDateEdit *stop;
-    QVariantMap tmpMap;
 };
 
 #endif // SQLSDCARD_H

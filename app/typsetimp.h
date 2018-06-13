@@ -30,7 +30,7 @@
 #include "boxdouble.h"
 #include "boxqlabel.h"
 
-#include "appdefine.h"
+#include "main.h"
 #include "typconfig.h"
 
 const int AddrIMPSC = 0x00;  // 测试
@@ -57,11 +57,13 @@ private slots:
     void initLayout();
     void initViewBar();
     void initWaveBar();
+    void initWaveCtl();
     void initButtons();
     void initDelegate();
     void initSettings();
     void saveSettings();
     void drawImpWave();
+    void waveSwitch();
     void waveUpdate();
     void recvUpdate(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
@@ -72,6 +74,7 @@ private:
     QTableView *view;
     BoxQModel *mView;
     QLabel *text;
+    QLabel *numb;
     QList<int> tmpWave;
     QList<int> impWave;
     int time;

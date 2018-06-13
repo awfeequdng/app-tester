@@ -27,7 +27,7 @@
 #include <QToolButton>
 #include <QStackedWidget>
 
-#include "appdefine.h"
+#include "main.h"
 
 #include "appmaster.h"
 #include "appaction.h"

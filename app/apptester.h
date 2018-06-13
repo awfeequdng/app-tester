@@ -32,7 +32,7 @@
 #include "boxqchart.h"
 #include "boxqlabel.h"
 
-#include "appdefine.h"
+#include "main.h"
 
 #include "devsetcan.h"
 #include "typconfig.h"

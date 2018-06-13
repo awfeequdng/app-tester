@@ -28,7 +28,7 @@
 #include "boxqmodel.h"
 #include "boxqitems.h"
 #include "boxdouble.h"
-#include "appdefine.h"
+#include "main.h"
 #include "typconfig.h"
 
 const int AddrACWSC = 0x00;  // 测试

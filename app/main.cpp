@@ -11,7 +11,7 @@
 #include <QTextCodec>
 #include <QFile>
 
-#include "appdefine.h"
+#include "main.h"
 #include "appwindow.h"
 #include "boxqinput.h"
 

@@ -12,7 +12,7 @@ SqlImport::SqlImport(QObject *parent) : QObject(parent)
 {
 }
 
-void SqlImport::initSqlDat()
+void SqlImport::initData()
 {
     qint64 uuid = QDate::currentDate().toJulianDay();
     QSqlQuery query(QSqlDatabase::database("system"));
@@ -28,10 +28,88 @@ void SqlImport::initSqlDat()
     }
 }
 
+void SqlImport::initFlash()
+{
+#ifdef __arm__
+    if (readSdcard()) {
+        if (readRecord()) {
+            initBackup();
+            initRecord();
+        }
+    }
+#endif
+}
+
+bool SqlImport::readRecord()
+{
+    bool isExist = false;
+    QProcess cmddf;
+    cmddf.start("df -h");
+    if (cmddf.waitForFinished()) {
+        QByteArray bytedf = cmddf.readAll();
+        QStringList listdf = QString(bytedf).split("\n");
+        for (int i=0; i < listdf.size(); i++) {
+            if (listdf.at(i).startsWith("/dev/mmcblk0p1")) {
+                isExist =  true;
+                break;
+            }
+        }
+    }
+    cmddf.deleteLater();
+    return isExist;
+}
+
+bool SqlImport::readSdcard()
+{
+    QProcess cmddu;
+    cmddu.start("du -s /mnt/nandflash/record.db");
+    cmddu.waitForFinished();
+    QByteArray du = cmddu.readAll();
+    QString sf = du.mid(0, du.indexOf("\t"));
+    return (sf.toInt() > SD_SIZE);
+}
+
+bool SqlImport::initBackup()
+{
+    tmpMap.insert(AddrEnum, Qt::Key_Copy);
+    tmpMap.insert(AddrText, "copy");
+    emit sendAppMsg(tmpMap);
+    tmpMap.clear();
+    QProcess cmddu;
+    QString name = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
+    QString p = "cp /mnt/nandflash/record.db /mnt/sdcard/";
+    p.append(name + ".db");
+    cmddu.start(p);
+    cmddu.waitForFinished();
+    return true;
+}
+
+bool SqlImport::initRecord()
+{
+    QSqlDatabase::database("record").close();
+    QSqlDatabase::database("record").open();
+    QSqlQuery query(QSqlDatabase::database("record"));
+    if (!query.exec("drop table if exists aip_record"))
+        qDebug() << query.lastError();
+    if (!query.exec("vacuum"))
+        qDebug() << query.lastError();
+    QString cmd;
+    cmd = "create table if not exists aip_record (";
+    cmd += "R_UUID bigint, R_ITEM integer,R_TEXT text,primary key (R_UUID,R_ITEM))";
+    if (!query.exec(cmd))
+        qWarning() << "aip_record:" << query.lastError();
+    query.clear();
+    tmpMap.insert(AddrEnum, Qt::Key_Copy);
+    tmpMap.insert(AddrText, "over");
+    emit sendAppMsg(tmpMap);
+    tmpMap.clear();
+    return true;
+}
+
 void SqlImport::saveSqlite(QTmpMap msg)
 {
     if (tmpQuan.isEmpty()) {
-        initSqlDat();
+        initData();
     }
     qint64 uuid = QDate::currentDate().toJulianDay();
     QSqlDatabase::database("system").transaction();
@@ -157,9 +235,14 @@ void SqlImport::recvAppMsg(QTmpMap msg)
 {
     int c = msg.value(AddrEnum).toInt();
     switch (c) {
-    case Qt::Key_Book:
-        saveSqlite(msg);
-        saveRecord(msg);
+    case Qt::Key_Save:
+        if (msg.value(AddrText).toString() == "aip_record") {
+            saveSqlite(msg);
+            saveRecord(msg);
+        }
+        break;
+    case Qt::Key_Game:
+        QTimer::singleShot(1000, this, SLOT(initFlash()));
         break;
     default:
         break;

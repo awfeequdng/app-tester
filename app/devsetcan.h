@@ -35,7 +35,7 @@
 #include <QVariant>
 #include <QElapsedTimer>
 
-#include "appdefine.h"
+#include "main.h"
 #include "typconfig.h"
 #include "typsetdcr.h"
 #include "typsetacw.h"

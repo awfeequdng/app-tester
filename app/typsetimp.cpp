@@ -18,6 +18,7 @@ void TypSetImp::initUI()
     initLayout();
     initViewBar();
     initWaveBar();
+    initWaveCtl();
     initButtons();
     initDelegate();
 }
@@ -90,6 +91,29 @@ void TypSetImp::initWaveBar()
     layout->addWidget(impView);
 }
 
+void TypSetImp::initWaveCtl()
+{
+    QHBoxLayout *layout = new QHBoxLayout;
+    boxLayout->addLayout(layout);
+    layout->addStretch();
+
+    QPushButton *btnPrev = new QPushButton(this);
+    btnPrev->setFixedSize(97, 40);
+    btnPrev->setText(tr("上一个"));
+    layout->addWidget(btnPrev);
+    connect(btnPrev, SIGNAL(clicked(bool)), this, SLOT(waveSwitch()));
+
+    numb = new QLabel(this);
+    numb->setFixedWidth(30);
+    layout->addWidget(numb);
+
+    QPushButton *btnNext = new QPushButton(this);
+    btnNext->setFixedSize(97, 40);
+    btnNext->setText(tr("下一个"));
+    layout->addWidget(btnNext);
+    connect(btnNext, SIGNAL(clicked(bool)), this, SLOT(waveSwitch()));
+}
+
 void TypSetImp::initButtons()
 {
     boxLayout->addStretch();
@@ -151,6 +175,7 @@ void TypSetImp::initSettings()
     mView->item(0, w)->setText(tmpSet[s + w].toString());
     w = AddrIMPSL;  // 下限
     mView->item(0, w)->setText(tmpSet[s + w].toString());
+    numb->setText(tmpSet[s + w].toString());
     w = AddrIMPSO;  // 补偿
     mView->item(0, w)->setText(tmpSet[s + w].toString());
     w = AddrIMPSA;  // 间隔
@@ -159,6 +184,7 @@ void TypSetImp::initSettings()
     text->setText(tmpSet[s + w].toString());
 
     int r = tmpSet[AddrIMPSW].toInt();  // 波形存储地址
+    r += numb->text().toInt() * 400;
     tmpWave.clear();
     for (int i=0; i < 400; i++) {
         tmpWave.append(tmpSet[r + i].toInt());
@@ -205,7 +231,35 @@ void TypSetImp::drawImpWave()
         }
         impView->setWave(y, 0);
     }
+    QString s = QString("编号:%1").arg(numb->text().toInt(), 2, 10, QChar('0'));
+    impView->setText(s, 1);
     impView->update();
+}
+
+void TypSetImp::waveSwitch()
+{
+    int addr = tmpSet[AddrModel].toInt();  // 综合配置地址
+    int quan = tmpSet[addr + 0].toInt();  // 电枢片数
+
+    QPushButton *btn = qobject_cast<QPushButton*>(sender());
+    int n = numb->text().toInt();
+    if (btn->text() == tr("上一个")) {
+        n--;
+    }
+    if (btn->text() == tr("下一个")) {
+        n++;
+    }
+    n = qMin(quan, n);
+    n = qMax(1, n);
+    numb->setText(QString::number(n));
+
+    int r = tmpSet[AddrIMPSW].toInt();  // 波形存储地址
+    r += n*400;
+    tmpWave.clear();
+    for (int i=0; i < 400; i++) {
+        tmpWave.append(tmpSet[r + i].toInt());
+    }
+    drawImpWave();
 }
 
 void TypSetImp::waveUpdate()

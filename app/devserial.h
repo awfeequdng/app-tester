@@ -25,7 +25,7 @@
 #include <QWSServer>
 #endif
 
-#include "appdefine.h"
+#include "main.h"
 
 class DevSerial : public QObject
 {

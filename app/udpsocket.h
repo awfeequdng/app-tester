@@ -16,7 +16,7 @@
 #include <QMessageBox>
 #include <QtXml/QDomDocument>
 
-#include "appdefine.h"
+#include "main.h"
 
 class UdpSocket : public QUdpSocket
 {

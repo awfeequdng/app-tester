@@ -73,7 +73,7 @@ void SqlUpload::initBoxCtrl()
         QLineEdit *input = new QLineEdit(this);
         input->setFixedHeight(35);
         box->addWidget(input);
-        ctrls.append(input);
+        texts.append(input);
         if (i == 3) {
             input->setEchoMode(QLineEdit::Password);
         }
@@ -91,34 +91,29 @@ void SqlUpload::initBoxCtrl()
 
 void SqlUpload::initSettings()
 {
+    int addr = tmpSet[AddrLoad].toInt();
     for (int i=0; i < texts.size(); i++) {  // 上传配置存放在0x0120~0x0127
-        texts.at(i)->setText(config[QString::number(i+0x00E0)].toString());
-    }
-    for (int i=0; i < ctrls.size(); i++) {  // 备用配置存放在0x0128~0x012F
-        ctrls.at(i)->setText(config[QString::number(i+0x00E0+8)].toString());
+        texts.at(i)->setText(tmpSet[addr + i].toString());
     }
 }
 
 void SqlUpload::saveSettings()
 {
+    int addr = tmpSet[AddrLoad].toInt();
     for (int i=0; i < texts.size(); i++) {  // 上传配置存放在0x0120~0x0127
-        config[QString::number(i+0x00E0)] = texts.at(i)->text();
+        tmpSet[addr + i] = texts.at(i)->text();
     }
-    for (int i=0; i < ctrls.size(); i++) {  // 备用配置存放在0x0128~0x012F
-        config[QString::number(i+0x00E0+8)] = ctrls.at(i)->text();
-    }
-//    config.insert("enum", Qt::Key_Save);
-//    config.insert(AddrText, "aip_system");
-//    emit sendAppMap(config);
+    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    tmpSet.insert(AddrText, "aip_system");
+    emit sendAppMsg(tmpSet);
 }
 
-void SqlUpload::recvAppMap(QVariantMap msg)
+void SqlUpload::recvAppMsg(QTmpMap msg)
 {
-    switch (msg.value("enum").toInt()) {
+    int c = msg.value(AddrEnum).toInt();
+    switch (c) {
     case Qt::Key_Copy:
-        for (int i=0; i < 0x10; i++) {  // 上传配置存放在0x0120~0x012F
-            config[QString::number(i+0x00E0)] = msg[QString::number(i+0x00E0)];
-        }
+        tmpSet = msg;
         break;
     default:
         break;

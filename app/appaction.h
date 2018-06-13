@@ -25,7 +25,7 @@
 #include "boxqcombo.h"
 #include "boxqitems.h"
 
-#include "appdefine.h"
+#include "main.h"
 #include "appmaster.h"
 
 const int AddrMark = 0x01;

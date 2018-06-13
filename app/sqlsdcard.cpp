@@ -78,14 +78,14 @@ void SqlSdcard::initButtonBar()
 
 void SqlSdcard::recvExport()
 {
-    int row = view->currentIndex().row();
-    if (row < 0)
-        return;
-    QString path = mView->filePath(view->currentIndex());
-    tmpMap.insert("enum", Qt::Key_Excel);
-    tmpMap.insert("path", path);
-    emit sendAppMap(tmpMap);
-    tmpMap.clear();
+//    int row = view->currentIndex().row();
+//    if (row < 0)
+//        return;
+//    QString path = mView->filePath(view->currentIndex());
+//    tmpMap.insert("enum", Qt::Key_Excel);
+//    tmpMap.insert("path", path);
+//    emit sendAppMap(tmpMap);
+//    tmpMap.clear();
 }
 
 void SqlSdcard::recvDelete()
@@ -97,4 +97,3 @@ void SqlSdcard::recvDelete()
     QFile file(path);
     file.remove();
 }
-

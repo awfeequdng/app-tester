@@ -24,7 +24,7 @@
 #include <QTextStream>
 #include <QTextBrowser>
 
-#include "appdefine.h"
+#include "main.h"
 
 class AppLogger : public QWidget
 {

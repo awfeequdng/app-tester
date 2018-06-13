@@ -17,7 +17,7 @@
 #include <QDataStream>
 #include <QtXml/QDomDocument>
 
-#include "appdefine.h"
+#include "main.h"
 
 class TcpServer : public QTcpServer
 {

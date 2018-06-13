@@ -25,7 +25,7 @@
 #include <QHostAddress>
 #include <QNetworkInterface>
 
-#include "appdefine.h"
+#include "main.h"
 
 class AppBackup : public QWidget
 {

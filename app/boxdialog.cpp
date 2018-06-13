@@ -26,21 +26,11 @@ void BoxDialog::setValue(int value)
 void BoxDialog::setLabelText(QString text)
 {
     textLabel->setText(text);
-    qDebug() << "box show:" << text;
 }
 
 void BoxDialog::initUI()
 {
     isAnimation = true;
-//    logoLabel = new QLabel(this);
-//    logoLabel->setFixedSize(113, 57);
-//    logoLabel->setScaledContents(true);
-//    logoLabel->setPixmap(QPixmap(":/icon_aip.png"));
-
-//    QHBoxLayout *ll = new QHBoxLayout;
-//    ll->addStretch();
-//    ll->addWidget(logoLabel);
-//    ll->addStretch();
 
     textLabel = new QLabel(this);
 
@@ -58,7 +48,6 @@ void BoxDialog::initUI()
     layout->addStretch();
 
     this->setMinimumSize(240, 96);
-//    this->setStyleSheet("backgroud:#191919;QDialog{border:2px solid gray;}");
 }
 
 void BoxDialog::initAnimation()

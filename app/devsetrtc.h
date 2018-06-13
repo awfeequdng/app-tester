@@ -24,7 +24,7 @@
 #include <QVariant>
 #include <QDateTime>
 
-#include "appdefine.h"
+#include "main.h"
 
 class DevSetRtc : public QObject
 {

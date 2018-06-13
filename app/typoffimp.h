@@ -19,7 +19,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 
-#include "appdefine.h"
+#include "main.h"
 
 class TypOffImp : public QWidget
 {

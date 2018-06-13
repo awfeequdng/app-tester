@@ -19,13 +19,15 @@
 #include <QPushButton>
 #include <QMessageBox>
 
+#include "main.h"
+
 class SqlUpload : public QWidget
 {
     Q_OBJECT
 public:
     explicit SqlUpload(QWidget *parent = 0);
 signals:
-    void sendAppMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initUI();
     void initLayout();
@@ -33,13 +35,12 @@ private slots:
     void initBoxCtrl();
     void initSettings();
     void saveSettings();
-    void recvAppMap(QVariantMap msg);
+    void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
     QHBoxLayout *layout;
     QList<QLineEdit*> texts;
-    QList<QLineEdit*> ctrls;
-    QVariantMap config;
+    QTmpMap tmpSet;
 };
 
 #endif // SQLUPLOAD_H

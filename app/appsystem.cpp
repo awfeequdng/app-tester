@@ -190,7 +190,8 @@ void AppSystem::saveSettings()
 void AppSystem::setLocalTime()
 {
     tmpMsg.insert(AddrEnum, Qt::Key_Time);
-    tmpMsg.insert(AddrText, time->dateTime());
+    tmpMsg.insert(AddrData, time->dateTime());
+    tmpMsg.insert(AddrText, "time");
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }

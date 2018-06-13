@@ -45,12 +45,11 @@
 #include "sqlrecord.h"
 #include "sqlupload.h"
 #include "sqlsdcard.h"
-#include "sqlunqual.h"
 #include "apptester.h"
 
 #include "boxdialog.h"
 
-#include "appdefine.h"
+#include "main.h"
 
 #define WIDTH 150
 
@@ -90,7 +89,6 @@ private slots:
     int initRecord();
     int initUpload();
     int initSdcard();
-    int initUnqual();
     int readBackup();
     int readSystem();
     int readConfig();
@@ -103,7 +101,7 @@ private slots:
     void showBoxPop(QString text, int t);
     void saveBackup();
     void saveSqlite();
-    void saveModels();
+    void saveConfig();
     void clickButtons();
     bool checkAction(QString msg);
     void screensShow(QString msg);
@@ -128,6 +126,8 @@ private slots:
     int getNextItem();
     void showBarCode();
     virtual void keyReleaseEvent(QKeyEvent *e);
+    void loopBoxbar();
+    void recvSqlMsg(QTmpMap msg);
     void recvNewMsg(QTmpMap msg);
     void recvTmpMsg(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);

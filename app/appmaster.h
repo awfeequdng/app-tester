@@ -28,7 +28,7 @@
 #include "boxqcombo.h"
 #include "boxqitems.h"
 
-#include "appdefine.h"
+#include "main.h"
 
 const int AddrName = 0x00;
 const int AddrPass = 0x01;

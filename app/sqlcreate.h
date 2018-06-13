@@ -18,7 +18,7 @@
 #include <QStringList>
 #include <QSqlDatabase>
 
-#include "appdefine.h"
+#include "main.h"
 
 #include "appmaster.h"
 #include "appaction.h"

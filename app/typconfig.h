@@ -32,7 +32,7 @@
 
 #include "boxqitems.h"
 
-#include "appdefine.h"
+#include "main.h"
 #include "devsetcan.h"
 
 const int AddrDCRSC = 0x00;
@@ -60,6 +60,7 @@ private slots:
     void createModel();
     void selectModel();
     void removeModel();
+    void clickSave();
     void clickButtons();
     void clickViewBar();
     void recvAppMsg(QTmpMap msg);
@@ -75,6 +76,7 @@ private:
     int isShow;
     QStringList names;
     QTableWidget *settings;
+    QLineEdit *name;
 
     QTmpMap tmpSet;
 };

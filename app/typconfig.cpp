@@ -133,6 +133,13 @@ void TypConfig::initConfigBar()
     connect(btnDel, SIGNAL(clicked(bool)), this, SLOT(removeModel()));
 
     layout->addStretch();
+
+    QHBoxLayout *nameLayout = new QHBoxLayout;
+    nameLayout->addWidget(new QLabel(tr("型号:"), this));
+    name = new QLineEdit(this);
+    name->setFixedHeight(35);
+    nameLayout->addWidget(name);
+    layout->addLayout(nameLayout);
 }
 
 void TypConfig::initButtonBar()
@@ -157,24 +164,18 @@ void TypConfig::initButtonBar()
     btnLayout->addWidget(next);
     connect(next, SIGNAL(clicked(bool)), this, SLOT(clickButtons()));
 
+    btnLayout->addWidget(new QLabel(tr("当前:")));
     type = new QLabel(this);
-    type->setFixedSize(125, 40);
-    type->setText(tr("当前型号:"));
+    type->setFixedHeight(40);
     btnLayout->addWidget(type);
 
     btnLayout->addStretch();
-
-    QPushButton *btnGet = new QPushButton(this);
-    btnGet->setFixedSize(97, 40);
-    btnGet->setText(tr("调入"));
-    btnLayout->addWidget(btnGet);
-    connect(btnGet, SIGNAL(clicked(bool)), this, SLOT(selectModel()));
 
     QPushButton *btnSave = new QPushButton(this);
     btnSave->setFixedSize(97, 40);
     btnSave->setText(tr("保存"));
     btnLayout->addWidget(btnSave);
-    connect(btnSave, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
+    connect(btnSave, SIGNAL(clicked(bool)), this, SLOT(clickSave()));
 
     boxLayout->addLayout(btnLayout);
 }
@@ -195,7 +196,7 @@ void TypConfig::initSettings()
         setFrame->hide();
 
     r = tmpSet[DataFile].toInt();
-    type->setText(tr("当前型号:%1").arg(tmpSet[r].toString()));
+    type->setText(tr("%1").arg(tmpSet[r].toString()));
 
     r = tmpSet[AddrModel].toInt();
     for (int i=0; i < 2; i++) {
@@ -216,25 +217,25 @@ void TypConfig::saveSettings()
 
 void TypConfig::createModel()
 {
-    int t = names.indexOf(tr("选中编号"));
-    QString t_numb = settings->item(t+0, 1)->text();
-    QString t_name = settings->item(t+1, 1)->text();
+    int row = view->currentRow();
+    QString t_numb = view->item(row, 0)->text();
+    QString t_name = name->text();
     if (t_name.isEmpty())
         return;
     if (t_numb.isEmpty()) {
         return;
     }
-    QString name = "config";
+    QString sqlName = "config";
     QString c_name = tmpSet[tmpSet[DataFile].toInt()].toString();
 
-    QSqlQuery query(QSqlDatabase::database(name));
-    QSqlDatabase::database(name).transaction();
-    query.exec(tr("create table %1 as select * from %2").arg(t_name).arg(c_name));
-    QSqlDatabase::database(name).commit();
+    QSqlQuery query(QSqlDatabase::database(sqlName));
+    QSqlDatabase::database(sqlName).transaction();
+    if (!query.exec(tr("create table '%1' as select * from '%2'").arg(t_name).arg(c_name)))
+        qWarning() << "sql error:" << query.lastError() << t_name << c_name;
+    QSqlDatabase::database(sqlName).commit();
 
     int r = tmpSet[AddrType].toInt();
     tmpSet[r + t_numb.toInt() - 1] = t_name;
-
     tmpSet.insert(AddrEnum, Qt::Key_Save);
     tmpSet.insert(AddrText, "aip_system");
     emit sendAppMsg(tmpSet);
@@ -254,7 +255,8 @@ void TypConfig::selectModel()
 
     int r = tmpSet[AddrType].toInt();
     tmpSet[DataFile] = r + t_numb.toInt() - 1;
-    tmpSet.insert(AddrEnum, Qt::Key_Word);
+    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    tmpSet.insert(AddrText, "aip_reload");
     emit sendAppMsg(tmpSet);
 
     initSettings();
@@ -262,30 +264,69 @@ void TypConfig::selectModel()
 
 void TypConfig::removeModel()
 {
-    int t = names.indexOf(tr("选中编号"));
-    QString t_numb = settings->item(t+0, 1)->text();
-    QString t_name = settings->item(t+1, 1)->text();
+    int row = view->currentRow();
+    if (row < 0)
+        return;
+    QString t_numb = view->item(row, 0)->text();
+    QString c_name = view->item(row, 1)->text();
+    QString t_name = name->text();
     if (t_numb.isEmpty())
         return;
     if (t_name.isEmpty())
         return;
-    QString c_name = tmpSet[tmpSet[DataFile].toInt()].toString();
-    if (t_name == c_name) {
-        QMessageBox::warning(this, tr("警告"), tr("不能删除当前型号"), QMessageBox::Ok);
-        return;
-    }
+    QString sqlName = "config";
+    QSqlQuery query(QSqlDatabase::database(sqlName));
+    QSqlDatabase::database(sqlName).transaction();
+    query.exec(tr("create table '%1' as select * from '%2'").arg(t_name).arg(c_name));
+    query.exec(tr("drop table '%1'").arg(c_name));
+    QSqlDatabase::database(sqlName).commit();
 
-    QSqlQuery query(QSqlDatabase::database("config"));
-    query.exec(tr("drop table %1").arg(t_name));
 
     int r = tmpSet[AddrType].toInt();
-    tmpSet[r + t_numb.toInt() - 1] = "";
+    tmpSet[r + t_numb.toInt() - 1] = t_name;
 
     tmpSet.insert(AddrEnum, Qt::Key_Save);
     tmpSet.insert(AddrText, "aip_system");
     emit sendAppMsg(tmpSet);
 
     initSettings();
+}
+
+void TypConfig::clickSave()
+{
+    int row = view->currentRow();
+    if (row >= 0) {  // 有点中型号判断是否添加
+        QString n = view->item(row, 1)->text();  // 点中的型号
+        QString c = name->text();  // 输出的型号
+        QString p = type->text();
+        if (!n.isEmpty() && !c.isEmpty() && n == c && n != p) {  // 调入型号
+            qDebug() << "select";
+            selectModel();
+        }
+        if (!n.isEmpty() && !c.isEmpty() && n == c && n == p) {  // 保存设置
+            qDebug() << "save";
+            saveSettings();
+        }
+        if (!n.isEmpty() && !c.isEmpty() && n != c && n != p) {  // 修改型号
+            qDebug() << "remove";
+            removeModel();
+        }
+        if (!n.isEmpty() && !c.isEmpty() && n != c && n == p) {  // 修改型号
+            QMessageBox::warning(this, tr("警告"), tr("不能修改当前型号"), QMessageBox::Ok);
+        }
+        if (n.isEmpty() && !c.isEmpty()) {
+            qDebug() << "create";
+            createModel();  // 添加型号
+            selectModel();
+        }
+        if (n.isEmpty() && c.isEmpty()) {
+            qDebug() << "save";
+            saveSettings();
+        }
+    } else {
+        qDebug() << "save";
+        saveSettings();
+    }
 }
 
 void TypConfig::clickButtons()
@@ -310,9 +351,7 @@ void TypConfig::clickViewBar()
     int row = view->currentRow();
     if (row < 0)
         return;
-    int t = names.indexOf(tr("选中编号"));
-    settings->item(t+0, 1)->setText(view->item(row, 0)->text());
-    settings->item(t+1, 1)->setText(view->item(row, 1)->text());
+    name->setText(view->item(row, 1)->text());
 }
 
 void TypConfig::recvAppMsg(QTmpMap msg)

@@ -51,11 +51,11 @@ void SqlRecord::initTextBar()
     QHBoxLayout *layout = new QHBoxLayout;
     boxLayout->addLayout(layout);
 
-//    type = new QComboBox(this);
-//    type->setEditable(true);
-//    type->setFixedHeight(40);
-//    layout->addWidget(new QLabel(tr("测试型号"), this));
-//    layout->addWidget(type);
+    //    type = new QComboBox(this);
+    //    type->setEditable(true);
+    //    type->setFixedHeight(40);
+    //    layout->addWidget(new QLabel(tr("测试型号"), this));
+    //    layout->addWidget(type);
 
     from = new QDateEdit(this);
     from->setFixedHeight(40);
@@ -81,9 +81,27 @@ void SqlRecord::initTextBar()
 
 void SqlRecord::initButtonBar()
 {
+    timeOut = 0;
+
     QHBoxLayout *layout = new QHBoxLayout;
     boxLayout->addLayout(layout);
+#ifdef __arm__
+    QPushButton *btnExists = new QPushButton(this);
+    btnExists->setText(tr("查询优盘"));
+    btnExists->setFixedSize(97, 44);
+    layout->addWidget(btnExists);
+    connect(btnExists, SIGNAL(clicked(bool)), this, SLOT(existsFlashDisk()));
 
+    QPushButton *btnDelete = new QPushButton(this);
+    btnDelete->setText(tr("卸载优盘"));
+    btnDelete->setFixedSize(97, 44);
+    layout->addWidget(btnDelete);
+    connect(btnDelete, SIGNAL(clicked(bool)), this, SLOT(deleteFlashDisk()));
+
+    text = new QLabel(this);
+    text->setText("?");
+    layout->addWidget(text);
+#endif
     layout->addStretch();
 
     QPushButton *btnUpdate = new QPushButton(this);
@@ -97,6 +115,53 @@ void SqlRecord::initButtonBar()
     btnExport->setFixedSize(97, 44);
     layout->addWidget(btnExport);
     connect(btnExport, SIGNAL(clicked(bool)), this, SLOT(recvExportAll()));
+}
+
+void SqlRecord::existsFlashDisk()
+{
+    timeOut = 0;
+    QProcess cmddf;
+    cmddf.start("df -h");
+    if (cmddf.waitForFinished()) {
+        QByteArray bytedf = cmddf.readAll();
+        QStringList listdf = QString(bytedf).split("\n");
+        for (int i=0; i < listdf.size(); i++) {
+            if (listdf.at(i).startsWith("/dev/sd")) {
+                QStringList tmp = listdf.at(i).split(" ");
+                path = tmp.last();
+            }
+        }
+    }
+    cmddf.deleteLater();
+    if (path.isEmpty()) {
+        text->setText(tr("未发现优盘"));
+    } else {
+        text->setText(tr("发现优盘于%1").arg(path));
+    }
+}
+
+void SqlRecord::deleteFlashDisk()
+{
+    QProcess cmddf;
+    cmddf.start("df -h");
+    if (cmddf.waitForFinished()) {
+        QByteArray bytedf = cmddf.readAll();
+        QStringList listdf = QString(bytedf).split("\n");
+        QString path;
+        for (int i=0; i < listdf.size(); i++) {
+            if (listdf.at(i).startsWith("/dev/sd")) {
+                QStringList tmp = listdf.at(i).split(" ");
+                if (tmp.last().startsWith("/mnt/usb")) {
+                    path = tmp.first();
+                    cmddf.start(tr("umount %1").arg(path));
+                    cmddf.waitForFinished();
+                }
+            }
+        }
+    }
+    path.clear();
+    text->setText(tr("优盘已卸载"));
+    cmddf.deleteLater();
 }
 
 void SqlRecord::recvSelect()
@@ -150,23 +215,23 @@ void SqlRecord::recvDetail()
 
 void SqlRecord::recvExportAll()
 {
-    tmpMap.insert("enum", Qt::Key_Excel);
-    emit sendAppMap(tmpMap);
-    tmpMap.clear();
+//    tmpMap.insert("enum", Qt::Key_Excel);
+//    emit sendAppMap(tmpMap);
+//    tmpMap.clear();
 }
 
 void SqlRecord::recvExportDate()
 {
-    QDateTime t;
-    t.setDate(from->date());
-    quint64 id_from = quint64(t.toMSecsSinceEpoch()) << 20;
-    t.setDate(stop->date().addDays(1));
-    quint64 id_stop = quint64(t.toMSecsSinceEpoch()) << 20;
-    tmpMap.insert("enum", Qt::Key_Excel);
-    tmpMap.insert("from", id_from);
-    tmpMap.insert("stop", id_stop);
-    emit sendAppMap(tmpMap);
-    tmpMap.clear();
+//    QDateTime t;
+//    t.setDate(from->date());
+//    quint64 id_from = quint64(t.toMSecsSinceEpoch()) << 20;
+//    t.setDate(stop->date().addDays(1));
+//    quint64 id_stop = quint64(t.toMSecsSinceEpoch()) << 20;
+//    tmpMap.insert("enum", Qt::Key_Excel);
+//    tmpMap.insert("from", id_from);
+//    tmpMap.insert("stop", id_stop);
+//    emit sendAppMap(tmpMap);
+//    tmpMap.clear();
 }
 
 void SqlRecord::clickIndex(QModelIndex index)

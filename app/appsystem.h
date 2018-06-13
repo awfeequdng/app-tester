@@ -23,7 +23,7 @@
 #include <QPushButton>
 #include <QDateTimeEdit>
 
-#include "appdefine.h"
+#include "main.h"
 
 const int SystArea = 0x00;
 const int SystTest = 0x01;

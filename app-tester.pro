@@ -22,7 +22,6 @@ HEADERS += \
     app/appaction.h \
     app/appauthor.h \
     app/appbackup.h \
-    app/appdefine.h \
     app/applogger.h \
     app/appmaster.h \
     app/appsignin.h \
@@ -47,7 +46,6 @@ HEADERS += \
     app/sqlrecord.h \
     app/sqlsdcard.h \
     app/sqlsnowid.h \
-    app/sqlunqual.h \
     app/sqlupload.h \
     app/tcpsocket.h \
     app/typconfig.h \
@@ -59,7 +57,8 @@ HEADERS += \
     app/typsetimp.h \
     app/udpsocket.h \
     app/tcpserver.h \
-    app/boxqlabel.h
+    app/boxqlabel.h \
+    app/main.h
 
 SOURCES += \
     app/appaction.cpp \
@@ -90,7 +89,6 @@ SOURCES += \
     app/sqlrecord.cpp \
     app/sqlsdcard.cpp \
     app/sqlsnowid.cpp \
-    app/sqlunqual.cpp \
     app/sqlupload.cpp \
     app/tcpsocket.cpp \
     app/typconfig.cpp \

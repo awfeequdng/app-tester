@@ -22,7 +22,7 @@
 #include <QObject>
 #include <QVariant>
 
-#include "appdefine.h"
+#include "main.h"
 
 class DevBuzzer : public QObject
 {
