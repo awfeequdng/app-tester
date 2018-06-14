@@ -201,6 +201,17 @@ void TcpSocket::recvSocketCmd(quint16 addr, quint16 cmd, QByteArray msg)
         txPort = addr;
 #endif
         break;
+    case SEND_TEMP:
+        tmpByte.append(msg);
+        break;
+    case SEND_OVER:
+        recver.append(tmpByte);
+        tmpByte.clear();
+#ifdef __arm__
+        isOK = true;
+        txPort = addr;
+#endif
+        break;
     default:
         break;
     }
@@ -313,6 +324,12 @@ void TcpSocket::sendTcpXml()
     if (sender.isEmpty())
         return;
     QByteArray dat = sender.dequeue();
+    if (dat.size() > 4*1024) {
+        for (int i=0; i < dat.size()/(4*1024); i++) {
+            sendSocket(txPort, SEND_TEMP, dat.mid(i*4*1024, 4*1024));
+        }
+        sendSocket(txPort, SEND_OVER, NULL);
+    }
     sendSocket(txPort, SEND_DATA, dat);
 }
 

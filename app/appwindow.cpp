@@ -128,7 +128,6 @@ int AppWindow::  initScreen()
     boxbar->show();
 
     QStringList names;
-
     initMap[names.size()] = &AppWindow::initTester;
     names << tr("正在初始化测试界面");
     initMap[names.size()] = &AppWindow::initSignin;
@@ -184,9 +183,9 @@ int AppWindow::  initScreen()
     initMap[names.size()] = &AppWindow::initThread;
     names << tr("正在初始化系统线程");
 
-    for (int i=0; i < names.size(); i++) {
+    for (int i=0; i < names.size(); i++)
         showBoxPop(names.at(i), i);
-    }
+
     btnLayout->addStretch();
     return Qt::Key_Away;
 }
@@ -1129,7 +1128,8 @@ void AppWindow::recvNewMsg(QTmpMap msg)
         break;
     }
     emit sendAppMsg(msg);
-    qDebug() << "app recv:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
+    if (tt != 0)
+        qDebug() << "app recv:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
 }
 
 void AppWindow::recvTmpMsg(QTmpMap msg)

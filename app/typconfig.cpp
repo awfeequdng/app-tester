@@ -19,6 +19,7 @@ void TypConfig::initUI()
     initViewBar();
     initConfigBar();
     initButtonBar();
+    initDelegate();
 }
 
 void TypConfig::initLayout()
@@ -79,19 +80,16 @@ void TypConfig::initConfigBar()
     layout->setMargin(0);
     setFrame->setLayout(layout);
 
-
     QStringList headers;
-    headers << tr("型号编号") << tr("型号名称");
+    headers << tr("名称") << tr("参数");
 
-    names << tr("电枢片数") << tr("夹具类型")
-          << tr("选中编号") << tr("选中型号");
+    names << tr("电枢片数") << tr("夹具倍数");
 
     settings = new QTableWidget(this);
     settings->setRowCount(names.size());
     settings->setColumnCount(headers.size());
     settings->setHorizontalHeaderLabels(headers);
     settings->verticalHeader()->hide();
-    settings->horizontalHeader()->hide();
     for (int i=0; i < headers.size(); i++) {
         for (int j=0; j < names.size(); j++) {
             QTableWidgetItem *item = new QTableWidgetItem;
@@ -110,34 +108,16 @@ void TypConfig::initConfigBar()
     settings->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     settings->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 #endif
+    settings->setFixedHeight(100);
     settings->setColumnWidth(0, 70);
-    settings->setItemDelegateForColumn(0, new BoxQItems);
     settings->setEditTriggers(QAbstractItemView::AllEditTriggers);
     layout->addWidget(settings);
-
-    QHBoxLayout *box2 = new QHBoxLayout;
-    layout->addLayout(box2);
-    box2->setMargin(0);
-    box2->addStretch();
-
-    QPushButton *btnAdd = new QPushButton(this);
-    btnAdd->setFixedSize(97, 40);
-    btnAdd->setText(tr("添加"));
-    box2->addWidget(btnAdd);
-    connect(btnAdd, SIGNAL(clicked(bool)), this, SLOT(createModel()));
-
-    QPushButton *btnDel = new QPushButton(this);
-    btnDel->setFixedSize(97, 40);
-    btnDel->setText(tr("删除"));
-    box2->addWidget(btnDel);
-    connect(btnDel, SIGNAL(clicked(bool)), this, SLOT(removeModel()));
-
     layout->addStretch();
 
     QHBoxLayout *nameLayout = new QHBoxLayout;
     nameLayout->addWidget(new QLabel(tr("型号:"), this));
     name = new QLineEdit(this);
-    name->setFixedHeight(35);
+    name->setFixedSize(125, 35);
     nameLayout->addWidget(name);
     layout->addLayout(nameLayout);
 }
@@ -178,6 +158,22 @@ void TypConfig::initButtonBar()
     connect(btnSave, SIGNAL(clicked(bool)), this, SLOT(clickSave()));
 
     boxLayout->addLayout(btnLayout);
+}
+
+void TypConfig::initDelegate()
+{
+    settings->setItemDelegateForColumn(0, new BoxQItems);
+
+    BoxDouble *t = new BoxDouble;
+    t->setDecimals(0);
+    t->setMaxinum(72);
+    settings->setItemDelegateForRow(0, t);
+
+    QStringList n;
+    n << "1" << "2";
+    BoxQCombo *s = new BoxQCombo;
+    s->setItemNames(n);
+    settings->setItemDelegateForRow(1, s);
 }
 
 void TypConfig::initSettings()

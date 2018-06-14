@@ -279,7 +279,7 @@ void TypSetDcr::initViewData()
         }
 
     }
-    view->item(6, 0)->setText(tr("跨间%1").arg(gmax < 4 ? "Ω" : "mΩ"));
+    view->item(6, 0)->setText(tr("跨间%1*%2").arg(gmax).arg(gmax < 4 ? "Ω" : "mΩ"));
 }
 
 void TypSetDcr::saveSettings()
@@ -345,13 +345,15 @@ void TypSetDcr::sample()
 void TypSetDcr::recvUpdate(QTmpMap msg)
 {
     int t = 0x04;
-    int c = tmpSet[tmpSet[AddrModel].toInt() + 1].toInt();  // 夹具针数
+    int addr = tmpSet[AddrModel].toInt();
+    int quan = tmpSet[addr + AddrDCRSC].toInt();
+    int tool = tmpSet[addr + AddrDEVSC].toInt() * quan;  // 夹具针数
     int r = tmpSet[AddrDCRSW].toInt();  // 电阻标准
 
     int g = 0;
     if (currItem == AddrDCRS1) {
         int s = tmpSet[AddrDCRR1].toInt();  // 电阻结果
-        for (int i=0; i < c; i++) {
+        for (int i=0; i < tool; i++) {
             int t1 = msg[s + t*(i + 1) + AddrDataR].toInt();
             int t2 = msg[s + t*(i + 1) + AddrDataS].toInt();
             if (i == 0) {
@@ -368,7 +370,7 @@ void TypSetDcr::recvUpdate(QTmpMap msg)
         int rmax = 0;
         int gmin = 0;
         int gmax = 0;
-        for (int i=0; i < c/2; i++) {
+        for (int i=0; i < tool/2; i++) {
             int t1 = msg[s + t*(i + 1) + AddrDataR].toInt();
             int t2 = msg[s + t*(i + 1) + AddrDataS].toInt();
             gmin = (i == 0) ? t2 : ((t1 < rmin) ? t2 : gmin);
@@ -382,6 +384,7 @@ void TypSetDcr::recvUpdate(QTmpMap msg)
         tmpSet[r + RMAXDCR3] = rmax;
         tmpSet[r + GMAXDCR3] = gmax;
         tmpSet[r + GEARDCR3] = gmax;
+        qDebug() << rmin << gmin << rmax << gmax;
     }
     initViewData();
 }

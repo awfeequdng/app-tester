@@ -31,6 +31,7 @@
 #include <QSqlDatabase>
 
 #include "boxqitems.h"
+#include "boxqcombo.h"
 
 #include "main.h"
 #include "devsetcan.h"
@@ -55,6 +56,7 @@ private slots:
     void initViewBar();
     void initConfigBar();
     void initButtonBar();
+    void initDelegate();
     void initSettings();
     void saveSettings();
     void createModel();

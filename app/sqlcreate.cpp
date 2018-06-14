@@ -64,6 +64,10 @@ void SqlCreate::initTmpDat()
     tmpSet.insert(AddrDCRSW, 40000 + 0x0100);  // 焊接配置地址
     tmpSet.insert(AddrIMPSW, 40000 + 0x0300);  // 匝间波形地址
 
+    tmpSet.insert(tmpSet.value(AddrDCRR1).toInt() + AddrDataS, 0xff);
+    tmpSet.insert(tmpSet.value(AddrACWR1).toInt() + AddrDataS, 0xff);
+    tmpSet.insert(tmpSet.value(AddrIMPR1).toInt() + AddrDataS, 0xff);
+
     tmpSet.insert(AddrEnum, Qt::Key_Xfer);
     emit sendAppMsg(tmpSet);
 }
@@ -447,7 +451,7 @@ void SqlCreate::initConf(QSqlQuery query)
     QStringList parm;
     parm.clear();
     from = tmpSet.value(AddrDCRS1).toInt();
-    parm << "1" << "10000" << "1" << "25000" << "500" << "0" << "" << "" << "" << "";
+    parm << "1" << "1000" << "1" << "25000" << "50" << "0" << "" << "" << "" << "";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
@@ -527,7 +531,7 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value(AddrModel).toInt();
-    parm << "12" << "12" << "" << "" << "" << "" << "" << "" << "" << "";  // 综合配置
+    parm << "10" << "1" << "" << "" << "" << "" << "" << "" << "" << "";  // 综合配置
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);

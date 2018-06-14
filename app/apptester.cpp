@@ -557,12 +557,14 @@ void AppTester::drawWaveDCRW()
     int addr = tmpSet[AddrDCRSW].toInt();  // 标准波形地址
     int real = tmpSet[AddrDCRR1].toInt();  // 实际波形地址
     int stdd = tmpSet[tmpSet[AddrDCRS1].toInt() + 1].toInt();
-    int c = tmpSet[tmpSet[AddrModel].toInt() + 1].toInt();
-    QVector<double> xx(c), yh(c), yl(c), yr(c);
+    int from = tmpSet[AddrModel].toInt();
+    int quan = tmpSet[from + AddrDCRSC].toInt();
+    int tool = tmpSet[from + AddrDEVSC].toInt() * quan;
+    QVector<double> xx(tool), yh(tool), yl(tool), yr(tool);
 
     double max = 0;
     double min = 0xffff;
-    for (int i=0; i < c; i++) {
+    for (int i=0; i < tool; i++) {
         xx[i] = i;
         double ts = tmpSet[addr + i*2 + 0].toDouble();
         double ps = tmpSet[addr + i*2 + 1].toDouble();
@@ -578,7 +580,7 @@ void AppTester::drawWaveDCRW()
         min = qMin(min, t2);
     }
     double sss = max - min;
-    for (int i=0; i < c; i++) {
+    for (int i=0; i < tool; i++) {
         double ts = tmpSet[addr + i*2 + 0].toDouble();
         double ps = tmpSet[addr + i*2 + 1].toDouble();
         ts = ts * qPow(10, -ps);
@@ -777,12 +779,13 @@ void AppTester::recvLedMsg(QTmpMap msg)
 
 void AppTester::recvDCRMsg(QTmpMap msg)
 {
-    int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();
+    int from = tmpSet[AddrModel].toInt();
+    int quan = tmpSet[from].toInt();
     int curr = msg.value(AddrText).toInt();
     if (curr == AddrDCRS1) {
         textDCR1->clear();
         int addr = tmpSet.value(AddrDCRR1).toInt(); // 电阻结果
-        for (int i=0; i < c; i++) {
+        for (int i=0; i < quan; i++) {
             if (i%12 == 0) {
                 if (i != 0)
                     textDCR1->insertHtml("<br></br>");
@@ -806,7 +809,7 @@ void AppTester::recvDCRMsg(QTmpMap msg)
     if (curr == AddrDCRS2) {
         textDCR2->clear();
         int addr = tmpSet.value(AddrDCRR2).toInt(); // 电阻结果
-        for (int i=0; i < c; i++) {
+        for (int i=0; i < quan; i++) {
             if (i%12 == 0) {
                 if (i != 0)
                     textDCR2->insertHtml("<br></br>");
@@ -829,7 +832,7 @@ void AppTester::recvDCRMsg(QTmpMap msg)
     if (curr == AddrDCRS3) {
         textDCR3->clear();
         int addr = tmpSet.value(AddrDCRR3).toInt(); // 电阻结果
-        for (int i=0; i < c/2; i++) {
+        for (int i=0; i < quan/2; i++) {
             if (i%12 == 0) {
                 if (i != 0)
                     textDCR3->insertHtml("<br></br>");

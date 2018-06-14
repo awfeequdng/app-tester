@@ -33,6 +33,8 @@
 #define READ_FAIL   1003  // 读取失败
 #define SEND_HEAD   1004  // 发送文件
 #define SEND_FAIL   1005  // 发送失败
+#define SEND_OVER   1997  // 发送完成
+#define SEND_TEMP   1998  // 分段发送
 #define SEND_DATA   1999  // 发送数据
 
 #define FILE_HEAD   2000  // 文件头
@@ -102,6 +104,7 @@ private:
     QQueue<QByteArray> sender;
     QTmpMap tmpMsg;
     bool isOK;
+    QByteArray tmpByte;
 };
 
 #endif // TCPSOCKET_H
