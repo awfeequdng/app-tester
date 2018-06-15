@@ -55,6 +55,7 @@ signals:
 private slots:
     void initUI();
     void initLayout();
+    void initViewDat();
     void initViewBar();
     void initWaveBar();
     void initWaveCtl();

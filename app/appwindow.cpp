@@ -241,15 +241,25 @@ int AppWindow::initSystem()
 int AppWindow::initOnline()
 {
 #ifndef __arm__
-    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL3", "mysql");
-    db.setHostName("192.168.1.55");
-    db.setUserName("root");
-    db.setPassword("87973318");
-    db.setDatabaseName("aip-server");
-    if (!db.open()) {
-        qDebug() << "open fail" << db.lastError();
-    }
+    QString name = "online";
+    AppSystem *app = new AppSystem(this);
+    app->setObjectName(name);
+    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
+    stack->addWidget(app);
+
+    initButton(tr("系统设置"), name);
 #endif
+//#ifndef __arm__
+//    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL3", "mysql");
+//    db.setHostName("192.168.1.55");
+//    db.setUserName("root");
+//    db.setPassword("87973318");
+//    db.setDatabaseName("aip-server");
+//    if (!db.open()) {
+//        qDebug() << "open fail" << db.lastError();
+//    }
+//#endif
     return Qt::Key_Away;
 }
 

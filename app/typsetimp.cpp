@@ -16,6 +16,7 @@ TypSetImp::TypSetImp(QWidget *parent) : QWidget(parent)
 void TypSetImp::initUI()
 {
     initLayout();
+    initViewDat();
     initViewBar();
     initWaveBar();
     initWaveCtl();
@@ -35,7 +36,7 @@ void TypSetImp::initLayout()
     layout->addWidget(box);
 }
 
-void TypSetImp::initViewBar()
+void TypSetImp::initViewDat()
 {
     QStringList headers;
     headers << tr("测试") << tr("匝间测试") << tr("峰值电压V") << tr("冲击次数")
@@ -56,7 +57,10 @@ void TypSetImp::initViewBar()
         mView->item(i, 0)->setCheckable(true);
     }
     //    connect(mView, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(autoInput()));
+}
 
+void TypSetImp::initViewBar()
+{
     view = new QTableView(this);
     view->setFixedHeight(80);
     view->setModel(mView);

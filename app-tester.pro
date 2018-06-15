@@ -58,7 +58,8 @@ HEADERS += \
     app/udpsocket.h \
     app/tcpserver.h \
     app/boxqlabel.h \
-    app/main.h
+    app/main.h \
+    app/tcponline.h
 
 SOURCES += \
     app/appaction.cpp \
@@ -100,5 +101,6 @@ SOURCES += \
     app/typsetimp.cpp \
     app/udpsocket.cpp \
     app/tcpserver.cpp \
-    app/boxqlabel.cpp
+    app/boxqlabel.cpp \
+    app/tcponline.cpp
 

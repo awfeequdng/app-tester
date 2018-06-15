@@ -24,6 +24,7 @@
 #include "devscreen.h"
 #include "tcpserver.h"
 #include "tcpsocket.h"
+#include "tcponline.h"
 #include "udpsocket.h"
 
 #include "appauthor.h"
