@@ -76,7 +76,7 @@ private slots:
     void judgeDCR();
     void renewDCR();
     void setupACW();
-    void startACW();
+    void startACW(QTmpMap map);
     void parseACW(QByteArray msg);
     void renewACW();
     void setupIMP(QTmpMap map);
@@ -105,6 +105,7 @@ private:
     QTmpMap tmpPer;
     QTmpMap tmpRow;
     int currTemp;
+    quint8 tmpio;
 };
 
 #endif // DEVSETCAN_H

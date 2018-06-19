@@ -20,7 +20,7 @@
 #include "main.h"
 #include "typsetimp.h"
 
-#define SD_SIZE 800
+#define SD_SIZE 80000
 
 class SqlImport : public QObject
 {

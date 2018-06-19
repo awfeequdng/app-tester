@@ -161,8 +161,14 @@ private:
     QList<int> roles;
     QList<int> forms;
 
+    QTmpMap showName;
+    QTmpMap showMark;
+    QTmpMap showRole;
+    QTmpMap showForm;
+
     QString barcode;
     QTimer *scanner;
+    quint8 station;
 };
 
 #endif // APPWINDOW_H

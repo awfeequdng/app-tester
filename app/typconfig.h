@@ -81,6 +81,7 @@ private:
     QLineEdit *name;
 
     QTmpMap tmpSet;
+    QPushButton *btnSave;
 };
 
 #endif // TYPCONFIG_H

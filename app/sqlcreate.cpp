@@ -119,12 +119,6 @@ void SqlCreate::openSystem(bool isExist)
     if (!isExist) {
         QSqlQuery query(db);
         QString cmd;
-        cmd = "create table if not exists aip_sqlite (";
-        cmd += "R_UUID bigint, R_ITEM integer,R_QUAN integer,";
-        cmd += "R_OKNG integer,primary key (R_UUID,R_ITEM))";
-        if (!query.exec(cmd)) {
-            qWarning() << "aip_sqlite:" << query.lastError();
-        }
         cmd = "create table if not exists aip_system (";
         cmd += "uuid integer primary key, parm text)";
         if (!query.exec(cmd)) {
@@ -186,6 +180,12 @@ void SqlCreate::openRecord(bool isExist)
     if (!isExist) {
         QSqlQuery query(db);
         QString cmd;
+        cmd = "create table if not exists aip_sqlite (";
+        cmd += "R_UUID bigint, R_ITEM integer,R_QUAN integer,";
+        cmd += "R_OKNG integer,primary key (R_UUID,R_ITEM))";
+        if (!query.exec(cmd)) {
+            qWarning() << "aip_sqlite:" << query.lastError();
+        }
         cmd = "create table if not exists aip_record (";
         cmd += "R_UUID bigint, R_ITEM integer,R_TEXT text,primary key (R_UUID,R_ITEM))";
         if (!query.exec(cmd))

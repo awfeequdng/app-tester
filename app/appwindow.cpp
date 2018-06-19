@@ -13,6 +13,8 @@ QMap<int, pClass> initMap;
 QMap<QString, pClass> taskMap;
 QMap<QString, pClass> testMap;
 
+const int AddrAuthor = 0x00;
+
 AppWindow::AppWindow(QWidget *parent) : QMainWindow(parent)
 {
     initUI();
@@ -29,6 +31,7 @@ void AppWindow::initUI()
 {
     initTitle();
     initLayout();
+    initSqlDir();
     initAuthor();
     QTimer::singleShot(100, this, SLOT(initScreen()));
 }
@@ -166,8 +169,6 @@ int AppWindow::  initScreen()
     names << tr("正在初始化上传管理");
     initMap[names.size()] = &AppWindow::initSdcard;
     names << tr("正在初始化历史数据");
-    initMap[names.size()] = &AppWindow::initSqlDir;
-    names << tr("正在创建配置数据库");
     initMap[names.size()] = &AppWindow::readBackup;
     names << tr("正在读取后台数据库");
     initMap[names.size()] = &AppWindow::readSystem;
@@ -240,16 +241,16 @@ int AppWindow::initSystem()
 
 int AppWindow::initOnline()
 {
-#ifndef __arm__
-    QString name = "online";
-    AppSystem *app = new AppSystem(this);
-    app->setObjectName(name);
-    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
-    stack->addWidget(app);
+//#ifndef __arm__
+//    QString name = "online";
+//    AppSystem *app = new AppSystem(this);
+//    app->setObjectName(name);
+//    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+//    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
+//    stack->addWidget(app);
 
-    initButton(tr("系统设置"), name);
-#endif
+//    initButton(tr("系统设置"), name);
+//#endif
 //#ifndef __arm__
 //    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL3", "mysql");
 //    db.setHostName("192.168.1.55");
@@ -486,7 +487,7 @@ int AppWindow::readConfig()
     QSqlQuery query(QSqlDatabase::database("config"));
     int r = tmpSet[DataFile].toInt();
     QString name = tmpSet[r].toString();
-    query.exec(QString("select * from %1").arg(name));
+    query.exec(QString("select * from '%1'").arg(name));
     while (query.next()) {
         int uuid = query.value(0).toInt();
         //        if (uuid >= 3000 && uuid < 4000)  // 型号参数区
@@ -595,6 +596,7 @@ int AppWindow::initThread()
 
     currTask = 0;
     currTest = 0;
+    station = 0x11;
 
     return Qt::Key_Away;
 }
@@ -687,7 +689,7 @@ void AppWindow::saveConfig()
     for (int i=0; i < uuids.size(); i++) {
         int uuid = uuids.at(i);
         if (uuid >= 40000) {
-            query.prepare(QString("replace into %1 values(?,?)").arg(type));
+            query.prepare(QString("replace into '%1' values(?,?)").arg(type));
             query.addBindValue(uuid);
             query.addBindValue(tmpSet[uuid]);
             query.exec();
@@ -886,6 +888,7 @@ int AppWindow::taskStartView()
 {
     tmpMsg.insert(AddrEnum, Qt::Key_Call);
     tmpMsg.insert(AddrText, "LEDY");
+    tmpMsg.insert(AddrData, station);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
     currItem = getNextItem();
@@ -941,7 +944,7 @@ int AppWindow::taskClearBeep()
 
 int AppWindow::taskResetTest()
 {
-    qDebug() <<"app zero:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
+//    qDebug() <<"app zero:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
     int addr = tmpSet[AddrBack].toInt();
     int test = tmpSet[addr + 7].toInt();
     int time = tmpSet[addr + 8].toInt();
@@ -949,7 +952,8 @@ int AppWindow::taskResetTest()
         if (t.elapsed() - timeOut >= time*100) {
             for (int i=0; i < taskMap.size(); i++) {
                 if (taskMap[QString::number(i)] == &AppWindow::taskCheckPlay) {
-                    currTask = i + 1;
+                    currTask = i;
+                    taskShift = Qt::Key_Play;
                     t.restart();
                 }
             }
@@ -960,20 +964,20 @@ int AppWindow::taskResetTest()
 
 int AppWindow::taskCheckStop()
 {
-    if (currTask > taskMap.values().indexOf(&AppWindow::taskCheckPlay)) {
-        tmpMsg.insert(AddrEnum, Qt::Key_Send);
-        tmpMsg.insert(AddrText, AddrDCRSW);
-        emit sendAppMsg(tmpMsg);
-        tmpMsg.clear();
-        currTask = taskMap.values().indexOf(&AppWindow::taskStartBeep);
-    } else {
+//    if (currTask > taskMap.values().indexOf(&AppWindow::taskCheckPlay)) {
+//        tmpMsg.insert(AddrEnum, Qt::Key_Send);
+//        tmpMsg.insert(AddrText, AddrDCRSW);
+//        emit sendAppMsg(tmpMsg);
+//        tmpMsg.clear();
+//        currTask = taskMap.values().indexOf(&AppWindow::taskStartBeep);
+//    } else {
         tmpMsg.insert(AddrEnum, Qt::Key_Call);
         tmpMsg.insert(AddrText, "LED1");
         tmpMsg.insert(AddrBeep, 0);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
-    }
-    //    taskClearData();
+//    }
+        taskClearData();
     return Qt::Key_Away;
 }
 
@@ -1005,6 +1009,7 @@ int AppWindow::testStartSend()
 {
     tmpMsg.insert(AddrEnum, Qt::Key_Play);
     tmpMsg.insert(AddrText, currItem);
+    tmpMsg.insert(AddrData, station);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
     return Qt::Key_Away;
@@ -1190,6 +1195,10 @@ void AppWindow::recvAppMsg(QTmpMap msg)
         break;
     case Qt::Key_Play:
         taskShift = Qt::Key_Play;
+        if (msg.value(AddrText).toString() == "L")
+            station = 0x11;
+        if (msg.value(AddrText).toString() == "R")
+            station = 0x14;
         break;
     case Qt::Key_Stop:  // 停止测试
         taskCheckStop();

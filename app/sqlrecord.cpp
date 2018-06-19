@@ -171,7 +171,7 @@ void SqlRecord::recvSelect()
     qint64 t1 = from->date().toJulianDay();
     qint64 t2 = stop->date().toJulianDay();
 
-    QSqlQuery query(QSqlDatabase::database("system"));
+    QSqlQuery query(QSqlDatabase::database("record"));
     query.prepare("select * from aip_sqlite where R_UUID >= ? and R_UUID <= ?");
     query.addBindValue(t1);
     query.addBindValue(t2);

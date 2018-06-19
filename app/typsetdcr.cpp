@@ -216,7 +216,7 @@ void TypSetDcr::initButtons()
     layout->addWidget(btnDiag);
     connect(btnDiag, SIGNAL(clicked(bool)), this, SLOT(sample()));
 
-    QPushButton *btnSave = new QPushButton(this);
+    btnSave = new QPushButton(this);
     btnSave->setFixedSize(97, 40);
     btnSave->setText(tr("保存"));
     layout->addWidget(btnSave);
@@ -263,12 +263,10 @@ void TypSetDcr::initViewData()
     double rmin = tmpSet[r + RMINDCR3].toInt();
     double gmax = tmpSet[r + GMAXDCR3].toInt();
     double rmax = tmpSet[r + RMAXDCR3].toInt();
-    qDebug() << rmin << gmin << rmax << gmax;
     gmin = (gmin > 3) ? gmin-3 : gmin;
     gmax = (gmax > 3) ? gmax-3 : gmax;
     rmin = rmin * qPow(10, -gmin);
     rmax = rmax * qPow(10, -gmax);
-    qDebug() << rmin << gmin << rmax << gmax;
     for (int i=0; i < 12; i++) {
         view->item(6, i+1)->setText("");
         if (i == 0) {
@@ -284,6 +282,7 @@ void TypSetDcr::initViewData()
 
 void TypSetDcr::saveSettings()
 {
+    btnSave->setEnabled(false);
     int s = 0;
     s = tmpSet[AddrDCRS1].toInt();
     tmpSet[s + 0] = boxWeld->isChecked() ? "1" : "0";
@@ -395,6 +394,7 @@ void TypSetDcr::recvAppMsg(QTmpMap msg)
     switch (c) {
     case Qt::Key_Copy:
         tmpSet = msg;
+        btnSave->setEnabled(true);
         break;
     case Qt::Key_News:
         if (this->isHidden())

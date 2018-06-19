@@ -53,6 +53,7 @@ void DevSetCan::initDevPort()
 
 void DevSetCan::initDevStat()
 {
+    tmpio = 0;
     timeOut = 0;
     currItem = 0;
     currTemp = 0;
@@ -63,6 +64,7 @@ void DevSetCan::initDevStat()
     sendDevData(CAN_ID_DCR, QByteArray::fromHex("08"));
     sendDevData(CAN_ID_ACW, QByteArray::fromHex("08"));
     sendDevData(CAN_ID_IMP, QByteArray::fromHex("08"));
+    sendDevData(CAN_ID_DCR, QByteArray::fromHex("0A"));
 }
 
 void DevSetCan::sendDevData(int id, QByteArray msg)
@@ -235,11 +237,11 @@ void DevSetCan::parseDCR(QByteArray msg)
     quint32 volt = 0;
     quint32 real = 0;
     quint32 curr = (currItem >AddrDCRS3 || currItem < AddrDCRS1) ? 0 : currItem;  // 测试组
-    quint32 addr = tmpSet[AddrDCRR1 + curr].toInt();  // 片间/焊接/跨间电阻结果地址
-    quint32 parm = tmpSet[AddrDCRS1 + curr].toInt();
+    quint32 addr = tmpSet[AddrDCRR1 + curr - AddrDCRS1].toInt();  // 片间/焊接/跨间电阻结果地址
+    quint32 parm = tmpSet[curr].toInt();
     switch (quint8(msg.at(0))) {
     case 0x00:  // 状态
-        qDebug() << "dcr recv:" << msg.toHex().toUpper() << addr << curr;
+        qDebug() << "dcr recv:" << msg.toHex().toUpper();
         tmpSet.insert(addr + AddrDataS, quint8(msg.at(1)));  // 修改电阻板状态
         orderDCR();  // 自动排序
         judgeDCR();  // 电阻判定
@@ -256,7 +258,7 @@ void DevSetCan::parseDCR(QByteArray msg)
             double stdtmp = tmpSet[parm + 3].toDouble() / 100;
             real += real * (stdtmp - currTemp) / 10 * 0.0039;
         }
-        qDebug() << "dcr recv:" << numb << volt << real << msg.toHex().toUpper();
+        qDebug() << "dcr recv:" << msg.toHex().toUpper() << volt << numb << real;
         real /= ((volt%3 == 0)) ? 1: qPow(10, 3 - volt%3);
         real = qMin(quint32(9999), real);
         tmpPer.insert(numb, volt);
@@ -280,6 +282,31 @@ void DevSetCan::parseDCR(QByteArray msg)
         real += quint32(msg.at(6)) * (0x00000001 << 0x08);
         real += quint32(msg.at(7)) * (0x00000001 << 0x00);
         tmpSet[addr + AddrDataV] = real;
+        break;
+    case 0x0A:  // 启动停止
+        qDebug() << "dcr recv:" << msg.toHex().toUpper();
+        real = quint8(msg.at(1));
+        tmpio = (tmpio == 0) ? real : tmpio;
+        if (((tmpio << 0x00) & 0x08) != ((real << 0x00) & 0x08)) {
+            qDebug() << "dcr recv:" << "00 switch" << tmpio << real;
+
+        }
+        if (((tmpio << 0x01) & 0x08) != ((real << 0x01) & 0x08)) {
+            qDebug() << "dcr recv:" << "01 switch" << tmpio << real;
+        }
+        if (((tmpio << 0x02) & 0x08) != ((real << 0x02) & 0x08)) {
+            tmpMsg.insert(AddrEnum, (((real << 0x02) & 0x08) == 0) ? Qt::Key_Play : Qt::Key_Stop);
+            tmpMsg.insert(AddrText, "R");
+            emit sendAppMsg(tmpMsg);
+            tmpMsg.clear();
+        }
+        if (((tmpio << 0x03) & 0x08) != ((real << 0x03) & 0x08)) {
+            tmpMsg.insert(AddrEnum, (((real << 0x03) & 0x08) == 0) ? Qt::Key_Play : Qt::Key_Stop);
+            tmpMsg.insert(AddrText, "L");
+            emit sendAppMsg(tmpMsg);
+            tmpMsg.clear();
+        }
+        tmpio = real;
         break;
     default:
         break;
@@ -346,7 +373,6 @@ void DevSetCan::judgeDCR()
         stdw = stdw * qPow(10, 3-stdp);
         stdw = qMax(0.001, stdw);
         if (currItem == AddrDCRS1) {
-            qDebug() << "dcr recv:" << real << stdw << std1;
             if (abs((real-stdw)/stdw*100*1000) >= std1) {
                 tmpSet[addr + 0x04*(i+1) + AddrDataJ] = DataNG;
                 isOK = DataNG;
@@ -427,10 +453,11 @@ void DevSetCan::setupACW()
     }
 }
 
-void DevSetCan::startACW()
+void DevSetCan::startACW(QTmpMap map)
 {
     QByteArray msg = QByteArray::fromHex("0104001100");  // 01启动;04绝缘;00自动档;11工位;00序号
     msg[1] = (currItem == AddrACWS1) ? 0x04 : 0x05;  // 04绝缘/05交耐
+    msg[3] = (map.value(AddrData).toInt());
     msg[4] = currItem - AddrACWS1;
     sendDevData(CAN_ID_ACW, msg);
     qDebug() << "acw send:" << msg.toHex();
@@ -728,7 +755,7 @@ void DevSetCan::startTest(QTmpMap map)
     case AddrACWS2:
     case AddrACWS3:
     case AddrACWS4:
-        startACW();
+        startACW(map);
         break;
     case AddrIMPS1:
         startIMP(map);
@@ -780,17 +807,18 @@ void DevSetCan::recvAppMsg(QTmpMap msg)
         updateAll();
         timeOut++;
         if (timeOut % 500 == 0) {
-            if (sender.isEmpty() && recver.isEmpty())
+            if (sender.isEmpty() && recver.isEmpty()) {
                 sendDevData(CAN_ID_DCR, QByteArray::fromHex("05"));
+            }
         }
-        if (timeOut % 50 == 0) {
-            if (tmpSet.value(tmpSet.value(AddrDCRR1).toInt() + AddrDataS).toInt() == 0xff)
-                sendDevData(CAN_ID_DCR, QByteArray::fromHex("00"));
-            if (tmpSet.value(tmpSet.value(AddrACWR1).toInt() + AddrDataS).toInt() == 0xff)
-                sendDevData(CAN_ID_ACW, QByteArray::fromHex("00"));
-            if (tmpSet.value(tmpSet.value(AddrIMPR1).toInt() + AddrDataS).toInt() == 0xff)
-                sendDevData(CAN_ID_IMP, QByteArray::fromHex("00"));
-        }
+        //        if (timeOut % 50 == 0) {
+        //            if (tmpSet.value(tmpSet.value(AddrDCRR1).toInt() + AddrDataS).toInt() == 0xff)
+        //                sendDevData(CAN_ID_DCR, QByteArray::fromHex("00"));
+        //            if (tmpSet.value(tmpSet.value(AddrACWR1).toInt() + AddrDataS).toInt() == 0xff)
+        //                sendDevData(CAN_ID_ACW, QByteArray::fromHex("00"));
+        //            if (tmpSet.value(tmpSet.value(AddrIMPR1).toInt() + AddrDataS).toInt() == 0xff)
+        //                sendDevData(CAN_ID_IMP, QByteArray::fromHex("00"));
+        //        }
         break;
     case Qt::Key_Send:
         setupTest(msg);

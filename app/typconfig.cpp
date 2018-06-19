@@ -151,7 +151,7 @@ void TypConfig::initButtonBar()
 
     btnLayout->addStretch();
 
-    QPushButton *btnSave = new QPushButton(this);
+    btnSave = new QPushButton(this);
     btnSave->setFixedSize(97, 40);
     btnSave->setText(tr("保存"));
     btnLayout->addWidget(btnSave);
@@ -290,38 +290,23 @@ void TypConfig::removeModel()
 
 void TypConfig::clickSave()
 {
-    int row = view->currentRow();
-    if (row >= 0) {  // 有点中型号判断是否添加
-        QString n = view->item(row, 1)->text();  // 点中的型号
-        QString c = name->text();  // 输出的型号
-        QString p = type->text();
-        if (!n.isEmpty() && !c.isEmpty() && n == c && n != p) {  // 调入型号
-            qDebug() << "select";
-            selectModel();
-        }
-        if (!n.isEmpty() && !c.isEmpty() && n == c && n == p) {  // 保存设置
-            qDebug() << "save";
-            saveSettings();
-        }
-        if (!n.isEmpty() && !c.isEmpty() && n != c && n != p) {  // 修改型号
-            qDebug() << "remove";
-            removeModel();
-        }
-        if (!n.isEmpty() && !c.isEmpty() && n != c && n == p) {  // 修改型号
-            QMessageBox::warning(this, tr("警告"), tr("不能修改当前型号"), QMessageBox::Ok);
-        }
-        if (n.isEmpty() && !c.isEmpty()) {
-            qDebug() << "create";
-            createModel();  // 添加型号
-            selectModel();
-        }
-        if (n.isEmpty() && c.isEmpty()) {
-            qDebug() << "save";
-            saveSettings();
-        }
-    } else {
-        qDebug() << "save";
+    btnSave->setEnabled(false);
+    int row = qMax(0, view->currentRow());
+    QString n = view->item(row, 1)->text();  // 点中的型号
+    QString c = name->text();  // 输出的型号
+    QString p = type->text();
+    if ((!c.isEmpty() && !n.isEmpty() && n == c && n == p) || c.isEmpty()) {  // 保存型号
         saveSettings();
+    }
+    if ((!c.isEmpty() && !n.isEmpty() && n == c && n != p)) {  // 调入型号
+        selectModel();
+    }
+    if ((!c.isEmpty() && !n.isEmpty() && n != c)) {  // 修改型号
+        removeModel();
+    }
+    if ((!c.isEmpty() && n.isEmpty())) {  // 添加型号
+        createModel();
+        selectModel();
     }
 }
 
@@ -356,6 +341,7 @@ void TypConfig::recvAppMsg(QTmpMap msg)
     switch (c) {
     case Qt::Key_Copy:
         tmpSet = msg;
+        btnSave->setEnabled(true);
         break;
     case Qt::Key_Less:
     case Qt::Key_Meta:

@@ -751,7 +751,6 @@ void AppTester::recvTmpMsg(QTmpMap msg)
 void AppTester::recvLedMsg(QTmpMap msg)
 {
     QString tmp = msg.value(AddrText).toString();
-    //    tmp = (tmp == "LED1") ? "LEDR" : tmp;
     if (msg.value(AddrBeep).isNull() && tmp == "LEDY") {
         initTextView();
         btnHome->setEnabled(false);
@@ -759,6 +758,8 @@ void AppTester::recvLedMsg(QTmpMap msg)
         btnPlay->setText(tr("停止测试"));
         textResult->setText(judgeON.arg("ON"));
         boxChart->setRun(1);
+        QString str = (msg.value(AddrData).toInt() == 0x11 ? tr("左") : tr("右"));
+        textWorker->setText(judgeON.arg(str));
     } else if (msg.value(AddrBeep).toInt() >= 0) {
         boxChart->setRun(0);
         btnHome->setEnabled(true);
@@ -926,7 +927,7 @@ void AppTester::recvIMPMsg(QTmpMap msg)
         tmpWave = impWave;
         numb = prev;
     }
-    drawWaveIMPW((stdn == 0) ? numb-1 : stdn);
+    drawWaveIMPW((stdn == 0) ? numb-1 : stdn-1);
 }
 
 void AppTester::recvUpdate(QTmpMap msg)

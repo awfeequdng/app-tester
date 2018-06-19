@@ -149,7 +149,7 @@ void TypSetImp::initButtons()
     layout->addWidget(btnWave);
     connect(btnWave, SIGNAL(clicked(bool)), this, SLOT(waveUpdate()));
 
-    QPushButton *btnSave = new QPushButton(this);
+    btnSave = new QPushButton(this);
     btnSave->setFixedSize(97, 40);
     btnSave->setText(tr("保存"));
     layout->addWidget(btnSave);
@@ -198,6 +198,7 @@ void TypSetImp::initSettings()
 
 void TypSetImp::saveSettings()
 {
+    btnSave->setEnabled(false);
     int w = 0;
     int s = tmpSet[AddrIMPS1].toInt();
     w = AddrIMPSC; // 测试
@@ -258,7 +259,7 @@ void TypSetImp::waveSwitch()
     numb->setText(QString::number(n));
 
     int r = tmpSet[AddrIMPSW].toInt();  // 波形存储地址
-    r += n*400;
+    r += (n-1)*400;
     tmpWave.clear();
     for (int i=0; i < 400; i++) {
         tmpWave.append(tmpSet[r + i].toInt());
@@ -315,6 +316,7 @@ void TypSetImp::recvAppMsg(QTmpMap msg)
     switch (c) {
     case Qt::Key_Copy:
         tmpSet = msg;
+        btnSave->setEnabled(true);
         break;
     case Qt::Key_News:
         if (this->isHidden())

@@ -124,11 +124,11 @@ void TypSetAcw::initButtons()
     boxLayout->addLayout(layout);
     layout->addStretch();
 
-    QPushButton *btnAdd = new QPushButton(this);
-    btnAdd->setFixedSize(97, 40);
-    btnAdd->setText(tr("保存"));
-    layout->addWidget(btnAdd);
-    connect(btnAdd, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
+    btnSave = new QPushButton(this);
+    btnSave->setFixedSize(97, 40);
+    btnSave->setText(tr("保存"));
+    layout->addWidget(btnSave);
+    connect(btnSave, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
 }
 
 void TypSetAcw::initDelegate()
@@ -205,6 +205,7 @@ void TypSetAcw::initSettings()
 
 void TypSetAcw::saveSettings()
 {
+    btnSave->setEnabled(false);
     int w = 0;
     double t = 0;
     for (int i=0; i < 4; i++) {
@@ -242,6 +243,7 @@ void TypSetAcw::recvAppMsg(QTmpMap msg)
     switch (c) {
     case Qt::Key_Copy:
         tmpSet = msg;
+        btnSave->setEnabled(true);
         break;
     default:
         break;

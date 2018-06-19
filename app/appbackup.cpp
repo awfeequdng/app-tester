@@ -74,8 +74,7 @@ void AppBackup::initMacText()
 
     QStringList names;
     names << tr("硬件地址1") << tr("硬件地址2") << tr("硬件地址3")
-          << tr("本机地址1") << tr("本机地址2") << tr("本机地址3")
-          << tr("电阻板版本") << tr("高压板版本") << tr("匝间板版本");
+          << tr("本机地址1") << tr("本机地址2") << tr("本机地址3");
     for (int i=0; i < names.size(); i++) {
         QHBoxLayout *box = new QHBoxLayout;
         layout->addLayout(box);
@@ -86,7 +85,7 @@ void AppBackup::initMacText()
         box->addWidget(input);
         nets.append(input);
     }
-    layout->addStretch();
+
 
     names.clear();
     names << tr("硬盘") << "Nand" << tr("SD卡") << "usb1" << "usb2";
@@ -121,6 +120,8 @@ void AppBackup::initMacText()
     view->setColumnWidth(2, 70);
     view->setEditTriggers(QAbstractItemView::AllEditTriggers);
     layout->addWidget(view);
+
+    layout->addStretch();
 
     QHBoxLayout *btn = new QHBoxLayout;
     layout->addLayout(btn);

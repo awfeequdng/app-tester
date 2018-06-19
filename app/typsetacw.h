@@ -67,6 +67,7 @@ private:
     QTableView *acwView;
     BoxQModel *mAcwView;
     QTmpMap tmpSet;
+    QPushButton *btnSave;
 };
 
 #endif // TYPSETACW_H

@@ -112,8 +112,8 @@ void SqlImport::saveSqlite(QTmpMap msg)
         initData();
     }
     qint64 uuid = QDate::currentDate().toJulianDay();
-    QSqlDatabase::database("system").transaction();
-    QSqlQuery query(QSqlDatabase::database("system"));
+    QSqlDatabase::database("record").transaction();
+    QSqlQuery query(QSqlDatabase::database("record"));
     if (1) {
         int test = msg[AddrModel].toInt();
         tmpQuan[test] = tmpQuan[test].toInt() + 1;
@@ -175,7 +175,7 @@ void SqlImport::saveSqlite(QTmpMap msg)
             query.exec();
         }
     }
-    QSqlDatabase::database("system").commit();
+    QSqlDatabase::database("record").commit();
 }
 
 void SqlImport::saveRecord(QTmpMap msg)
