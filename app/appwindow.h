@@ -65,7 +65,7 @@ signals:
     void sendNetMsg(QTmpMap msg);
     void sendAppMsg(QTmpMap msg);
 private slots:
-    void initUI();
+    int initUI();
     int initTitle();
     int initLayout();
     int initAuthor();
@@ -114,12 +114,15 @@ private slots:
     int taskCheckSafe();
     int taskCheckCode();
     int taskStartView();
+    int taskStartWait();
     int taskStartTest();
     int taskStartSave();
     int taskStartBeep();
     int taskClearBeep();
     int taskResetTest();
     int taskCheckStop();
+    int taskQuickConf();
+    int taskQuickWait();
     int testThread();
     int testClearData();
     int testStartSend();
@@ -160,11 +163,6 @@ private:
     QStringList users;
     QList<int> roles;
     QList<int> forms;
-
-    QTmpMap showName;
-    QTmpMap showMark;
-    QTmpMap showRole;
-    QTmpMap showForm;
 
     QString barcode;
     QTimer *scanner;

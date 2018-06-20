@@ -90,6 +90,8 @@ private:
     QTmpMap tmpMsg;
     int currItem;
     QPushButton *btnSave;
+    QPushButton *btnWeld;
+    QPushButton *btnDiag;
 };
 
 #endif // TYPSETDCR_H

@@ -82,8 +82,10 @@ private slots:
     void setupIMP(QTmpMap map);
     void startIMP(QTmpMap map);
     void parseIMP(int id, QByteArray msg);
+    void judgeIMP();
     void renewIMP();
     void calc();
+    void setupPump(QTmpMap msg);
     void setupTest(QTmpMap msg);
     void startTest(QTmpMap msg);
     void resetTest(QTmpMap msg);

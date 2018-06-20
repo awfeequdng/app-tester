@@ -143,7 +143,7 @@ void TypSetImp::initButtons()
     layout->addWidget(btnStretch);
     connect(btnStretch, SIGNAL(clicked(bool)), this, SLOT(waveUpdate()));
 
-    QPushButton *btnWave = new QPushButton(this);
+    btnWave = new QPushButton(this);
     btnWave->setFixedSize(97, 40);
     btnWave->setText(tr("采样"));
     layout->addWidget(btnWave);
@@ -322,6 +322,12 @@ void TypSetImp::recvAppMsg(QTmpMap msg)
         if (this->isHidden())
             return;
         recvUpdate(msg);
+        break;
+    case Qt::Key_Zoom:
+        if (msg.value(AddrText).toInt() == AddrIMPS1)
+            btnWave->click();
+        if (msg.value(AddrText).toInt() == AddrIMPSW)
+            btnSave->click();
         break;
     default:
         break;

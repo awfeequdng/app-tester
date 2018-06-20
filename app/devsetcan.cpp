@@ -587,12 +587,7 @@ void DevSetCan::parseIMP(int id, QByteArray msg)
         }
         if (cmd == 0x03) {
             if (num == 0xFF) {  // 波形结束
-                calc();
-                int s = tmpSet[AddrIMPW1].toInt();  // 测试波形存储地址
-                for (int i=0; i < wave.size(); i++) {
-                    tmpSet[s + i] = wave.at(i);  // 临时存储波形
-                }
-                wave.clear();
+                judgeIMP();
                 renewIMP();
             } else {
                 qDebug() << "imp recv:" << msg.toHex();
@@ -613,6 +608,65 @@ void DevSetCan::parseIMP(int id, QByteArray msg)
             wave.append(quint8(msg.at(i*2+0))*256 + quint8(msg.at(i*2+1)));
         }
     }
+}
+
+void DevSetCan::judgeIMP()
+{
+    //    QList<int> tmpWave;
+    //    int tmp = 512;
+    //    for (int i=0; i < wave.size(); i++) {
+    //        quint8 tmpV = quint8(wave.at(i));
+    //        if (tmpV <= 0x78) {  // <=120 与上一位相加
+    //            tmp = tmp + tmpV;
+    //            tmpWave.append(tmp);
+    //        } else if (tmpV <= 0x7F && tmpV > 0x78) {  // 127 下一位为实际值
+    //            tmp = 0;
+    //        } else if (tmpV <= 0xF7 && tmpV > 0x7F) {  // >127 <= 240 与上一位相减
+    //            tmp = tmp + 0x7F - tmpV;
+    //            tmpWave.append(tmp);
+    //        } else {
+    //            tmp = (tmpV - 0xF7) * 120;
+    //        }
+    //    }
+    //    wave = tmpWave;
+
+    int save = tmpRow.value(numb-1).toInt() + 1;
+
+    int addr = tmpSet[AddrIMPR1].toInt();  // 匝间结果地址
+    int conf = tmpSet[AddrIMPS1].toInt();  // 匝间配置地址
+    int stdw = tmpSet[AddrIMPSW].toInt();  // 标准波形地址
+    double c = tmpSet[conf + AddrIMPSL].toDouble();  // 采样点
+    double h = tmpSet[conf + AddrIMPSH].toDouble();  // 匝间上限
+    stdw += (c == 0) ? (save-1)*400 : (c-1)*400;
+    quint32 area1 = 0;
+    quint32 area2 = 0;
+    quint32 area3 = 0;
+    quint32 diff = 0;
+    for (int i=1; i < wave.size()-1; i++) {
+        int a1 = tmpSet[stdw + i].toInt();
+        int a2 = wave.at(i);
+        area1 += abs(a1-0x200);
+        area2 += abs(a2-0x200);
+        int b1 = tmpSet[stdw + i - 1].toInt();
+        int b2 = tmpSet[stdw + i].toInt();
+        int b3 = tmpSet[stdw + i + 1].toInt();
+        int c1 = wave.at(i - 1);
+        int c2 = wave.at(i);
+        int c3 = wave.at(i + 1);
+        area3 += abs((b1+b2*2+b3)-(c1+c2*2+c3));
+    }
+    diff = qMin(area2, area3/4)*100*1000/area1;
+    diff = qMin(diff, quint32(99990));
+    tmpSet[addr + 4*save + AddrDataR] = diff;
+    if (diff >= h*1000) {
+        tmpSet[addr + 4*save + AddrDataJ] = DataNG;
+        tmpSet[addr + AddrDataJ] = DataNG;
+    }
+    int s = tmpSet[AddrIMPW1].toInt();  // 测试波形存储地址
+    for (int i=0; i < wave.size(); i++) {
+        tmpSet[s + i] = wave.at(i);  // 临时存储波形
+    }
+    wave.clear();
 }
 
 void DevSetCan::renewIMP()
@@ -687,6 +741,23 @@ void DevSetCan::calc()
     }
 }
 
+void DevSetCan::setupPump(QTmpMap msg)
+{
+    QString tmp = msg.value(AddrText).toString();
+    if (msg.value(AddrBeep).isNull() && tmp == "LEDY") {
+
+        int s = msg.value(AddrData).toInt();
+        QByteArray msg = QByteArray::fromHex("0900");
+        msg[1] = (s == 0x11) ? 0x01 : 0x04;
+        sendDevData(CAN_ID_DCR, msg);
+        qDebug() << "dcr send:" << msg.toHex().toUpper();
+    } else {
+        QByteArray msg = QByteArray::fromHex("0900");
+        sendDevData(CAN_ID_DCR, msg);
+        qDebug() << "dcr send:" << msg.toHex().toUpper();
+    }
+}
+
 void DevSetCan::setupTest(QTmpMap msg)
 {
     if (msg.value(AddrText).toInt() == AddrDCRSW) {
@@ -708,6 +779,7 @@ void DevSetCan::setupTest(QTmpMap msg)
         startDCR(msg);
     }
     if (msg.value(AddrText).toInt() == AddrIMPS1) {  // 匝间采样
+        currItem = AddrIMPS1;
         setupIMP(msg);
         startIMP(msg);
     }
@@ -811,20 +883,15 @@ void DevSetCan::recvAppMsg(QTmpMap msg)
                 sendDevData(CAN_ID_DCR, QByteArray::fromHex("05"));
             }
         }
-        //        if (timeOut % 50 == 0) {
-        //            if (tmpSet.value(tmpSet.value(AddrDCRR1).toInt() + AddrDataS).toInt() == 0xff)
-        //                sendDevData(CAN_ID_DCR, QByteArray::fromHex("00"));
-        //            if (tmpSet.value(tmpSet.value(AddrACWR1).toInt() + AddrDataS).toInt() == 0xff)
-        //                sendDevData(CAN_ID_ACW, QByteArray::fromHex("00"));
-        //            if (tmpSet.value(tmpSet.value(AddrIMPR1).toInt() + AddrDataS).toInt() == 0xff)
-        //                sendDevData(CAN_ID_IMP, QByteArray::fromHex("00"));
-        //        }
         break;
     case Qt::Key_Send:
         setupTest(msg);
         break;
     case Qt::Key_Play:
         startTest(msg);
+        break;
+    case Qt::Key_Call:
+        setupPump(msg);
         break;
     default:
         break;

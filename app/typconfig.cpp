@@ -112,6 +112,11 @@ void TypConfig::initConfigBar()
     settings->setColumnWidth(0, 70);
     settings->setEditTriggers(QAbstractItemView::AllEditTriggers);
     layout->addWidget(settings);
+    btnZoom = new QPushButton(this);
+    btnZoom->setText(tr("快速设置"));
+    btnZoom->setFixedHeight(40);
+    layout->addWidget(btnZoom);
+    connect(btnZoom, SIGNAL(clicked(bool)), this, SLOT(clickZoom()));
     layout->addStretch();
 
     QHBoxLayout *nameLayout = new QHBoxLayout;
@@ -178,6 +183,7 @@ void TypConfig::initDelegate()
 
 void TypConfig::initSettings()
 {
+    btnZoom->setEnabled(true);
     int p = page->text().toInt() - 1;    // 页码
     int r = tmpSet[AddrType].toInt();
     int s = r + C_ROW*p;       // 起始地址
@@ -286,6 +292,14 @@ void TypConfig::removeModel()
     emit sendAppMsg(tmpSet);
 
     initSettings();
+}
+
+void TypConfig::clickZoom()
+{
+    btnZoom->setEnabled(false);
+    tmpMsg.insert(AddrEnum, Qt::Key_Zoom);
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
 }
 
 void TypConfig::clickSave()

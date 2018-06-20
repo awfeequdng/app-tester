@@ -204,13 +204,13 @@ void TypSetDcr::initButtons()
 
     layout->addStretch();
 
-    QPushButton *btnCell = new QPushButton(this);
-    btnCell->setFixedSize(97, 40);
-    btnCell->setText(tr("片间采样"));
-    layout->addWidget(btnCell);
-    connect(btnCell, SIGNAL(clicked(bool)), this, SLOT(sample()));
+    btnWeld = new QPushButton(this);
+    btnWeld->setFixedSize(97, 40);
+    btnWeld->setText(tr("片间采样"));
+    layout->addWidget(btnWeld);
+    connect(btnWeld, SIGNAL(clicked(bool)), this, SLOT(sample()));
 
-    QPushButton *btnDiag = new QPushButton(this);
+    btnDiag = new QPushButton(this);
     btnDiag->setFixedSize(97, 40);
     btnDiag->setText(tr("跨间采样"));
     layout->addWidget(btnDiag);
@@ -400,6 +400,14 @@ void TypSetDcr::recvAppMsg(QTmpMap msg)
         if (this->isHidden())
             return;
         recvUpdate(msg);
+        break;
+    case Qt::Key_Zoom:
+        if (msg.value(AddrText).toInt() == AddrDCRS1)
+            btnWeld->click();
+        if (msg.value(AddrText).toInt() == AddrDCRS3)
+            btnDiag->click();
+        if (msg.value(AddrText).toInt() == AddrDCRSW)
+            btnSave->click();
         break;
     default:
         break;

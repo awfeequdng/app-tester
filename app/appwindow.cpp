@@ -13,8 +13,6 @@ QMap<int, pClass> initMap;
 QMap<QString, pClass> taskMap;
 QMap<QString, pClass> testMap;
 
-const int AddrAuthor = 0x00;
-
 AppWindow::AppWindow(QWidget *parent) : QMainWindow(parent)
 {
     initUI();
@@ -27,13 +25,14 @@ AppWindow::~AppWindow()
     sql->wait();
 }
 
-void AppWindow::initUI()
+int AppWindow::initUI()
 {
     initTitle();
     initLayout();
     initSqlDir();
     initAuthor();
     QTimer::singleShot(100, this, SLOT(initScreen()));
+    return Qt::Key_Away;
 }
 
 int AppWindow::initTitle()
@@ -89,13 +88,15 @@ int AppWindow::initLayout()
 int AppWindow::initAuthor()
 {
     QString name = "author";
+    QString mark = tr("返回主页");
+    initButton(mark, name);
+
     AppAuthor *app = new AppAuthor(this);
     app->setObjectName(name);
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("返回主页"), name);
     return Qt::Key_Away;
 }
 
@@ -202,208 +203,237 @@ int AppWindow:: initSqlDir()
 int AppWindow::initTester()
 {
     QString name = "tester";
+    QString mark = tr("返回测试");
+    initButton(mark, name);
+
     AppTester *app = new AppTester(this);
     app->setObjectName("tester");
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("返回测试"), name);
     return Qt::Key_Away;
 }
 
 int AppWindow::initSignin()
 {
     tmpSet[DataSign] = 0;
+
     QString name = "signin";
+    QString mark = tr("用户登录");
+    initButton(mark, name);
+
     AppSignin *app = new AppSignin(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("用户登录"), name);
     return Qt::Key_Away;
 }
 
 int AppWindow::initSystem()
 {
     QString name = "system";
+    QString mark = tr("系统设置");
+    initButton(mark, name);
+
     AppSystem *app = new AppSystem(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("系统设置"), name);
     return Qt::Key_Away;
 }
 
 int AppWindow::initOnline()
 {
-//#ifndef __arm__
-//    QString name = "online";
-//    AppSystem *app = new AppSystem(this);
-//    app->setObjectName(name);
-//    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-//    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
-//    stack->addWidget(app);
+    //#ifndef __arm__
+    //    QString name = "online";
+    //    AppSystem *app = new AppSystem(this);
+    //    app->setObjectName(name);
+    //    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+    //    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
+    //    stack->addWidget(app);
 
-//    initButton(tr("系统设置"), name);
-//#endif
-//#ifndef __arm__
-//    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL3", "mysql");
-//    db.setHostName("192.168.1.55");
-//    db.setUserName("root");
-//    db.setPassword("87973318");
-//    db.setDatabaseName("aip-server");
-//    if (!db.open()) {
-//        qDebug() << "open fail" << db.lastError();
-//    }
-//#endif
+    //    initButton(tr("系统设置"), name);
+    //#endif
+    //#ifndef __arm__
+    //    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL3", "mysql");
+    //    db.setHostName("192.168.1.55");
+    //    db.setUserName("root");
+    //    db.setPassword("87973318");
+    //    db.setDatabaseName("aip-server");
+    //    if (!db.open()) {
+    //        qDebug() << "open fail" << db.lastError();
+    //    }
+    //#endif
     return Qt::Key_Away;
 }
 
 int AppWindow::initMaster()
 {
     QString name = "master";
+    QString mark = tr("用户管理");
+    initButton(mark, name);
+
     AppMaster *app = new AppMaster(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("用户管理"), name);
     return Qt::Key_Away;
 }
 
 int AppWindow::initAction()
 {
     QString name = "action";
+    QString mark = tr("权限管理");
+    initButton(mark, name);
+
     AppAction *app = new AppAction(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("权限管理"), name);
     return Qt::Key_Away;
 }
 
 int AppWindow::initBackup()
 {
     QString name = "backup";
+    QString mark = tr("后台管理");
+    initButton(mark, name);
+
     AppBackup *app = new AppBackup(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("后台管理"), name);
     return Qt::Key_Away;
 }
 
 int AppWindow::initLogger()
 {
     QString name = "logger";
+    QString mark = tr("调试信息");
+    initButton(mark, name);
+
     AppLogger *app = AppLogger::instance();
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("调试信息"), name);
     return Qt::Key_Away;
 }
 
 int AppWindow::initConfig()
 {
     QString name = "config";
+    QString mark = tr("型号管理");
+    initButton(mark, name);
+
     TypConfig *app = new TypConfig(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("型号管理"), name);
     return Qt::Key_Away;
 }
 
 int AppWindow::initSetDcr()
 {
     QString name = "setdcr";
+    QString mark = tr("电阻配置");
+    initButton(mark, name);
+
     TypSetDcr *app = new TypSetDcr(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("电阻配置"), name);
     return Qt::Key_Away;
 }
 
 int AppWindow::initSetAcw()
 {
     QString name = "setacw";
+    QString mark = tr("介电强度");
+    initButton(mark, name);
+
     TypSetAcw *app = new TypSetAcw(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("介电强度"), name);
     return Qt::Key_Away;
 }
 
 int AppWindow::initSetImp()
 {
     QString name = "setimp";
+    QString mark = tr("匝间配置");
+    initButton(mark, name);
+
     TypSetImp *app = new TypSetImp(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("匝间配置"), name);
     return Qt::Key_Away;
 }
 
 int AppWindow::initOffDcr()
 {
     QString name = "offdcr";
+    QString mark = tr("电阻调试");
+    initButton(mark, name);
+
     TypOffDcr *app = new TypOffDcr(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("电阻调试"), name);
     return Qt::Key_Away;
 }
 
 int AppWindow::initOffAcw()
 {
     QString name = "offacw";
+    QString mark = tr("绝缘调试");
+    initButton(mark, name);
+
     TypOffAcw *app = new TypOffAcw(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("绝缘调试"), name);
     return Qt::Key_Away;
 }
 
 int AppWindow::initOffImp()
 {
     QString name = "offimp";
+    QString mark = tr("匝间调试");
+    initButton(mark, name);
+
     TypOffImp *app = new TypOffImp(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    initButton(tr("匝间调试"), name);
     return Qt::Key_Away;
 }
 
@@ -421,23 +451,29 @@ int AppWindow::initImport()
 int AppWindow::initRecord()
 {
     QString name = "record";
+    QString mark = tr("数据管理");
+    initButton(mark, name);
+
     SqlRecord *app = new SqlRecord(this);
     app->setObjectName(name);
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
-    initButton(tr("数据管理"), name);
+
     return Qt::Key_Away;
 }
 
 int AppWindow::initUpload()
 {
     QString name = "upload";
+    QString mark = tr("数据上传");
+    initButton(mark, name);
+
     SqlUpload *app = new SqlUpload(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
-    initButton(tr("数据上传"), name);
+
     return Qt::Key_Away;
 }
 
@@ -445,11 +481,13 @@ int AppWindow::initSdcard()
 {
 #ifdef __arm__
     QString name = "sdcard";
+    QString mark = tr("数据历史");
+    initButton(mark, name);
+
     SqlSdcard *app = new SqlSdcard(this);
     app->setObjectName(name);
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
-    initButton(tr("数据历史"), name);
 #endif
     return Qt::Key_Away;
 }
@@ -579,11 +617,12 @@ int AppWindow::initThread()
     taskMap["2"] = &AppWindow::taskCheckSafe;
     taskMap["3"] = &AppWindow::taskCheckCode;
     taskMap["4"] = &AppWindow::taskStartView;
-    taskMap["5"] = &AppWindow::taskStartTest;
-    taskMap["6"] = &AppWindow::taskStartSave;
-    taskMap["7"] = &AppWindow::taskStartBeep;
-    taskMap["8"] = &AppWindow::taskClearBeep;
-    taskMap["9"] = &AppWindow::taskResetTest;
+    taskMap["5"] = &AppWindow::taskStartWait;
+    taskMap["6"] = &AppWindow::taskStartTest;
+    taskMap["7"] = &AppWindow::taskStartSave;
+    taskMap["8"] = &AppWindow::taskStartBeep;
+    taskMap["9"] = &AppWindow::taskClearBeep;
+    taskMap["10"] = &AppWindow::taskResetTest;
 
     testMap.clear();
     testMap["0"] = &AppWindow::testClearData;
@@ -701,6 +740,7 @@ void AppWindow::saveConfig()
     wait(500);
     query.clear();
     boxbar->setValue(100);
+    testShift = Qt::Key_Away;
     qDebug() << "app save:" << tr("%1ms").arg(tt.elapsed(), 4, 10, QChar('0')) << type;
 }
 
@@ -892,8 +932,16 @@ int AppWindow::taskStartView()
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
     currItem = getNextItem();
+    timeOut = t.elapsed();
     qDebug() << "app view:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
     return Qt::Key_Away;
+}
+
+int AppWindow::taskStartWait()
+{
+    int rr = tmpSet[AddrSyst].toInt();
+    int tt = tmpSet[rr + 0x07].toDouble()*1000;
+    return (t.elapsed() - timeOut > tt) ? Qt::Key_Away : Qt::Key_Meta;
 }
 
 int AppWindow::taskStartTest()
@@ -944,7 +992,7 @@ int AppWindow::taskClearBeep()
 
 int AppWindow::taskResetTest()
 {
-//    qDebug() <<"app zero:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
+    //    qDebug() <<"app zero:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
     int addr = tmpSet[AddrBack].toInt();
     int test = tmpSet[addr + 7].toInt();
     int time = tmpSet[addr + 8].toInt();
@@ -964,21 +1012,79 @@ int AppWindow::taskResetTest()
 
 int AppWindow::taskCheckStop()
 {
-//    if (currTask > taskMap.values().indexOf(&AppWindow::taskCheckPlay)) {
-//        tmpMsg.insert(AddrEnum, Qt::Key_Send);
-//        tmpMsg.insert(AddrText, AddrDCRSW);
-//        emit sendAppMsg(tmpMsg);
-//        tmpMsg.clear();
-//        currTask = taskMap.values().indexOf(&AppWindow::taskStartBeep);
-//    } else {
-        tmpMsg.insert(AddrEnum, Qt::Key_Call);
-        tmpMsg.insert(AddrText, "LED1");
-        tmpMsg.insert(AddrBeep, 0);
-        emit sendAppMsg(tmpMsg);
-        tmpMsg.clear();
-//    }
-        taskClearData();
+    //    if (currTask > taskMap.values().indexOf(&AppWindow::taskCheckPlay)) {
+    //        tmpMsg.insert(AddrEnum, Qt::Key_Send);
+    //        tmpMsg.insert(AddrText, AddrDCRSW);
+    //        emit sendAppMsg(tmpMsg);
+    //        tmpMsg.clear();
+    //        currTask = taskMap.values().indexOf(&AppWindow::taskStartBeep);
+    //    } else {
+    tmpMsg.insert(AddrEnum, Qt::Key_Call);
+    tmpMsg.insert(AddrText, "LED1");
+    tmpMsg.insert(AddrBeep, 0);
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
+    //    }
+    taskClearData();
     return Qt::Key_Away;
+}
+
+int AppWindow::taskQuickConf()
+{
+    t.restart();
+    screensShow("setdcr");
+    wait(200);
+
+    tmpMsg.insert(AddrEnum, Qt::Key_Zoom);
+    tmpMsg.insert(AddrText, AddrDCRS1);
+    emit sendAppMsg(tmpMsg);
+    if (taskQuickWait() == Qt::Key_Meta)
+        return Qt::Key_Meta;
+
+    tmpMsg.insert(AddrEnum, Qt::Key_Zoom);
+    tmpMsg.insert(AddrText, AddrDCRS3);
+    emit sendAppMsg(tmpMsg);
+    if (taskQuickWait() == Qt::Key_Meta)
+        return Qt::Key_Meta;
+
+    tmpMsg.insert(AddrEnum, Qt::Key_Zoom);
+    tmpMsg.insert(AddrText, AddrDCRSW);
+    emit sendAppMsg(tmpMsg);
+
+    screensShow("setimp");
+    wait(200);
+
+    tmpMsg.insert(AddrEnum, Qt::Key_Zoom);
+    tmpMsg.insert(AddrText, AddrIMPS1);
+    emit sendAppMsg(tmpMsg);
+    if (taskQuickWait() == Qt::Key_Meta)
+        return Qt::Key_Meta;
+
+    tmpMsg.insert(AddrEnum, Qt::Key_Zoom);
+    tmpMsg.insert(AddrText, AddrIMPSW);
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
+
+    screensShow("config");
+    wait(200);
+    taskClearData();
+
+    return Qt::Key_Meta;
+}
+
+int AppWindow::taskQuickWait()
+{
+    timeOut = t.elapsed();
+    testShift = Qt::Key_Meta;
+    while (1) {
+        if (testShift == Qt::Key_Away)
+            break;
+        if (t.elapsed() - timeOut > 5000)
+            break;
+        wait(10);
+    }
+    wait(100);
+    return testShift;
 }
 
 int AppWindow::testThread()
@@ -1157,11 +1263,12 @@ void AppWindow::recvTmpMsg(QTmpMap msg)
 
 void AppWindow::recvAppMsg(QTmpMap msg)
 {
+    int c = msg.value(AddrEnum).toInt();
 #ifndef __arm__
     if (sender()->objectName() != "socket")
         emit sendNetMsg(msg);
 #endif
-    int c = msg.value(AddrEnum).toInt();
+
     switch (c) {
     case Qt::Key_Shop:
         recvTmpMsg(msg);
@@ -1224,6 +1331,9 @@ void AppWindow::recvAppMsg(QTmpMap msg)
 #else
         qDebug() << "tcp recv:" << msg.value(AddrText).toString();
 #endif
+        break;
+    case Qt::Key_Zoom:
+        taskQuickConf();
         break;
     default:
         break;

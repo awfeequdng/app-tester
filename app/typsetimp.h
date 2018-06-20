@@ -81,6 +81,7 @@ private:
     int time;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
+    QPushButton *btnWave;
     QPushButton *btnSave;
 };
 

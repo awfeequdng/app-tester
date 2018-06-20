@@ -62,6 +62,7 @@ private slots:
     void createModel();
     void selectModel();
     void removeModel();
+    void clickZoom();
     void clickSave();
     void clickButtons();
     void clickViewBar();
@@ -81,6 +82,8 @@ private:
     QLineEdit *name;
 
     QTmpMap tmpSet;
+    QTmpMap tmpMsg;
+    QPushButton *btnZoom;
     QPushButton *btnSave;
 };
 
