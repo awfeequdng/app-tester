@@ -34,17 +34,13 @@
 #include <QObject>
 #include <QVariant>
 #include <QElapsedTimer>
+#include <QCoreApplication>
 
 #include "main.h"
 #include "typconfig.h"
 #include "typsetdcr.h"
 #include "typsetacw.h"
 #include "typsetimp.h"
-
-const int AddrDataV = 0x00;  // 版本
-const int AddrDataR = 0x01;  // 结果
-const int AddrDataS = 0x02;  // 状态
-const int AddrDataJ = 0x03;  // 判定
 
 const int CAN_ID_DCR = 0x0022;
 const int CAN_ID_ACW = 0x0023;
@@ -84,12 +80,12 @@ private slots:
     void parseIMP(int id, QByteArray msg);
     void judgeIMP();
     void renewIMP();
-    void calc();
     void setupPump(QTmpMap msg);
     void setupTest(QTmpMap msg);
     void startTest(QTmpMap msg);
     void resetTest(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
+    void wait(int ms);
 private:
     int fd;
     can_frame frame;
@@ -104,7 +100,7 @@ private:
     int timeOut;
     int numb;
     QTmpMap tmpDCR;
-    QTmpMap tmpPer;
+    QTmpMap tmpPow;
     QTmpMap tmpRow;
     int currTemp;
     quint8 tmpio;

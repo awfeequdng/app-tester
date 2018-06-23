@@ -82,7 +82,7 @@ void TypSetDcr::initWeldBar()
 
     layout->addWidget(new QLabel(tr("离散允差"), this));
     maxWeld = new QDoubleSpinBox(this);
-    maxWeld->setDecimals(3);
+    maxWeld->setDecimals(2);
     maxWeld->setFixedSize(97, 40);
     layout->addWidget(maxWeld);
     layout->addWidget(new QLabel(tr("%"), this));
@@ -97,7 +97,7 @@ void TypSetDcr::initWeldBar()
 
     QComboBox *box = new QComboBox(this);
     box->setView(new QListView);
-    box->addItem(tr("自动排序"));
+    box->addItem(tr("计算跨阻"));
     box->setFixedSize(97, 40);
     layout->addWidget(box);
 }
@@ -166,21 +166,18 @@ void TypSetDcr::initDiagBar()
 void TypSetDcr::initViewBar()
 {
     view = new QTableWidget(this);
-    view->setRowCount(7);
+    view->setRowCount(6);
     view->setColumnCount(13);
     view->verticalHeader()->hide();
     view->horizontalHeader()->hide();
 
     for (int i=0; i < 13; i++) {
-        for (int j=0; j < 7; j++) {
+        for (int j=0; j < 6; j++) {
             QTableWidgetItem *item = new QTableWidgetItem;
             item->setTextAlignment(Qt::AlignCenter);
             view->setItem(j, i, item);
             if (i == 0) {
-                if (j < 6)
-                    item->setText(tr("片间%1*12").arg(j+1));
-                else
-                    item->setText(tr("跨间"));
+                item->setText(tr("片间%1*12").arg(j+1));
             }
         }
     }
@@ -209,12 +206,6 @@ void TypSetDcr::initButtons()
     btnWeld->setText(tr("片间采样"));
     layout->addWidget(btnWeld);
     connect(btnWeld, SIGNAL(clicked(bool)), this, SLOT(sample()));
-
-    btnDiag = new QPushButton(this);
-    btnDiag->setFixedSize(97, 40);
-    btnDiag->setText(tr("跨间采样"));
-    layout->addWidget(btnDiag);
-    connect(btnDiag, SIGNAL(clicked(bool)), this, SLOT(sample()));
 
     btnSave = new QPushButton(this);
     btnSave->setFixedSize(97, 40);
@@ -245,8 +236,8 @@ void TypSetDcr::initSettings()
 
 void TypSetDcr::initViewData()
 {
-    int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();
-    int r = tmpSet[AddrDCRSW].toInt();  // 标准波形
+    int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();  // 电枢片数
+    int r = tmpSet[AddrDCRSW].toInt();  // 标准波形地址
     for (int i=0; i < 72; i++) {
         if (i < c) {
             double t = tmpSet[r + i*2 + 0].toDouble();
@@ -258,26 +249,6 @@ void TypSetDcr::initViewData()
             view->item(i/12, i%12+1)->setText("");
         }
     }
-    r = tmpSet[AddrDCRS3].toInt();  // 跨间配置
-    double gmin = tmpSet[r + GMINDCR3].toInt();
-    double rmin = tmpSet[r + RMINDCR3].toInt();
-    double gmax = tmpSet[r + GMAXDCR3].toInt();
-    double rmax = tmpSet[r + RMAXDCR3].toInt();
-    gmin = (gmin > 3) ? gmin-3 : gmin;
-    gmax = (gmax > 3) ? gmax-3 : gmax;
-    rmin = rmin * qPow(10, -gmin);
-    rmax = rmax * qPow(10, -gmax);
-    for (int i=0; i < 12; i++) {
-        view->item(6, i+1)->setText("");
-        if (i == 0) {
-            view->item(6, 1)->setText(QString::number(rmin, 'f', gmin));
-        }
-        if (i == 1) {
-            view->item(6, 2)->setText(QString::number(rmax, 'f', gmax));
-        }
-
-    }
-    view->item(6, 0)->setText(tr("跨间%1*%2").arg(gmax).arg(gmax < 4 ? "Ω" : "mΩ"));
 }
 
 void TypSetDcr::saveSettings()
@@ -285,44 +256,37 @@ void TypSetDcr::saveSettings()
     btnSave->setEnabled(false);
     int s = 0;
     s = tmpSet[AddrDCRS1].toInt();
-    tmpSet[s + 0] = boxWeld->isChecked() ? "1" : "0";
-    tmpSet[s + 1] = QString::number(maxWeld->value()*1000);
-    tmpSet[s + 2] = boxTemp->isChecked() ? "1" : "0";
-    tmpSet[s + 3] = QString::number(maxTemp->value()*1000);
-    tmpSet[s + 4] = QString::number(boxTime->value()*1000);
+    tmpMsg[s + ISCKDCR1] = boxWeld->isChecked() ? "1" : "0";
+    tmpMsg[s + SMAXDCR1] = QString::number(maxWeld->value()*1000);
+    tmpMsg[s + ISTMDCR1] = boxTemp->isChecked() ? "1" : "0";
+    tmpMsg[s + TEMPDCR1] = QString::number(maxTemp->value()*1000);
+    tmpMsg[s + TIMEDCR1] = QString::number(boxTime->value()*1000);
+    tmpMsg[s + GEARDCR1] = tmpSet.value(s + GEARDCR1);
 
     s = tmpSet[AddrDCRS2].toInt();
-    tmpSet[s + 0] = boxChip->isChecked() ? "1" : "0";
-    tmpSet[s + 1] = QString::number(maxChip->value()*1000);
+    tmpMsg[s + ISCHDCR2] = boxChip->isChecked() ? "1" : "0";
+    tmpMsg[s + SMAXDCR2] = QString::number(maxChip->value()*1000);
 
     s = tmpSet[AddrDCRS3].toInt();
-    tmpSet[s + ISCHDCR3] = boxDiag->isChecked() ? "1" : "0";
-    tmpSet[s + SMINDCR3] = QString::number(minDiag->value()*1000);
-    tmpSet[s + SMAXDCR3] = QString::number(maxDiag->value()*1000);
+    tmpMsg[s + ISCHDCR3] = boxDiag->isChecked() ? "1" : "0";
+    tmpMsg[s + SMINDCR3] = QString::number(minDiag->value()*1000);
+    tmpMsg[s + SMAXDCR3] = QString::number(maxDiag->value()*1000);
 
-    if (1) {
-        double gmin = tmpSet.value(s + GMINDCR3).toDouble();
-        double rmin = view->item(6, 1)->text().toDouble();
-        double gmax = tmpSet.value(s + GMAXDCR3).toDouble();
-        double rmax = view->item(6, 2)->text().toDouble();
-        gmin = (gmin > 3) ? gmin-3 : gmin;
-        gmax = (gmax > 3) ? gmax-3 : gmax;
-        tmpSet[s + RMINDCR3] = int(rmin * qPow(10, gmin));
-        tmpSet[s + RMAXDCR3] = int(rmax * qPow(10, gmax));
-    }
     s = tmpSet[AddrDCRSW].toInt();
     for (int i=0; i < 72; i++) {
         if (view->item(i/12, i%12 + 1)->text().isEmpty())
             break;
         double p = tmpSet[s + i*2 + 1].toDouble();
+        tmpMsg.insert(s + i*2 + 1, p);
         p = (p > 3) ? p-3 : p;
         double r = view->item(i/12, i%12 + 1)->text().toDouble();
-        tmpSet[s + i*2] = r * qPow(10, p);
+        tmpMsg[s + i*2] = r * qPow(10, p);
     }
 
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
-    tmpSet.insert(AddrText, "aip_config");
-    emit sendAppMsg(tmpSet);
+    tmpMsg.insert(AddrEnum, Qt::Key_Book);
+    tmpMsg.insert(AddrText, "aip_config");
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
 }
 
 void TypSetDcr::sample()
@@ -330,9 +294,6 @@ void TypSetDcr::sample()
     QPushButton *btn = qobject_cast<QPushButton*>(sender());
     if (btn->text() == tr("片间采样")) {
         currItem = AddrDCRS1;
-    }
-    if (btn->text() == tr("跨间采样")) {
-        currItem = AddrDCRS3;
     }
     tmpMsg.insert(AddrEnum, Qt::Key_Send);
     tmpMsg.insert(AddrText, currItem);
@@ -351,10 +312,10 @@ void TypSetDcr::recvUpdate(QTmpMap msg)
 
     int g = 0;
     if (currItem == AddrDCRS1) {
-        int s = tmpSet[AddrDCRR1].toInt();  // 电阻结果
+        int s = tmpSet[AddrDCRR1].toInt() + CACHEDCR;  // 电阻结果
         for (int i=0; i < tool; i++) {
-            int t1 = msg[s + t*(i + 1) + AddrDataR].toInt();
-            int t2 = msg[s + t*(i + 1) + AddrDataS].toInt();
+            int t1 = msg[s + t*i + DATADCRR].toInt();
+            int t2 = msg[s + t*i + GEARDCRR].toInt();
             if (i == 0) {
                 g = t2;
             }
@@ -364,14 +325,14 @@ void TypSetDcr::recvUpdate(QTmpMap msg)
         tmpSet[tmpSet[AddrDCRS1].toInt() + 5] = g;
     }
     if (currItem == AddrDCRS3) {
-        int s = tmpSet[AddrDCRR3].toInt();  // 电阻结果
+        int s = tmpSet[AddrDCRR3].toInt() + CACHEDCR;  // 电阻结果
         int rmin = 0;
         int rmax = 0;
         int gmin = 0;
         int gmax = 0;
         for (int i=0; i < tool/2; i++) {
-            int t1 = msg[s + t*(i + 1) + AddrDataR].toInt();
-            int t2 = msg[s + t*(i + 1) + AddrDataS].toInt();
+            int t1 = msg[s + t*i + DATADCRR].toInt();
+            int t2 = msg[s + t*i + GEARDCRR].toInt();
             gmin = (i == 0) ? t2 : ((t1 < rmin) ? t2 : gmin);
             gmax = (i == 0) ? t2 : ((t1 > rmax) ? t2 : gmax);
             rmin = (i == 0) ? t1 : ((t1 < rmin) ? t1 : rmin);

@@ -132,7 +132,7 @@ void SqlImport::saveSqlite(QTmpMap msg)
         if (msg[test].toInt() == 1) {
             int addr = msg[AddrDCRR1 + t].toInt();  // 电阻结果地址 版本,温度,状态,判定
             tmpQuan[test] = tmpQuan[test].toInt() + 1;
-            if (msg.value(addr + AddrDataJ).toInt() == 0) {
+            if (msg.value(addr + OKNGDCRA).toInt() == 0) {
                 tmpOKNG[test] = tmpOKNG[test].toInt() + 1;
             }
             query.prepare("replace into aip_sqlite values(?,?,?,?)");
@@ -148,7 +148,7 @@ void SqlImport::saveSqlite(QTmpMap msg)
         if (msg[test].toInt() == 1) {
             int addr = msg[AddrACWR1 + t].toInt();  // 高压结果地址 版本,温度,状态,判定
             tmpQuan[test] = tmpQuan[test].toInt() + 1;
-            if (msg.value(addr + AddrDataJ).toInt() == 0) {
+            if (msg.value(addr + OKNGACWA).toInt() == 0) {
                 tmpOKNG[test] = tmpOKNG[test].toInt() + 1;
             }
             query.prepare("replace into aip_sqlite values(?,?,?,?)");
@@ -164,7 +164,7 @@ void SqlImport::saveSqlite(QTmpMap msg)
         if (msg[test].toInt() == 1) {
             int addr = msg[AddrIMPR1].toInt();  // 匝间结果地址 版本,温度,状态,判定
             tmpQuan[test] = tmpQuan[test].toInt() + 1;
-            if (msg.value(addr + AddrDataJ).toInt() == 0) {
+            if (msg.value(addr + OKNGIMPA).toInt() == 0) {
                 tmpOKNG[test] = tmpOKNG[test].toInt() + 1;
             }
             query.prepare("replace into aip_sqlite values(?,?,?,?)");
@@ -185,6 +185,7 @@ void SqlImport::saveRecord(QTmpMap msg)
     SqlSnowId snow;
     quint64 uuid = snow.getId();
     int c = msg[AddrModel].toInt();
+    int r = msg[DataFile].toInt();
     int weld = msg[c + 1].toInt();
     for (int t=0; t < 3; t++) {
         int test = msg[AddrDCRS1 + t].toInt();
@@ -192,9 +193,10 @@ void SqlImport::saveRecord(QTmpMap msg)
         int quan = (t == 2) ? 2 : 4;
         if (msg[test].toInt() == 1) {
             for (int i=0; i < weld*quan; i++) {
-                query.prepare("insert into aip_record values(?,?,?)");
+                query.prepare("insert into aip_record values(?,?,?,?)");
                 query.addBindValue(uuid);
                 query.addBindValue(addr + i);
+                query.addBindValue(r);
                 query.addBindValue(msg.value(addr + i).toInt());
                 query.exec();
             }
@@ -205,9 +207,10 @@ void SqlImport::saveRecord(QTmpMap msg)
         if (msg[test].toInt() == 1) {
             int addr = msg[AddrACWR1 + t].toInt() + 4;  // 高压结果地址 电压,结果,小数,判定
             for (int i=0; i < 4; i++) {
-                query.prepare("insert into aip_record values(?,?,?)");
+                query.prepare("insert into aip_record values(?,?,?,?)");
                 query.addBindValue(uuid);
                 query.addBindValue(addr + i);
+                query.addBindValue(r);
                 query.addBindValue(msg.value(addr + i).toInt());
                 query.exec();
             }
@@ -220,9 +223,10 @@ void SqlImport::saveRecord(QTmpMap msg)
         int quan = (time*2 == weld) ? 2 : 4;
         if (msg[test].toInt() == 1) {
             for (int i=0; i < weld*quan; i++) {
-                query.prepare("insert into aip_record values(?,?,?)");
+                query.prepare("insert into aip_record values(?,?,?,?)");
                 query.addBindValue(uuid);
                 query.addBindValue(addr + i);
+                query.addBindValue(r);
                 query.addBindValue(msg.value(addr + i).toInt());
                 query.exec();
             }

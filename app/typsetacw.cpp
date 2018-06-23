@@ -16,8 +16,8 @@ TypSetAcw::TypSetAcw(QWidget *parent) : QWidget(parent)
 void TypSetAcw::initUI()
 {
     initLayout();
-    initInrView();
     initAcwView();
+    initInrView();
     initButtons();
     initDelegate();
 }
@@ -177,8 +177,8 @@ void TypSetAcw::initSettings()
     double t = 0;
     for (int i=0; i < 4; i++) {
         int s = tmpSet[AddrACWS1 + i].toInt();
-        int r = (i == 0) ? (i - 0) : (i - 1);
-        BoxQModel *view = (i == 0) ? mInrView : mAcwView;
+        int r = (i == NUMBINRS) ? (i - NUMBINRS) : (i - 0);
+        BoxQModel *view = (i == NUMBINRS) ? mInrView : mAcwView;
         w = AddrACWSC; // 测试
         Qt::CheckState c = (tmpSet[s + w]) == "1" ? Qt::Checked : Qt::Unchecked;
         view->item(r, w)->setCheckState(c);
@@ -191,13 +191,13 @@ void TypSetAcw::initSettings()
         view->item(r, w)->setText(QString::number(t));
         w = AddrACWSH;  // 上限
         t = tmpSet[s + w].toString().toDouble();
-        view->item(r, w)->setText(QString::number((i == 0) ? t : t/100));
+        view->item(r, w)->setText(QString::number((i == NUMBINRS) ? t : t/100));
         w = AddrACWSL;  // 下限
         t = tmpSet[s + w].toString().toDouble();
-        view->item(r, w)->setText(QString::number((i == 0) ? t : t/100));
+        view->item(r, w)->setText(QString::number((i == NUMBINRS) ? t : t/100));
         w = AddrACWSO;  // 补偿
         t = tmpSet[s + w].toString().toDouble();
-        view->item(r, w)->setText(QString::number((i == 0) ? t : t/100));
+        view->item(r, w)->setText(QString::number((i == NUMBINRS) ? t : t/100));
         w = AddrACWSA;  // 电弧
         view->item(r, w)->setText(tmpSet[s + w].toString());
     }
@@ -210,8 +210,8 @@ void TypSetAcw::saveSettings()
     double t = 0;
     for (int i=0; i < 4; i++) {
         int s = tmpSet[AddrACWS1 + i].toInt();
-        int r = (i == 0) ? (i - 0) : (i - 1);
-        BoxQModel *view = (i == 0) ? mInrView : mAcwView;
+        int r = (i == NUMBINRS) ? (i - NUMBINRS) : (i - 0);
+        BoxQModel *view = (i == NUMBINRS) ? mInrView : mAcwView;
         w = AddrACWSC; // 测试
         tmpSet[s + w] = view->item(r, w)->checkState() == Qt::Checked ? 1 : 0;
         w = AddrACWSN;  // 名称
@@ -222,13 +222,13 @@ void TypSetAcw::saveSettings()
         tmpSet[s + w] = QString::number(view->item(r, w)->text().toDouble()*10);
         w = AddrACWSH;  // 上限
         t = view->item(r, w)->text().toDouble();
-        tmpSet[s + w] = (i == 0) ? QString::number(t) : QString::number(t*100);
+        tmpSet[s + w] = (i == NUMBINRS) ? QString::number(t) : QString::number(t*100);
         w = AddrACWSL;  // 下限
         t = view->item(r, w)->text().toDouble();
-        tmpSet[s + w] = (i == 0) ? QString::number(t) : QString::number(t*100);
+        tmpSet[s + w] = (i == NUMBINRS) ? QString::number(t) : QString::number(t*100);
         w = AddrACWSO;  // 补偿
         t = view->item(r, w)->text().toDouble();
-        tmpSet[s + w] = (i == 0) ? QString::number(t) : QString::number(t*100);
+        tmpSet[s + w] = (i == NUMBINRS) ? QString::number(t) : QString::number(t*100);
         w = AddrACWSA;  // 电弧
         tmpSet[s + w] = view->item(r, w)->text();
     }

@@ -33,6 +33,19 @@
 #include "main.h"
 #include "typconfig.h"
 
+#define CACHEIMP 0x04  // 离散数据长度
+
+#define HARDIMPA 0x00  // 版本
+#define NUMBIMPA 0x01  // 编号
+#define STATIMPA 0x02  // 状态
+#define OKNGIMPA 0x03  // 判定
+
+
+#define VOLTIMPR 0x00  // 电压
+#define DATAIMPR 0x01  // 结果
+#define FREQIMPR 0x02  // 频率
+#define OKNGIMPR 0x03  // 判定
+
 const int AddrIMPSC = 0x00;  // 测试
 const int AddrIMPSN = 0x01;  // 名称
 const int AddrIMPSV = 0x02;  // 电压
@@ -42,6 +55,8 @@ const int AddrIMPSL = 0x05;  // 下限
 const int AddrIMPSO = 0x06;  // 补偿
 const int AddrIMPSA = 0x07;  // 间隔
 const int AddrIMPSF = 0x09;  // 频率
+const int AddrIMPF1 = 0x0A;  // 起点
+const int AddrIMPF2 = 0x0B;  // 终点
 
 #define PI 3.1415926
 
@@ -64,6 +79,7 @@ private slots:
     void initSettings();
     void saveSettings();
     void drawImpWave();
+    void lineUpdate();
     void waveSwitch();
     void waveUpdate();
     void recvUpdate(QTmpMap msg);
@@ -83,6 +99,8 @@ private:
     QTmpMap tmpMsg;
     QPushButton *btnWave;
     QPushButton *btnSave;
+    QSpinBox *from;
+    QSpinBox *stop;
 };
 
 #endif // TYPSETIMP_H

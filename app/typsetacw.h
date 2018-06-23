@@ -31,6 +31,20 @@
 #include "main.h"
 #include "typconfig.h"
 
+#define NUMBINRS 0x03  // 绝缘位置
+
+#define CACHEACW 0x04  // 离散数据长度
+
+#define HARDACWA 0x00  // 版本
+#define TEMPACWA 0x01  // 备用
+#define STATACWA 0x02  // 状态
+#define OKNGACWA 0x03  // 判定
+
+#define VOLTACWR 0x00  // 电压
+#define DATAACWR 0x01  // 结果
+#define GEARACWR 0x02  // 档位
+#define OKNGACWR 0x03  // 判定
+
 const int AddrACWSC = 0x00;  // 测试
 const int AddrACWSN = 0x01;  // 名称
 const int AddrACWSV = 0x02;  // 电压

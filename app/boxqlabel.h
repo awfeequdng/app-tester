@@ -15,6 +15,8 @@
 #include <QPainter>
 #include <QMouseEvent>
 
+#define IMP_SIZE 400
+
 class BoxQLabel : public QLabel
 {
     Q_OBJECT
@@ -24,6 +26,8 @@ public:
 signals:
     void clicked();
 public slots:
+    int getFrom();
+    int getStop();
     void setZero();
     void setText(QString text, int mode);
     void setData(QVector<double> values, int mode);
@@ -31,6 +35,7 @@ public slots:
 private slots:
     void setLine(QPainter *painter, QVector<double> r);
     void linearSmooth(QPainter *painter, QVector<double> r);
+    void drawImpLine(QPainter *painter);
     void drawDcrWave(QPainter *painter);
     void drawImpWave(QPainter *painter);
     void drawTstCurr(QPainter *painter);
@@ -44,6 +49,8 @@ private:
     QVector<double> real;
     QVector<double> quan;
     quint8 mode;
+    int from;
+    int stop;
     QString str1,str2,str3,str4;
 };
 

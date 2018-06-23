@@ -141,7 +141,7 @@ void BoxQChart::drawPie(QPainter *painter)
         if (pies.contains(i)) {
             painter->setBrush(QBrush(QColor("#FF0000")));
         } else {
-            painter->setBrush(QBrush(QColor(Qt::darkYellow)));
+            painter->setBrush(QBrush(QColor("#808000")));
         }
         if (m_start > 0 && (m_timer % m_count == i)) {
             painter->setBrush(QBrush(QColor("#00FF00")));
@@ -167,7 +167,7 @@ void BoxQChart::drawTurn(QPainter *painter)
     if (m_turn >= 2)
         painter->setPen(QPen(QColor("#FF0000"), 2, Qt::SolidLine));
     else
-        painter->setPen(QPen(Qt::darkYellow, 2, Qt::SolidLine));
+        painter->setPen(QPen(QColor("#808000"), 2, Qt::SolidLine));
     if (m_turn%2 == 0) {
         painter->drawArc(-radius, -radius, radius << 1, radius << 1, int(-30*16), int((72-t)*16));
         painter->drawLine(radius-17, radius/2, radius - 4, radius/2 - 12);

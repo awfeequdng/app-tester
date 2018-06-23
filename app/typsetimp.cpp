@@ -93,12 +93,28 @@ void TypSetImp::initWaveBar()
 
     impView = new BoxQLabel(this);
     layout->addWidget(impView);
+    connect(impView, SIGNAL(clicked()), this, SLOT(lineUpdate()));
 }
 
 void TypSetImp::initWaveCtl()
 {
     QHBoxLayout *layout = new QHBoxLayout;
     boxLayout->addLayout(layout);
+
+    layout->addWidget(new QLabel(tr("计算起点:"), this));
+
+    from = new QSpinBox(this);
+    from->setFixedHeight(35);
+    from->setMaximum(IMP_SIZE);
+    layout->addWidget(from);
+
+    layout->addWidget(new QLabel(tr("计算终点:"), this));
+
+    stop = new QSpinBox(this);
+    stop->setFixedHeight(35);
+    stop->setMaximum(IMP_SIZE);
+    layout->addWidget(stop);
+
     layout->addStretch();
 
     QPushButton *btnPrev = new QPushButton(this);
@@ -186,11 +202,17 @@ void TypSetImp::initSettings()
     mView->item(0, w)->setText(tmpSet[s + w].toString());
     w = AddrIMPSF;  // 频率
     text->setText(tmpSet[s + w].toString());
+    w = AddrIMPF1;  // 起点
+    from->setValue(qMax(1, tmpSet.value(s + w).toInt()));
+    w = AddrIMPF2;  // 终点
+    stop->setValue(qMax(200, tmpSet.value(s + w).toInt()));
+    impView->setText(QString::number(from->value()), 3);
+    impView->setText(QString::number(stop->value()), 2);
 
     int r = tmpSet[AddrIMPSW].toInt();  // 波形存储地址
-    r += numb->text().toInt() * 400;
+    r += numb->text().toInt() * IMP_SIZE;
     tmpWave.clear();
-    for (int i=0; i < 400; i++) {
+    for (int i=0; i < IMP_SIZE; i++) {
         tmpWave.append(tmpSet[r + i].toInt());
     }
     drawImpWave();
@@ -219,6 +241,10 @@ void TypSetImp::saveSettings()
     tmpSet[s + w] = mView->item(0, w)->text();
     w = AddrIMPSF;  // 频率
     tmpSet[s + w] = text->text();
+    w = AddrIMPF1;  // 频率
+    tmpSet[s + w] = QString::number(from->value());
+    w = AddrIMPF2;  // 频率
+    tmpSet[s + w] = QString::number(stop->value());
 
     tmpSet.insert(AddrEnum, Qt::Key_Save);
     tmpSet.insert(AddrText, "aip_config");
@@ -230,15 +256,21 @@ void TypSetImp::drawImpWave()
     if (tmpWave.isEmpty()) {
         impView->setZero();
     } else {
-        QVector<double> y(400);
-        for (int i=0; i < 400; i++) {
+        QVector<double> y(IMP_SIZE);
+        for (int i=0; i < IMP_SIZE; i++) {
             y[i] = tmpWave.at(i)*100/0x0400;
         }
-        impView->setWave(y, 0);
+        impView->setWave(y, 4);
     }
     QString s = QString("编号:%1").arg(numb->text().toInt(), 2, 10, QChar('0'));
     impView->setText(s, 1);
     impView->update();
+}
+
+void TypSetImp::lineUpdate()
+{
+    from->setValue(impView->getFrom());
+    stop->setValue(impView->getStop());
 }
 
 void TypSetImp::waveSwitch()
@@ -259,9 +291,9 @@ void TypSetImp::waveSwitch()
     numb->setText(QString::number(n));
 
     int r = tmpSet[AddrIMPSW].toInt();  // 波形存储地址
-    r += (n-1)*400;
+    r += (n-1)*IMP_SIZE;
     tmpWave.clear();
-    for (int i=0; i < 400; i++) {
+    for (int i=0; i < IMP_SIZE; i++) {
         tmpWave.append(tmpSet[r + i].toInt());
     }
     drawImpWave();
@@ -291,21 +323,23 @@ void TypSetImp::recvUpdate(QTmpMap msg)
     int real = tmpSet[AddrIMPR1].toInt();  // 测试结果地址
     int addr = tmpSet[AddrIMPW1].toInt();  // 测试波形地址
     int parm = tmpSet[AddrIMPSW].toInt();  // 标准波形地址
-    int imps = msg.value(real + AddrDataS).toInt();  // 状态
-    int numb = msg.value(real + AddrDataR).toInt();  // 编号
+    int imps = msg.value(real + STATIMPA).toInt();  // 状态
+    int code = msg.value(real + NUMBIMPA).toInt();  // 编号
     int stdn = tmpSet[tmpSet[AddrIMPS1].toInt() + AddrIMPSL].toInt();  // 采样点
 
     if (imps == DataTest) {
         tmpWave.clear();
-        for (int i=0; i < 400; i++) {
+        for (int i=0; i < IMP_SIZE; i++) {
             tmpWave.append(msg[addr + i].toInt());
-            tmpSet[parm + (numb-1)*400 + i] = msg[addr + i].toInt();
+            tmpSet[parm + (code-1)*IMP_SIZE + i] = msg[addr + i].toInt();
         }
-        if (numb == stdn) {
+        if (code == stdn) {
             impWave = tmpWave;
         }
+        numb->setText(QString::number(code));
     } else if (stdn != 0) {
         tmpWave = impWave;
+        numb->setText(QString::number(stdn));
     }
     drawImpWave();
 }

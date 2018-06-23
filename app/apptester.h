@@ -145,6 +145,8 @@ private:
     BoxQLabel *impView;
     BoxQLabel *dcrView;
     BoxQLabel *allView;
+    QList<int> tmpDcr;
+    QList<int> tmpPow;
 };
 
 #endif // APPTESTER_H

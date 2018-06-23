@@ -66,6 +66,7 @@ signals:
     void sendAppMsg(QTmpMap msg);
 private slots:
     int initUI();
+    void calc();
     int initTitle();
     int initLayout();
     int initAuthor();
@@ -103,6 +104,9 @@ private slots:
     void saveBackup();
     void saveSqlite();
     void saveConfig();
+    void saveBackup1(QTmpMap msg);
+    void saveSqlite1(QTmpMap msg);
+    void saveConfig1(QTmpMap msg);
     void clickButtons();
     bool checkAction(QString msg);
     void screensShow(QString msg);

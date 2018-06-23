@@ -13,9 +13,21 @@ BoxQLabel::BoxQLabel(QWidget *parent) : QLabel(parent)
     setZero();
 }
 
+int BoxQLabel::getFrom()
+{
+    return from;
+}
+
+int BoxQLabel::getStop()
+{
+    return stop;
+}
+
 void BoxQLabel::setZero()
 {
     mode = 0;
+    from = 1;
+    stop = 99;
     std1.clear();
     std2.clear();
     real.clear();
@@ -32,9 +44,11 @@ void BoxQLabel::setText(QString text, int mode)
         break;
     case 2:
         str3 = text;
+        stop = text.toInt();
         break;
     case 3:
         str4 = text;
+        from = text.toInt();
         break;
     default:
         break;
@@ -59,6 +73,10 @@ void BoxQLabel::setWave(QVector<double> values, int numb)
     case 2:
         std2 = values;
         mode = 1;
+        break;
+    case 4:
+        real = values;
+        mode = 4;
         break;
     default:
         break;
@@ -126,6 +144,17 @@ void BoxQLabel::linearSmooth(QPainter *painter, QVector<double> r)
         p2.setY(h - out[i+1] * h / 100);
         painter->drawLine(p1, p2);
     }
+}
+
+void BoxQLabel::drawImpLine(QPainter *painter)
+{
+    int w = this->width();
+    int h = this->height();
+    int x1 = w * from / IMP_SIZE;
+    int x2 = w * stop / IMP_SIZE;
+    painter->setPen(QPen(Qt::transparent));
+    painter->setBrush(QBrush(QColor("#303000")));
+    painter->drawRect(x1, 0, x2-x1, h);
 }
 
 void BoxQLabel::drawDcrWave(QPainter *painter)
@@ -320,6 +349,10 @@ void BoxQLabel::paintEvent(QPaintEvent *e)
     case 3:
         drawAllQuan(painter);
         break;
+    case 4:
+        drawImpLine(painter);
+        drawImpWave(painter);
+        break;
     default:
         break;
     }
@@ -330,7 +363,17 @@ void BoxQLabel::paintEvent(QPaintEvent *e)
 
 void BoxQLabel::mousePressEvent(QMouseEvent *e)
 {
+    if (mode == 4) {
+        int w = this->width();
+        if (e->x() > w/2) {
+            stop = e->x() * IMP_SIZE / w;
+        } else {
+            from = e->x() * IMP_SIZE / w;
+        }
+        this->update();
+    }
     emit clicked();
+
     e->accept();
 }
 

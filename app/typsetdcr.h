@@ -31,24 +31,38 @@
 #include "main.h"
 #include "typconfig.h"
 
-const int ISCKDCR1 = 0x00;
-const int SMAXDCR1 = 0x01;
-const int ISTMDCR1 = 0x02;
-const int TEMPDCR1 = 0x03;
-const int TIMEDCR1 = 0x04;
-const int GEARDCR1 = 0x05;
+#define ISCKDCR1 0x00  // 片间测试
+#define SMAXDCR1 0x01  // 片间上限
+#define ISTMDCR1 0x02  // 片间补偿
+#define TEMPDCR1 0x03  // 片间温度
+#define TIMEDCR1 0x04  // 片间时间
+#define GEARDCR1 0x05  // 片间档位
 
-const int ISCHDCR2 = 0x01;
-const int SMAXDCR2 = 0x02;
+#define ISCHDCR2 0x01  // 焊接测试
+#define SMAXDCR2 0x02  // 焊接上限
 
-const int ISCHDCR3 = 0x00;
-const int SMINDCR3 = 0x01;
-const int SMAXDCR3 = 0x02;
-const int GEARDCR3 = 0x03;
-const int RMINDCR3 = 0x04;
-const int GMINDCR3 = 0x05;
-const int RMAXDCR3 = 0x06;
-const int GMAXDCR3 = 0x07;
+#define ISCHDCR3 0x00  // 跨间测试
+#define SMINDCR3 0x01  // 跨间下限
+#define SMAXDCR3 0x02  // 跨间上限
+#define GEARDCR3 0x03  // 跨间档位
+#define RMINDCR3 0x04  // 跨间最小电阻
+#define GMINDCR3 0x05  // 跨间最小档位
+#define RMAXDCR3 0x06  // 跨间最大电阻
+#define GMAXDCR3 0x07  // 跨间最大档位
+
+#define CACHEDCR 0x10  // 离散数据长度
+
+#define HARDDCRA 0x00  // 版本
+#define TEMPDCRA 0x01  // 温度
+#define STATDCRA 0x02  // 状态
+#define OKNGDCRA 0x03  // 判定
+#define TURNDCRA 0x04  // 顺序
+#define FROMDCRA 0x05  // 起点
+
+#define NUMBDCRR 0x00  // 电阻编号
+#define DATADCRR 0x01  // 电阻结果
+#define GEARDCRR 0x02  // 电阻档位
+#define OKNGDCRR 0x03  // 电阻判定
 
 class TypSetDcr : public QWidget
 {

@@ -14,6 +14,7 @@ SqlCreate::SqlCreate(QObject *parent) : QObject(parent)
 
 void SqlCreate::initSqlDir()
 {
+    qDebug() << system("rm ./nandflash/*.db-journal");
     QDir dir;
     bool ok = !dir.exists("nandflash") ? dir.mkdir("nandflash") : true;
     if (ok) {
@@ -63,10 +64,6 @@ void SqlCreate::initTmpDat()
     tmpSet.insert(AddrIMPS1, 40000 + 0x0080);  // 匝间配置地址
     tmpSet.insert(AddrDCRSW, 40000 + 0x0100);  // 焊接配置地址
     tmpSet.insert(AddrIMPSW, 40000 + 0x0300);  // 匝间波形地址
-
-    tmpSet.insert(tmpSet.value(AddrDCRR1).toInt() + AddrDataS, 0xff);
-    tmpSet.insert(tmpSet.value(AddrACWR1).toInt() + AddrDataS, 0xff);
-    tmpSet.insert(tmpSet.value(AddrIMPR1).toInt() + AddrDataS, 0xff);
 
     tmpSet.insert(AddrEnum, Qt::Key_Xfer);
     emit sendAppMsg(tmpSet);
@@ -187,7 +184,9 @@ void SqlCreate::openRecord(bool isExist)
             qWarning() << "aip_sqlite:" << query.lastError();
         }
         cmd = "create table if not exists aip_record (";
-        cmd += "R_UUID bigint, R_ITEM integer,R_TEXT text,primary key (R_UUID,R_ITEM))";
+        cmd += "R_UUID bigint, R_ITEM integer,";
+        cmd += "R_TYPE text, R_TEXT text,";
+        cmd += "primary key (R_UUID,R_ITEM))";
         if (!query.exec(cmd))
             qWarning() << "aip_record:" << query.lastError();
         query.clear();
@@ -481,7 +480,7 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value(AddrACWS1).toInt();
-    parm << "1" << tr("绝缘电阻") << "500" << "5" << "0" << "500" << "0" << "0" << "" << "";
+    parm << "0" << tr("轴铁耐压") << "500" << "5" << "500" << "0" << "0" << "0" << "" << "";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
@@ -491,16 +490,6 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value(AddrACWS2).toInt();
-    parm << "1" << tr("轴铁耐压") << "500" << "5" << "500" << "0" << "0" << "0" << "" << "";
-    for (int i=0; i < parm.size(); i++) {
-        query.prepare("insert into aip_config values(?,?)");
-        query.addBindValue(from + i);
-        query.addBindValue(parm.at(i));
-        if (!query.exec())
-            qWarning() << "aip_config" << query.lastError();
-    }
-    parm.clear();
-    from = tmpSet.value(AddrACWS3).toInt();
     parm << "1" << tr("轴线耐压") << "500" << "5" << "500" << "0" << "0" << "0" << "" << "";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
@@ -510,8 +499,18 @@ void SqlCreate::initConf(QSqlQuery query)
             qWarning() << "aip_config" << query.lastError();
     }
     parm.clear();
+    from = tmpSet.value(AddrACWS3).toInt();
+    parm << "0" << tr("铁线耐压") << "500" << "5" << "500" << "0" << "0" << "0" << "" << "";
+    for (int i=0; i < parm.size(); i++) {
+        query.prepare("insert into aip_config values(?,?)");
+        query.addBindValue(from + i);
+        query.addBindValue(parm.at(i));
+        if (!query.exec())
+            qWarning() << "aip_config" << query.lastError();
+    }
+    parm.clear();
     from = tmpSet.value(AddrACWS4).toInt();
-    parm << "1" << tr("铁线耐压") << "500" << "5" << "500" << "0" << "0" << "0" << "" << "";
+    parm << "1" << tr("绝缘电阻") << "500" << "5" << "0" << "500" << "0" << "0" << "" << "";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
@@ -521,7 +520,8 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value(AddrIMPS1).toInt();
-    parm << "1" << tr("匝间测试") << "500" << "1" << "15" << "2" << "0" << "1"<< "1" << "7";
+    parm << "1" << tr("匝间测试") << "500" << "1" << "15" << "2" << "0"
+         << "1"<< "1" << "7" << "5" << "395";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);
