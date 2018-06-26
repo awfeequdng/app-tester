@@ -222,7 +222,7 @@ void AppBackup::initNetworks()
 
 void AppBackup::recovery()
 {
-    qDebug() << "start recovery";
+    qWarning() << "start recovery";
     QProcess sys;
     sys.start("rm /mnt/nandflash/system.db");
     sys.waitForFinished();
@@ -234,34 +234,6 @@ void AppBackup::recovery()
     sys.waitForFinished();
 }
 
-void AppBackup::recvAppVer(QTmpMap msg)
-{
-    if (!msg.value(DataDCRV).isNull()) {
-        QByteArray tmp = msg.value(DataDCRV).toByteArray();
-        QString v;
-        v += QString::number(quint8(tmp.at(6))/16);
-        v += ".";
-        v += QString::number(quint8(tmp.at(6))%16);
-        nets.at(6)->setText(v);
-    }
-    if (!msg.value(DataACWV).isNull()) {
-        QByteArray tmp = msg.value(DataACWV).toByteArray();
-        QString v;
-        v += QString::number(quint8(tmp.at(6))/16);
-        v += ".";
-        v += QString::number(quint8(tmp.at(6))%16);
-        nets.at(7)->setText(v);
-    }
-    if (!msg.value(DataIMPV).isNull()) {
-        QByteArray tmp = msg.value(DataIMPV).toByteArray();
-        QString v;
-        v += QString::number(quint8(tmp.at(6))/16);
-        v += ".";
-        v += QString::number(quint8(tmp.at(6))%16);
-        nets.at(8)->setText(v);
-    }
-}
-
 void AppBackup::recvAppMsg(QTmpMap msg)
 {
     int c = msg.value(AddrEnum).toInt();
@@ -270,7 +242,6 @@ void AppBackup::recvAppMsg(QTmpMap msg)
         tmpSet = msg;
         break;
     case Qt::Key_News:
-        recvAppVer(msg);
         break;
     default:
         break;

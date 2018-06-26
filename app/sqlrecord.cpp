@@ -51,11 +51,11 @@ void SqlRecord::initTextBar()
     QHBoxLayout *layout = new QHBoxLayout;
     boxLayout->addLayout(layout);
 
-    //    type = new QComboBox(this);
-    //    type->setEditable(true);
-    //    type->setFixedHeight(40);
-    //    layout->addWidget(new QLabel(tr("测试型号"), this));
-    //    layout->addWidget(type);
+    type = new QComboBox(this);
+    type->setEditable(true);
+    type->setFixedHeight(40);
+    layout->addWidget(new QLabel(tr("测试型号"), this));
+    layout->addWidget(type);
 
     from = new QDateEdit(this);
     from->setFixedHeight(40);
@@ -105,16 +105,10 @@ void SqlRecord::initButtonBar()
     layout->addStretch();
 
     QPushButton *btnUpdate = new QPushButton(this);
-    btnUpdate->setText(tr("导出当前"));
+    btnUpdate->setText(tr("导出数据"));
     btnUpdate->setFixedSize(97, 44);
     layout->addWidget(btnUpdate);
-    connect(btnUpdate, SIGNAL(clicked(bool)), this, SLOT(recvExportDate()));
-
-    QPushButton *btnExport = new QPushButton(this);
-    btnExport->setText(tr("全部导出"));
-    btnExport->setFixedSize(97, 44);
-    layout->addWidget(btnExport);
-    connect(btnExport, SIGNAL(clicked(bool)), this, SLOT(recvExportAll()));
+    connect(btnUpdate, SIGNAL(clicked(bool)), this, SLOT(recvExport()));
 }
 
 void SqlRecord::existsFlashDisk()
@@ -201,37 +195,29 @@ void SqlRecord::recvSelect()
     view->update();
 }
 
-void SqlRecord::recvDetail()
+void SqlRecord::recvExport()
 {
-    QPushButton *btn = qobject_cast<QPushButton*>(sender());
-    if (btn->text() == tr("显示详细")) {
-        item->show();
-        btn->setText(tr("隐藏详细"));
-    } else {
-        item->hide();
-        btn->setText(tr("显示详细"));
-    }
-}
-
-void SqlRecord::recvExportAll()
-{
-//    tmpMap.insert("enum", Qt::Key_Excel);
-//    emit sendAppMap(tmpMap);
-//    tmpMap.clear();
-}
-
-void SqlRecord::recvExportDate()
-{
-//    QDateTime t;
-//    t.setDate(from->date());
-//    quint64 id_from = quint64(t.toMSecsSinceEpoch()) << 20;
-//    t.setDate(stop->date().addDays(1));
-//    quint64 id_stop = quint64(t.toMSecsSinceEpoch()) << 20;
-//    tmpMap.insert("enum", Qt::Key_Excel);
-//    tmpMap.insert("from", id_from);
-//    tmpMap.insert("stop", id_stop);
-//    emit sendAppMap(tmpMap);
-//    tmpMap.clear();
+#ifdef __arm__
+    existsFlashDisk();
+    if (path.isEmpty())
+        return;
+    path.append("/");
+#else
+    path.append("./");
+#endif
+    path.append(tr("%1.csv").arg(QDateTime::currentDateTime().toString("yyyyMMddhhmm")));
+    QDateTime t;
+    t.setDate(from->date());
+    quint64 id_from = quint64(t.toMSecsSinceEpoch()) << 20;
+    t.setDate(stop->date().addDays(1));
+    quint64 id_stop = quint64(t.toMSecsSinceEpoch()) << 20;
+    tmpMsg.insert(AddrEnum, Qt::Key_Book);
+    tmpMsg.insert(AddrText, path);
+    tmpMsg.insert(AddrData, "record");
+    tmpMsg.insert(AddrFrom, id_from);
+    tmpMsg.insert(AddrStop, id_stop);
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
 }
 
 void SqlRecord::clickIndex(QModelIndex index)

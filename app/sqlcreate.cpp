@@ -14,7 +14,7 @@ SqlCreate::SqlCreate(QObject *parent) : QObject(parent)
 
 void SqlCreate::initSqlDir()
 {
-    qDebug() << system("rm ./nandflash/*.db-journal");
+    QProcess::execute("rm ./nandflash/*.db-journal");
     QDir dir;
     bool ok = !dir.exists("nandflash") ? dir.mkdir("nandflash") : true;
     if (ok) {

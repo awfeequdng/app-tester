@@ -63,7 +63,7 @@ void TcpSocket::readSocket()
             in >> BlockSize;
         }
         if (BlockSize > 8*1024) {
-            qDebug() << "tcp recv block size overflow";
+            qWarning() << "tcp recv:" << "block size overflow";
             this->abort();
             return;
         }
@@ -72,6 +72,7 @@ void TcpSocket::readSocket()
         in >> addr >> cmd >> msg;
         recvSocketCmd(addr, cmd, msg);
         BlockSize = 0;
+        heart = 0;
     }
 }
 
@@ -168,9 +169,7 @@ void TcpSocket::sendFileData(qint64)
 
 void TcpSocket::recvSocketCmd(quint16 addr, quint16 cmd, QByteArray msg)
 {
-    if (cmd != BEAT)
-        qDebug() << "tcp recv:" << addr << cmd;
-    heart = 0;
+
     switch (cmd) {
     case FILE_OVER:           // 发送成功
         display(tr("服务器发送成功"));
@@ -236,7 +235,7 @@ void TcpSocket::recvSocketErr(QAbstractSocket::SocketError socketError)
         this->close();
         break;
     }
-    display(this->errorString().toUtf8());
+    qDebug() << "tcp show:" << this->errorString();
 }
 
 void TcpSocket::recvSocketConnected()
@@ -374,8 +373,5 @@ void TcpSocket::recvAppMsg(QTmpMap dat)
         }
         QByteArray msg = doc.toByteArray();
         sender.append(msg);
-        qDebug() << "tcp send:" << msg;
-    } else {
-        qDebug() << "tcp show:" << isOK;
     }
 }

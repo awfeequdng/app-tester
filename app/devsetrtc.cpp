@@ -18,7 +18,7 @@ void DevSetRtc::initDevRtc()
     fd = open("/dev/rtc0", O_RDWR, 0);      // 打开RTC
     if (fd < 0) {
         QString tmp = tr("RTC打开失败");
-        qDebug() << "dev show:" << tmp;
+        qWarning() << "dev show:" << tmp;
     }
 }
 
@@ -26,7 +26,7 @@ void DevSetRtc::saveDevRtc(QDateTime t)
 {
     if (fd < 0) {
         QString tmp = tr("RTC打开失败");
-        qDebug() << "dev show:" << tmp;
+        qWarning() << "dev show:" << tmp;
         return;
     }
 
@@ -44,7 +44,7 @@ void DevSetRtc::saveDevRtc(QDateTime t)
     int ret = ioctl(fd, RTC_SET_TIME, &rt); // 设置RTC时间
     if (ret < 0) {
         QString tmp = tr("RTC设置失败");
-        qDebug() << "dev show:" << tmp;
+        qWarning() << "dev show:" << tmp;
     }
 }
 

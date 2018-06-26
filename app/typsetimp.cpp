@@ -224,31 +224,37 @@ void TypSetImp::saveSettings()
     int w = 0;
     int s = tmpSet[AddrIMPS1].toInt();
     w = AddrIMPSC; // 测试
-    tmpSet[s + w] = mView->item(0, w)->checkState() == Qt::Checked ? 1 : 0;
+    tmpMsg[s + w] = mView->item(0, w)->checkState() == Qt::Checked ? 1 : 0;
     w = AddrIMPSN;  // 名称
-    tmpSet[s + w] = mView->item(0, w)->text();
+    tmpMsg[s + w] = mView->item(0, w)->text();
     w = AddrIMPSV;  // 电压
-    tmpSet[s + w] = mView->item(0, w)->text();
+    tmpMsg[s + w] = mView->item(0, w)->text();
     w = AddrIMPST;  // 次数
-    tmpSet[s + w] = mView->item(0, w)->text();
+    tmpMsg[s + w] = mView->item(0, w)->text();
     w = AddrIMPSH;  // 上限
-    tmpSet[s + w] = mView->item(0, w)->text();
+    tmpMsg[s + w] = mView->item(0, w)->text();
     w = AddrIMPSL;  // 下限
-    tmpSet[s + w] = mView->item(0, w)->text();
+    tmpMsg[s + w] = mView->item(0, w)->text();
     w = AddrIMPSO;  // 补偿
-    tmpSet[s + w] = mView->item(0, w)->text();
+    tmpMsg[s + w] = mView->item(0, w)->text();
     w = AddrIMPSA;  // 间隔
-    tmpSet[s + w] = mView->item(0, w)->text();
+    tmpMsg[s + w] = mView->item(0, w)->text();
     w = AddrIMPSF;  // 频率
-    tmpSet[s + w] = text->text();
-    w = AddrIMPF1;  // 频率
-    tmpSet[s + w] = QString::number(from->value());
-    w = AddrIMPF2;  // 频率
-    tmpSet[s + w] = QString::number(stop->value());
+    tmpMsg[s + w] = text->text();
+    w = AddrIMPF1;  // 起点
+    tmpMsg[s + w] = QString::number(from->value());
+    w = AddrIMPF2;  // 终点
+    tmpMsg[s + w] = QString::number(stop->value());
 
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
-    tmpSet.insert(AddrText, "aip_config");
-    emit sendAppMsg(tmpSet);
+    int r = tmpSet[AddrIMPSW].toInt();  // 波形存储地址
+    int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();  // 电枢片数
+    for (int i=0; i < c*IMP_SIZE; i++) {
+        tmpMsg.insert(r + i, tmpSet.value(r + i));
+    }
+    tmpMsg.insert(AddrEnum, Qt::Key_Save);
+    tmpMsg.insert(AddrText, "aip_config");
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
 }
 
 void TypSetImp::drawImpWave()

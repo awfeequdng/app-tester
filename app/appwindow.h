@@ -25,7 +25,6 @@
 #include "tcpserver.h"
 #include "tcpsocket.h"
 #include "tcponline.h"
-#include "udpsocket.h"
 
 #include "appauthor.h"
 #include "appsignin.h"
@@ -46,6 +45,7 @@
 #include "sqlrecord.h"
 #include "sqlupload.h"
 #include "sqlsdcard.h"
+#include "sqlexport.h"
 #include "apptester.h"
 
 #include "boxdialog.h"
@@ -66,7 +66,6 @@ signals:
     void sendAppMsg(QTmpMap msg);
 private slots:
     int initUI();
-    void calc();
     int initTitle();
     int initLayout();
     int initAuthor();
@@ -88,6 +87,7 @@ private slots:
     int initOffAcw();
     int initOffImp();
     int initImport();
+    int initExport();
     int initRecord();
     int initUpload();
     int initSdcard();
@@ -97,16 +97,12 @@ private slots:
     int sendSqlite();
     int sendSignin();
     int initSocket();
-    int initOnline();
     int initThread();
     void initButton(QString title, QString name);
     void showBoxPop(QString text, int t);
-    void saveBackup();
-    void saveSqlite();
-    void saveConfig();
-    void saveBackup1(QTmpMap msg);
-    void saveSqlite1(QTmpMap msg);
-    void saveConfig1(QTmpMap msg);
+    void saveBackup(QTmpMap msg);
+    void saveSqlite(QTmpMap msg);
+    void saveConfig(QTmpMap msg);
     void clickButtons();
     bool checkAction(QString msg);
     void screensShow(QString msg);

@@ -90,9 +90,9 @@ bool SqlImport::initRecord()
     QSqlDatabase::database("record").open();
     QSqlQuery query(QSqlDatabase::database("record"));
     if (!query.exec("drop table if exists aip_record"))
-        qDebug() << query.lastError();
+        qWarning() << query.lastError();
     if (!query.exec("vacuum"))
-        qDebug() << query.lastError();
+        qWarning() << query.lastError();
     QString cmd;
     cmd = "create table if not exists aip_record (";
     cmd += "R_UUID bigint, R_ITEM integer,R_TEXT text,primary key (R_UUID,R_ITEM))";
@@ -184,54 +184,128 @@ void SqlImport::saveRecord(QTmpMap msg)
     QSqlQuery query(QSqlDatabase::database("record"));
     SqlSnowId snow;
     quint64 uuid = snow.getId();
+    int type = msg[DataFile].toInt();
+
+    query.prepare("insert into aip_record values(?,?,?,?)");  // 测试日期
+    query.addBindValue(uuid);
+    query.addBindValue(DataDate);
+    query.addBindValue(type);
+    query.addBindValue(QDate::currentDate().toString("yyyy-MM-dd"));
+    query.exec();
+
+    query.prepare("insert into aip_record values(?,?,?,?)");  // 开始时间
+    query.addBindValue(uuid);
+    query.addBindValue(DataPlay);
+    query.addBindValue(type);
+    query.addBindValue(msg.value(DataPlay).toTime().toString("hh:mm:ss"));
+    query.exec();
+
+    query.prepare("insert into aip_record values(?,?,?,?)");  // 完成时间
+    query.addBindValue(uuid);
+    query.addBindValue(DataStop);
+    query.addBindValue(type);
+    query.addBindValue(msg.value(DataStop).toTime().toString("hh:mm:ss"));
+    query.exec();
+
+    query.prepare("insert into aip_record values(?,?,?,?)");  // 当前用户
+    query.addBindValue(uuid);
+    query.addBindValue(DataUser);
+    query.addBindValue(type);
+    query.addBindValue(msg.value(DataUser).toInt() - msg.value(AddrUser).toInt() + 1);
+    query.exec();
+
+    query.prepare("insert into aip_record values(?,?,?,?)");  // 当前温度
+    query.addBindValue(uuid);
+    query.addBindValue(DataTemp);
+    query.addBindValue(type);
+    query.addBindValue(msg.value(DataTemp).toString());
+    query.exec();
+
+    query.prepare("insert into aip_record values(?,?,?,?)");  // 当前工位
+    query.addBindValue(uuid);
+    query.addBindValue(DataWork);
+    query.addBindValue(type);
+    query.addBindValue(msg.value(DataWork).toInt() == 0x11 ? 1 : 2);
+    query.exec();
+
+    query.prepare("insert into aip_record values(?,?,?,?)");  // 当前编码
+    query.addBindValue(uuid);
+    query.addBindValue(DataCode);
+    query.addBindValue(type);
+    query.addBindValue(msg.value(DataCode).toString());
+    query.exec();
+
+    query.prepare("insert into aip_record values(?,?,?,?)");  // 总判定
+    query.addBindValue(uuid);
+    query.addBindValue(DataOKNG);
+    query.addBindValue(type);
+    query.addBindValue(msg.value(DataOKNG).toInt());
+    query.exec();
+
     int c = msg[AddrModel].toInt();
-    int r = msg[DataFile].toInt();
-    int weld = msg[c + 1].toInt();
+    int weld = msg[c].toInt();
     for (int t=0; t < 3; t++) {
         int test = msg[AddrDCRS1 + t].toInt();
-        int addr = msg[AddrDCRR1 + t].toInt() + 4;  // 电阻结果地址 档位,结果,小数,判定
-        int quan = (t == 2) ? 2 : 4;
+        int addr = msg[AddrDCRR1 + t].toInt() + CACHEDCR;  // 电阻结果地址 档位,结果,小数,判定
+        int quan = (t == 2) ? weld/2 : weld;
         if (msg[test].toInt() == 1) {
-            for (int i=0; i < weld*quan; i++) {
+            for (int i=0; i < quan; i++) {
+                double r = msg.value(addr + i*4 + DATADCRR).toDouble();
+                double p = msg.value(addr + i*4 + GEARDCRR).toDouble();
+                p = (p > 3) ? p - 3 : p;
+                QString real = QString::number(r * qPow(10, -p), 'f', p);
                 query.prepare("insert into aip_record values(?,?,?,?)");
                 query.addBindValue(uuid);
                 query.addBindValue(addr + i);
-                query.addBindValue(r);
-                query.addBindValue(msg.value(addr + i).toInt());
+                query.addBindValue(type);
+                query.addBindValue(real);
                 query.exec();
             }
         }
     }
     for (int t=0; t < 4; t++) {
         int test = msg[AddrACWS1 + t].toInt();
+        int addr = msg[AddrACWR1 + t].toInt() + CACHEACW;  // 高压结果地址 电压,结果,小数,判定
         if (msg[test].toInt() == 1) {
-            int addr = msg[AddrACWR1 + t].toInt() + 4;  // 高压结果地址 电压,结果,小数,判定
-            for (int i=0; i < 4; i++) {
-                query.prepare("insert into aip_record values(?,?,?,?)");
-                query.addBindValue(uuid);
-                query.addBindValue(addr + i);
-                query.addBindValue(r);
-                query.addBindValue(msg.value(addr + i).toInt());
-                query.exec();
+            double r = msg[addr + DATAACWR].toDouble();
+            double p = msg[addr + GEARACWR].toDouble();
+            r *= qPow(10, -p);
+            QString real = QString::number(r, 'f', 3);
+            if (t == NUMBINRS) {
+                real = (r > 500) ? "500" : (QString::number(r, 'f', 1));
             }
+            query.prepare("insert into aip_record values(?,?,?,?)");
+            query.addBindValue(uuid);
+            query.addBindValue(addr);
+            query.addBindValue(type);
+            query.addBindValue(real);
+            query.exec();
         }
     }
     if (1) {
         int test = msg[AddrIMPS1].toInt();
-        int time = msg[AddrIMPSA].toInt();
-        int addr = msg[AddrIMPR1].toInt() + 4;  // 匝间结果地址 电压,结果,频率,判定
-        int quan = (time*2 == weld) ? 2 : 4;
-        if (msg[test].toInt() == 1) {
-            for (int i=0; i < weld*quan; i++) {
+        int time = msg[test + AddrIMPSA].toInt();
+        int addr = msg[AddrIMPR1].toInt() + CACHEIMP;  // 匝间结果地址 电压,结果,频率,判定
+        int quan = (time*2 == weld) ? weld/2 : weld;
+        if (msg[test + AddrIMPSC].toInt() == 1) {
+            for (int i=0; i < quan; i++) {
+                double r = msg[addr + i*4 + DATAIMPR].toDouble();
+                QString real = QString::number(r/1000, 'f', r >= 10000 ? 2 : 3);
                 query.prepare("insert into aip_record values(?,?,?,?)");
                 query.addBindValue(uuid);
                 query.addBindValue(addr + i);
-                query.addBindValue(r);
-                query.addBindValue(msg.value(addr + i).toInt());
+                query.addBindValue(type);
+                query.addBindValue(real);
                 query.exec();
             }
         }
     }
+    query.prepare("insert into aip_record values(?,?,?,?)");
+    query.addBindValue(uuid);
+    query.addBindValue(0xFFFF);
+    query.addBindValue(type);
+    query.addBindValue(weld);
+    query.exec();
     QSqlDatabase::database("record").commit();
 }
 

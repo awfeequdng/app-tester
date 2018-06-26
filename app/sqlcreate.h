@@ -12,6 +12,7 @@
 #include <QDir>
 #include <QDebug>
 #include <QObject>
+#include <QProcess>
 #include <QDateTime>
 #include <QSqlQuery>
 #include <QSqlError>

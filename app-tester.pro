@@ -55,7 +55,6 @@ HEADERS += \
     app/typsetacw.h \
     app/typsetdcr.h \
     app/typsetimp.h \
-    app/udpsocket.h \
     app/tcpserver.h \
     app/boxqlabel.h \
     app/main.h \
@@ -99,7 +98,6 @@ SOURCES += \
     app/typsetacw.cpp \
     app/typsetdcr.cpp \
     app/typsetimp.cpp \
-    app/udpsocket.cpp \
     app/tcpserver.cpp \
     app/boxqlabel.cpp \
     app/tcponline.cpp

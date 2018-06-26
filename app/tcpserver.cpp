@@ -92,7 +92,7 @@ void TcpServer::recvTcpXml()
             node = node.nextSibling();
         }
     } else {
-        qDebug() << "tcp recv:" << error;
+        qWarning() << "tcp recv:" << error;
     }
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
@@ -149,6 +149,6 @@ void TcpServer::reckOK()
 
 void TcpServer::recvError(QAbstractSocket::SocketError)
 {
-    qDebug() << socket->errorString();
+    qWarning() << "tcp recv:" << socket->errorString();
 }
 

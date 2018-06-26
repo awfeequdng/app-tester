@@ -81,10 +81,6 @@ void DevSetCan::readDevData(int id, QByteArray msg)
     tmpMsg.insert(AddrText, msg);
     recver.append(tmpMsg);
     tmpMsg.clear();
-    //    if (id != 0x481)
-    //        qDebug() << "can recv:"
-    //                 << QString("%1").arg(id, 4, 16, QChar('0'))
-    //                 << msg.toHex().toUpper();
 }
 
 bool DevSetCan::readDevPort()
@@ -144,9 +140,6 @@ void DevSetCan::putAllDat()
         }
         sendDevPort(frame);
         tmpMsg.clear();
-        //        qDebug() << "can send:"
-        //                 << QString("%1").arg(frame.can_id, 4, 16, QChar('0'))
-        //                 << msg.toHex().toUpper();
     }
 }
 
@@ -194,8 +187,6 @@ void DevSetCan::setupDCR(QTmpMap map)
     if (map.value(AddrFreq).isNull()) {
         if (currItem == AddrDCRS1) {
             freq = tmpSet[tmpSet[AddrDCRS1].toInt() + GEARDCR1].toInt();  // 片间档位
-        } else if (currItem == AddrDCRS3) {
-            freq = tmpSet[tmpSet[AddrDCRS3].toInt() + GEARDCR3].toInt();  // 跨间档位
         }
     }
     if (currItem == AddrDCRS3) {
@@ -377,7 +368,7 @@ void DevSetCan::judgeDCR()
             tmpSet[s + 0x04*i + OKNGDCRR] = (stdr >= std1) ? DataNG : DataOK;
             isOK =  (stdr >= std1) ? DataNG : isOK;
             tmpSet[tmpSet.value(AddrDCRR1).toInt() + OKNGDCRA] = isOK;
-            qDebug() << i << n << r << p << stdw << stdr << std1;
+            qDebug() << "dcr calc:" << i << n << r << p << stdw << stdr << std1;
         }
     }
     if (currItem == AddrDCRS2) {  // 焊接电阻结果判断
@@ -392,6 +383,7 @@ void DevSetCan::judgeDCR()
             tmpSet[s + 0x04*i + OKNGDCRR] = (real*1000 >= std1) ? DataNG : DataOK;
             isOK =  (real*1000 >= std1) ? DataNG : isOK;
             tmpSet[tmpSet.value(AddrDCRR2).toInt() + TEMPDCRA] = isOK;
+            qDebug() << "dcr calc:" << i << r << p << real << std1;
         }
     }
     double a = tmpSet.value(AddrDCRS3).toInt();  // 跨间电阻参数地址
@@ -408,7 +400,7 @@ void DevSetCan::judgeDCR()
             tmpSet[s + 0x04*i + OKNGDCRR] = (real >= std2 || real <= std1) ? DataNG : DataOK;
             isOK =  (real >= std2 || real <= std1) ? DataNG : isOK;
             tmpSet[tmpSet.value(AddrDCRR3).toInt() + OKNGDCRA] = isOK;
-            qDebug() << i << r << p << std1 << std2 << real;
+            qDebug() << "dcr calc:" << i << r << p << std1 << std2 << real;
         }
     }
     // 计算跨间电阻
@@ -718,7 +710,6 @@ void DevSetCan::renewIMP()
     tmpDat.insert(AddrText, currItem);
     emit sendAppMsg(tmpDat);
     tmpDat.clear();
-    //    qDebug() << "imp show:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
 }
 
 void DevSetCan::setupPump(QTmpMap msg)
@@ -740,14 +731,14 @@ void DevSetCan::setupTest(QTmpMap msg)
     switch (c) {
     case AddrModel:  // 进入测试界面下发配置
         sendDevData(CAN_ID_DCR, QByteArray::fromHex("0900"));
-        qDebug() << "dcr send:" << "pump";
+        qDebug() << "dcr send:" << "0900";
         wait(200);
         setupACW();
         setupIMP(msg);
         break;
     case AddrDCRS1:  // 片间电阻采样
         sendDevData(CAN_ID_DCR, QByteArray::fromHex("0901"));
-        qDebug() << "dcr send:" << "pump";
+        qDebug() << "dcr send:" << "0901";
         wait(200);
         currItem = AddrDCRS1;
         setupDCR(msg);
@@ -757,7 +748,7 @@ void DevSetCan::setupTest(QTmpMap msg)
         break;
     case AddrDCRS3:  // 跨间电阻采样
         sendDevData(CAN_ID_DCR, QByteArray::fromHex("0901"));
-        qDebug() << "dcr send:" << "pump";
+        qDebug() << "dcr send:" << "0901";
         wait(200);
         currItem = AddrDCRS3;
         setupDCR(msg);
@@ -765,7 +756,7 @@ void DevSetCan::setupTest(QTmpMap msg)
         break;
     case AddrIMPS1:  // 匝间波形采样
         sendDevData(CAN_ID_DCR, QByteArray::fromHex("0901"));
-        qDebug() << "dcr send:" << "pump";
+        qDebug() << "dcr send:" << "0901";
         wait(200);
         currItem = AddrIMPS1;
         setupIMP(msg);

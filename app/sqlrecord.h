@@ -38,7 +38,7 @@ class SqlRecord : public QWidget
 public:
     explicit SqlRecord(QWidget *parent = 0);
 signals:
-    void sendAppMap(QTmpMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
     void initUI();
     void initLayout();
@@ -47,11 +47,8 @@ private slots:
     void initButtonBar();
     void existsFlashDisk();
     void deleteFlashDisk();
-
     void recvSelect();
-    void recvExportAll();
-    void recvExportDate();
-    void recvDetail();
+    void recvExport();
     void clickIndex(QModelIndex index);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
@@ -78,6 +75,7 @@ private:
     quint32 timeOut;
     QElapsedTimer t;
     QString path;
+    QTmpMap tmpMsg;
 };
 
 #endif // SQLRECORD_H

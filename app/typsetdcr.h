@@ -38,17 +38,12 @@
 #define TIMEDCR1 0x04  // 片间时间
 #define GEARDCR1 0x05  // 片间档位
 
-#define ISCHDCR2 0x01  // 焊接测试
-#define SMAXDCR2 0x02  // 焊接上限
+#define ISCHDCR2 0x00  // 焊接测试
+#define SMAXDCR2 0x01  // 焊接上限
 
 #define ISCHDCR3 0x00  // 跨间测试
 #define SMINDCR3 0x01  // 跨间下限
 #define SMAXDCR3 0x02  // 跨间上限
-#define GEARDCR3 0x03  // 跨间档位
-#define RMINDCR3 0x04  // 跨间最小电阻
-#define GMINDCR3 0x05  // 跨间最小档位
-#define RMAXDCR3 0x06  // 跨间最大电阻
-#define GMAXDCR3 0x07  // 跨间最大档位
 
 #define CACHEDCR 0x10  // 离散数据长度
 

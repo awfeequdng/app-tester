@@ -81,6 +81,7 @@ private:
     QTableView *acwView;
     BoxQModel *mAcwView;
     QTmpMap tmpSet;
+    QTmpMap tmpMsg;
     QPushButton *btnSave;
 };
 

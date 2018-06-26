@@ -10,6 +10,7 @@
 #define SQLEXPORT_H
 
 #include <QFile>
+#include <QDate>
 #include <QTimer>
 #include <QDebug>
 #include <QWidget>
@@ -25,6 +26,9 @@
 #include <QSqlTableModel>
 #include <QMessageBox>
 
+#include "main.h"
+#include "typsetdcr.h"
+
 #ifdef __arm__
 #define LENTH 10000
 #else
@@ -39,28 +43,24 @@ public:
     explicit SqlExport(QObject *parent = 0);
 
 signals:
-    void sendSqlMap(QVariantMap msg);
+    void sendAppMsg(QTmpMap msg);
 private slots:
+    int exportFile(QTmpMap msg);
+    int createFile(QTmpMap msg);
+    int selectNumb(QTmpMap msg);
+    int selectItem(QTmpMap msg);
+    int exportHead(QTmpMap msg);
+    int exportData(QTmpMap msg);
     QByteArray ToGbk(const QString &inStr);
-    void recvSqlMap(QVariantMap msg);
-    int checkUdisk();
-    int exportFile();
-    int createFile();
-    int selectNumb();
-    int selectItem();
-    int exportHead();
-    int exportData();
-    int removeUdisk();
     void showText(QString err);
+    void recvAppMsg(QTmpMap msg);
 private:
     QSqlDatabase db;
-    int timeOut;
     int quan;
-    QString fileName;
     QList<int> numbs;
     QFile *file;
-    QVariantMap config;
-    QVariantMap tmpMap;
+    QTmpMap tmpSet;
+    QTmpMap tmpMsg;
 };
 
 #endif // SQLEXPORT_H

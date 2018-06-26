@@ -218,20 +218,20 @@ void TypSetDcr::initSettings()
 {
     int s = 0;
     s = tmpSet[AddrDCRS1].toInt();
-    boxWeld->setChecked(tmpSet[s + 0] == "1" ? Qt::Checked : Qt::Unchecked);
-    maxWeld->setValue(tmpSet[s + 1].toDouble()/1000);
-    boxTemp->setChecked(tmpSet[s + 2] == "1" ? Qt::Checked : Qt::Unchecked);
-    maxTemp->setValue(tmpSet[s + 3].toDouble()/1000);
-    boxTime->setValue(tmpSet[s + 4].toDouble()/1000);
+    boxWeld->setChecked(tmpSet[s + ISCKDCR1] == "1" ? Qt::Checked : Qt::Unchecked);
+    maxWeld->setValue(tmpSet[s + SMAXDCR1].toDouble()/1000);
+    boxTemp->setChecked(tmpSet[s + ISTMDCR1] == "1" ? Qt::Checked : Qt::Unchecked);
+    maxTemp->setValue(tmpSet[s + TEMPDCR1].toDouble()/1000);
+    boxTime->setValue(tmpSet[s + TIMEDCR1].toDouble()/1000);
 
     s = tmpSet[AddrDCRS2].toInt();
-    boxChip->setChecked(tmpSet[s + 0] == "1" ? Qt::Checked : Qt::Unchecked);
-    maxChip->setValue(tmpSet[s + 1].toDouble()/1000);
+    boxChip->setChecked(tmpSet[s + ISCHDCR2] == "1" ? Qt::Checked : Qt::Unchecked);
+    maxChip->setValue(tmpSet[s + SMAXDCR2].toDouble()/1000);
 
     s = tmpSet[AddrDCRS3].toInt();
-    boxDiag->setChecked(tmpSet[s + 0] == "1" ? Qt::Checked : Qt::Unchecked);
-    minDiag->setValue(tmpSet[s + 1].toDouble()/1000);
-    maxDiag->setValue(tmpSet[s + 2].toDouble()/1000);
+    boxDiag->setChecked(tmpSet[s + ISCHDCR3] == "1" ? Qt::Checked : Qt::Unchecked);
+    minDiag->setValue(tmpSet[s + SMINDCR3].toDouble()/1000);
+    maxDiag->setValue(tmpSet[s + SMAXDCR3].toDouble()/1000);
 }
 
 void TypSetDcr::initViewData()
@@ -282,8 +282,7 @@ void TypSetDcr::saveSettings()
         double r = view->item(i/12, i%12 + 1)->text().toDouble();
         tmpMsg[s + i*2] = r * qPow(10, p);
     }
-
-    tmpMsg.insert(AddrEnum, Qt::Key_Book);
+    tmpMsg.insert(AddrEnum, Qt::Key_Save);
     tmpMsg.insert(AddrText, "aip_config");
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
@@ -323,28 +322,6 @@ void TypSetDcr::recvUpdate(QTmpMap msg)
             tmpSet[r + i*2 + 1] = g;
         }
         tmpSet[tmpSet[AddrDCRS1].toInt() + 5] = g;
-    }
-    if (currItem == AddrDCRS3) {
-        int s = tmpSet[AddrDCRR3].toInt() + CACHEDCR;  // 电阻结果
-        int rmin = 0;
-        int rmax = 0;
-        int gmin = 0;
-        int gmax = 0;
-        for (int i=0; i < tool/2; i++) {
-            int t1 = msg[s + t*i + DATADCRR].toInt();
-            int t2 = msg[s + t*i + GEARDCRR].toInt();
-            gmin = (i == 0) ? t2 : ((t1 < rmin) ? t2 : gmin);
-            gmax = (i == 0) ? t2 : ((t1 > rmax) ? t2 : gmax);
-            rmin = (i == 0) ? t1 : ((t1 < rmin) ? t1 : rmin);
-            rmax = (i == 0) ? t1 : ((t1 > rmax) ? t1 : rmax);
-        }
-        int r = tmpSet[AddrDCRS3].toInt();  // 电阻配置
-        tmpSet[r + RMINDCR3] = rmin;
-        tmpSet[r + GMINDCR3] = gmin;
-        tmpSet[r + RMAXDCR3] = rmax;
-        tmpSet[r + GMAXDCR3] = gmax;
-        tmpSet[r + GEARDCR3] = gmax;
-        qDebug() << rmin << gmin << rmax << gmax;
     }
     initViewData();
 }

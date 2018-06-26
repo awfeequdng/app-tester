@@ -85,7 +85,6 @@ void DevSerial::clickButton(int id)
         break;
     case Qt::Key_Enter:
         timeOut++;
-        qDebug() << timeOut;
         break;
     case Qt::Key_CapsLock:
         break;
@@ -101,7 +100,7 @@ void DevSerial::calibration()
 {
     if (timeOut > 5) {
         QApplication::activeWindow()->hide();
-        system("ts_calibrate -qws&");
+        QProcess::execute("ts_calibrate -qws&");
     }
     timeOut = 0;
 }

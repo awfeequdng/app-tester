@@ -43,7 +43,6 @@ private slots:
     void saveSettings();
     void initNetworks();
     void recovery();
-    void recvAppVer(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:

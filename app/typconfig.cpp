@@ -210,11 +210,12 @@ void TypConfig::saveSettings()
 {
     int r = tmpSet[AddrModel].toInt();
     for (int i=0; i < 2; i++) {
-        tmpSet[r + i] = settings->item(i, 1)->text();
+        tmpMsg[r + i] = settings->item(i, 1)->text();
     }
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
-    tmpSet.insert(AddrText, "aip_config");
-    emit sendAppMsg(tmpSet);
+    tmpMsg.insert(AddrEnum, Qt::Key_Save);
+    tmpMsg.insert(AddrText, "aip_config");
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
 }
 
 void TypConfig::createModel()

@@ -16,7 +16,6 @@ QMap<QString, pClass> testMap;
 AppWindow::AppWindow(QWidget *parent) : QMainWindow(parent)
 {
     t.start();
-    //    calc();
     initUI();
     initDevice();
 }
@@ -37,78 +36,6 @@ int AppWindow::initUI()
     return Qt::Key_Away;
 }
 
-void AppWindow::calc()
-{
-    int numb = 6;
-    double a1 = 0;
-    QVector<double> x(numb), y(numb);
-    QVector<double> x1(numb/2), x2(numb/2);
-    y[0] = 8800;
-    y[1] = 8200;
-    y[2] = 8100;
-    y[3] = 8250;
-    y[4] = 8839;
-    y[5] = 8220;
-    for (int i=0; i < numb; i++) {
-        a1 += y[i];
-    }
-    for (int i=0; i < numb/2; i++) {
-        double b1 = 0;
-        double b2 = 0;
-        for (int j = 0; j < numb/2; j++) {
-            b1 += y.value((j + i) % (numb));
-            b2 += y.value((j + i + numb/2) % (numb));
-        }
-        x1[i] = b1*b2/(b1+b2);
-    }
-    qDebug() << y << x1;
-    for (int i=0; i < numb; i++) {
-        double bb = 0;
-        for (int j=0; j < numb; j++) {
-            if (j != i)
-                bb += y.value(j);
-        }
-        x[i] = y.value(i) * bb / a1;
-    }
-
-    double a2 = 0;
-    for (int i=0; i < numb; i++) {
-        a2 += x.value(i);
-    }
-    for (int i=0; i < numb/2; i++) {
-        double b1 = 0;
-        double b2 = 0;
-        for (int j=0; j < numb/2; j++) {
-            b1 += x.value((j + i) % numb);
-            b2 += x.value((j + i + numb/2) % numb);
-        }
-        x2[i] = b1*b2/(b1+b2) * numb / (numb -1);
-    }
-    qDebug() << x << x2;
-
-    //    for (int i=0; i < numb; i++) {
-    //        double bb = 0;
-    //        for (int j=0; j < numb; j++) {
-    //            if (i != j)
-    //                bb += x.value(j);
-    //        }
-    //        r[i] = x.value(i) * (numb) / (numb - 1) + 1;
-    //        r[i] = (1 + (x.value(i) - a2/numb) * numb * numb / (numb-1) / (numb-1) / a2 ) * r[i];
-    //    }
-    //    qDebug() << x << x1;
-    //    for (int i=0; i < numb/2; i++) {
-    //        double b1 = 0;
-    //        double b2 = 0;
-    //        for (int j = 0; j < numb/2; j++) {
-    //            b1 += r.value((j + i) % (numb));
-    //            b2 += r.value((j + i + numb/2) % (numb));
-    //        }
-    //        x2[i] = b1*b2/(b1+b2);
-    //    }
-    //    qDebug() << r << x2;
-
-}
-
 int AppWindow::initTitle()
 {
 #ifdef __arm__
@@ -127,7 +54,8 @@ int AppWindow::initTitle()
 
     QDateTime t(dt, tt);
     verNumb = QString("V-%1").arg(t.toString("yyMMdd-hhmm"));
-    qDebug() << "app vern:" << verNumb;
+    QString ttt = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    qWarning() << "app vern:" << verNumb << ttt;
     this->setWindowTitle(tr("电枢测试仪%1").arg(verNumb));
     return Qt::Key_Away;
 }
@@ -212,8 +140,6 @@ int AppWindow::  initScreen()
     names << tr("正在初始化登录界面");
     initMap[names.size()] = &AppWindow::initSystem;
     names << tr("正在初始化系统设置");
-    initMap[names.size()] = &AppWindow::initOnline;
-    names << tr("正在初始化在线设备");
     initMap[names.size()] = &AppWindow::initMaster;
     names << tr("正在初始化用户管理");
     initMap[names.size()] = &AppWindow::initAction;
@@ -238,6 +164,8 @@ int AppWindow::  initScreen()
     names << tr("正在初始化匝间调试");
     initMap[names.size()] = &AppWindow::initImport;
     names << tr("正在初始化数据存储");
+    initMap[names.size()] = &AppWindow::initExport;
+    names << tr("正在初始化数据导出");
     initMap[names.size()] = &AppWindow::initRecord;
     names << tr("正在初始化数据管理");
     initMap[names.size()] = &AppWindow::initUpload;
@@ -318,31 +246,6 @@ int AppWindow::initSystem()
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
-    return Qt::Key_Away;
-}
-
-int AppWindow::initOnline()
-{
-    //#ifndef __arm__
-    //    QString name = "online";
-    //    AppSystem *app = new AppSystem(this);
-    //    app->setObjectName(name);
-    //    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    //    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
-    //    stack->addWidget(app);
-
-    //    initButton(tr("系统设置"), name);
-    //#endif
-    //#ifndef __arm__
-    //    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL3", "mysql");
-    //    db.setHostName("192.168.1.55");
-    //    db.setUserName("root");
-    //    db.setPassword("87973318");
-    //    db.setDatabaseName("aip-server");
-    //    if (!db.open()) {
-    //        qDebug() << "open fail" << db.lastError();
-    //    }
-    //#endif
     return Qt::Key_Away;
 }
 
@@ -519,6 +422,17 @@ int AppWindow::initImport()
     connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     app->moveToThread(sql);
+
+    return Qt::Key_Away;
+}
+
+int AppWindow::initExport()
+{
+    SqlExport *app = new SqlExport;
+    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+    connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
+    app->moveToThread(sql);
+
     return Qt::Key_Away;
 }
 
@@ -530,6 +444,7 @@ int AppWindow::initRecord()
 
     SqlRecord *app = new SqlRecord(this);
     app->setObjectName(name);
+    connect(app, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendAppMsg(QTmpMap)), app, SLOT(recvAppMsg(QTmpMap)));
     stack->addWidget(app);
 
@@ -649,21 +564,22 @@ int AppWindow::sendSignin()
             }
         }
     } else {
-        tmpMsg.insert(AddrEnum, Qt::Key_View);
-        tmpMsg.insert(AddrText, "signin");
-        recvAppMsg(tmpMsg);
-        tmpMsg.clear();
+        //        tmpMsg.insert(AddrEnum, Qt::Key_View);
+        //        tmpMsg.insert(AddrText, "signin");
+        //        recvAppMsg(tmpMsg);
+        //        tmpMsg.clear();
     }
     return Qt::Key_Away;
 }
 
 int AppWindow::initSocket()
 {
-    //    TcpSocket *tcp = new TcpSocket(this);
-    //    tcp->setObjectName("socket");
-    //    connect(tcp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    //    connect(this, SIGNAL(sendNetMsg(QTmpMap)), tcp, SLOT(recvAppMsg(QTmpMap)));
-    //    tcp->connectToServer(tmpSet);
+    TcpSocket *tcp = new TcpSocket;
+    tcp->setObjectName("socket");
+    connect(tcp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+    connect(this, SIGNAL(sendNetMsg(QTmpMap)), tcp, SLOT(recvAppMsg(QTmpMap)));
+    tcp->connectToServer(tmpSet);
+    tcp->moveToThread(sql);
 
     TcpServer *app = new TcpServer;
     app->setObjectName("socket");
@@ -675,11 +591,6 @@ int AppWindow::initSocket()
     app->initSocket();
 #endif
     app->moveToThread(sql);
-
-    //    UdpSocket *udp = new UdpSocket(this);
-    //    udp->setObjectName("socket");
-    //    connect(udp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    //    connect(this, SIGNAL(sendNetMsg(QTmpMap)), udp, SLOT(recvAppMsg(QTmpMap)));
     return Qt::Key_Away;
 }
 
@@ -709,6 +620,7 @@ int AppWindow::initThread()
 
     currTask = 0;
     currTest = 0;
+    tmpSet.insert(DataWork, 0x11);
     station = 0x11;
 
     return Qt::Key_Away;
@@ -735,18 +647,19 @@ void AppWindow::showBoxPop(QString text, int t)
     boxbar->setValue((t+1)*100/initMap.size());
 }
 
-void AppWindow::saveBackup()
+void AppWindow::saveBackup(QTmpMap msg)
 {
-    boxbar->setLabelText(tr("正在保存数据"));
+    boxbar->setLabelText(tr("正在保存后台数据"));
     boxbar->show();
     wait(10);
     QString name = "backup";
     QSqlQuery query(QSqlDatabase::database(name));
-    QList<int> uuids = tmpSet.keys();
+    QList<int> uuids = msg.keys();
     QSqlDatabase::database(name).transaction();
     for (int i=0; i < uuids.size(); i++) {
         int uuid = uuids.at(i);
         if (uuid < 20000 && uuid >= 10000) {
+            tmpSet.insert(uuid, msg.value(uuid));
             query.prepare("replace into aip_backup values(?,?)");
             query.addBindValue(uuid);
             query.addBindValue(tmpSet[uuid]);
@@ -761,21 +674,22 @@ void AppWindow::saveBackup()
     boxbar->setValue(100);
 }
 
-void AppWindow::saveSqlite()
+void AppWindow::saveSqlite(QTmpMap msg)
 {
-    boxbar->setLabelText(tr("正在保存数据"));
+    boxbar->setLabelText(tr("正在保存系统数据"));
     boxbar->show();
     wait(10);
     QString name = "system";
     QSqlQuery query(QSqlDatabase::database(name));
-    QList<int> uuids = tmpSet.keys();
+    QList<int> uuids = msg.keys();
     QSqlDatabase::database(name).transaction();
     for (int i=0; i < uuids.size(); i++) {
         int uuid = uuids.at(i);
         if (uuid < 30000 && uuid >= 20000) {
+            tmpSet.insert(uuid, msg.value(uuid));
             query.prepare("replace into aip_system values(?,?)");
             query.addBindValue(uuid);
-            query.addBindValue(tmpSet[uuid]);
+            query.addBindValue(msg[uuid]);
             query.exec();
         }
         boxbar->setValue(i*50/uuids.size());
@@ -787,48 +701,7 @@ void AppWindow::saveSqlite()
     boxbar->setValue(100);
 }
 
-void AppWindow::saveConfig()
-{
-    QElapsedTimer tt;
-    tt.start();
-    boxbar->setLabelText(tr("正在保存数据"));
-    boxbar->show();
-    wait(10);
-    QString name = "config";
-    QSqlQuery query(QSqlDatabase::database(name));
-    QList<int> uuids = tmpSet.keys();
-    QSqlDatabase::database(name).transaction();
-    QString type = tmpSet[tmpSet[DataFile].toInt()].toString();
-    for (int i=0; i < uuids.size(); i++) {
-        int uuid = uuids.at(i);
-        if (uuid >= 40000) {
-            query.prepare(QString("replace into '%1' values(?,?)").arg(type));
-            query.addBindValue(uuid);
-            query.addBindValue(tmpSet[uuid]);
-            query.exec();
-        }
-        boxbar->setValue(i*99/uuids.size());
-    }
-    QSqlDatabase::database(name).commit();
-    boxbar->setValue(99);
-    wait(500);
-    query.clear();
-    boxbar->setValue(100);
-    testShift = Qt::Key_Away;
-    qDebug() << "app save:" << tr("%1ms").arg(tt.elapsed(), 4, 10, QChar('0')) << type;
-}
-
-void AppWindow::saveBackup1(QTmpMap msg)
-{
-
-}
-
-void AppWindow::saveSqlite1(QTmpMap msg)
-{
-
-}
-
-void AppWindow::saveConfig1(QTmpMap msg)
+void AppWindow::saveConfig(QTmpMap msg)
 {
     QElapsedTimer tt;
     tt.start();
@@ -1024,6 +897,7 @@ int AppWindow::taskCheckPlay()
             taskClearData();
         } else {
             ret = Qt::Key_Away;
+            tmpSet.insert(DataPlay, QTime::currentTime());
             t.restart();
         }
     }
@@ -1045,6 +919,7 @@ int AppWindow::taskStartView()
     tmpMsg.insert(AddrEnum, Qt::Key_Call);
     tmpMsg.insert(AddrText, "LEDY");
     tmpMsg.insert(AddrData, station);
+    tmpMsg.insert(DataWork, tmpSet.value(DataWork).toInt());
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
     currItem = getNextItem();
@@ -1071,6 +946,7 @@ int AppWindow::taskStartSave()
 {
     tmpSet.insert(AddrEnum, Qt::Key_Save);  // 存储数据
     tmpSet.insert(AddrText, "aip_record");
+    tmpSet.insert(DataStop, QTime::currentTime());
     emit sendAppMsg(tmpSet);
     qDebug() <<"app save:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
     return Qt::Key_Away;
@@ -1118,12 +994,14 @@ int AppWindow::taskResetTest()
                 if (taskMap[QString::number(i)] == &AppWindow::taskCheckPlay) {
                     currTask = i;
                     taskShift = Qt::Key_Play;
-                    if (test == 1)
+                    if (test == 1) {
                         station = 0x11;
+                    }
                     if (test == 2)
                         station = 0x14;
                     if (test == 3)
                         station = (station == 0x11) ? 0x14 : 0x11;
+                    tmpSet.insert(DataWork, station);
                     t.restart();
                 }
             }
@@ -1230,6 +1108,7 @@ int AppWindow::testStartSend()
     tmpMsg.insert(AddrEnum, Qt::Key_Play);
     tmpMsg.insert(AddrText, currItem);
     tmpMsg.insert(AddrData, station);
+    tmpMsg.insert(DataWork, station);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
     return Qt::Key_Away;
@@ -1375,6 +1254,7 @@ void AppWindow::recvTmpMsg(QTmpMap msg)
     emit sendNetMsg(msg);
 #endif
     emit sendAppMsg(msg);
+    tmpSet.insert(DataTemp, msg.value(DataTemp).toDouble() / 10.0);
 }
 
 void AppWindow::recvAppMsg(QTmpMap msg)
@@ -1400,44 +1280,31 @@ void AppWindow::recvAppMsg(QTmpMap msg)
         recvSqlMsg(msg);
         break;
     case Qt::Key_Save:
-        tmpSet = msg;
         if (msg.value(AddrText).toString() == "aip_backup") {  // 后台参数保存
-            saveBackup();
+            saveBackup(msg);
         }
         if (msg.value(AddrText).toString() == "aip_system") {  // 系统参数保存
-            saveSqlite();
+            saveSqlite(msg);
         }
         if (msg.value(AddrText).toString() == "aip_config") {  // 配置参数保存
-            saveConfig();
+            saveConfig(msg);
         }
         if (msg.value(AddrText).toString() == "aip_reload") {  // 重新加载参数
-            saveSqlite();
-            readConfig();
-        }
-        sendSqlite();
-        break;
-    case Qt::Key_Book:
-        if (msg.value(AddrText).toString() == "aip_backup") {  // 后台参数保存
-            saveBackup1(msg);
-        }
-        if (msg.value(AddrText).toString() == "aip_system") {  // 系统参数保存
-            saveSqlite1(msg);
-        }
-        if (msg.value(AddrText).toString() == "aip_config") {  // 配置参数保存
-            saveConfig1(msg);
-        }
-        if (msg.value(AddrText).toString() == "aip_reload") {  // 重新加载参数
-            saveSqlite1(msg);
+            saveSqlite(msg);
             readConfig();
         }
         sendSqlite();
         break;
     case Qt::Key_Play:
         taskShift = Qt::Key_Play;
-        if (msg.value(AddrText).toString() == "L")
+        if (msg.value(AddrText).toString() == "L") {
+            tmpSet.insert(DataWork, 0x11);
             station = 0x11;
-        if (msg.value(AddrText).toString() == "R")
+        }
+        if (msg.value(AddrText).toString() == "R") {
+            tmpSet.insert(DataWork, 0x14);
             station = 0x14;
+        }
         break;
     case Qt::Key_Stop:  // 停止测试
         taskCheckStop();
@@ -1467,6 +1334,21 @@ void AppWindow::recvAppMsg(QTmpMap msg)
     case Qt::Key_Zoom:
         taskQuickConf();
         break;
+    case Qt::Key_Book:
+        boxbar->show();
+        boxbar->setLabelText(tr("正在查询数据"));
+        boxbar->setValue(1);
+        wait(1);
+        emit sendAppMsg(msg);
+        break;
+    case Qt::Key_Word:
+        if (!msg.value(AddrText).isNull())
+            boxbar->setLabelText(msg.value(AddrText).toString());
+        if (!msg.value(AddrRate).isNull()) {
+            if (msg.value(AddrRate).toInt() >= 100)
+                wait(1000);
+            boxbar->setValue(msg.value(AddrRate).toInt());
+        }
     default:
         break;
     }

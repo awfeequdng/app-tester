@@ -213,28 +213,29 @@ void TypSetAcw::saveSettings()
         int r = (i == NUMBINRS) ? (i - NUMBINRS) : (i - 0);
         BoxQModel *view = (i == NUMBINRS) ? mInrView : mAcwView;
         w = AddrACWSC; // 测试
-        tmpSet[s + w] = view->item(r, w)->checkState() == Qt::Checked ? 1 : 0;
+        tmpMsg[s + w] = view->item(r, w)->checkState() == Qt::Checked ? 1 : 0;
         w = AddrACWSN;  // 名称
-        tmpSet[s + w] = view->item(r, w)->text();
+        tmpMsg[s + w] = view->item(r, w)->text();
         w = AddrACWSV;  // 电压
-        tmpSet[s + w] = view->item(r, w)->text();
+        tmpMsg[s + w] = view->item(r, w)->text();
         w = AddrACWST;  // 时间
-        tmpSet[s + w] = QString::number(view->item(r, w)->text().toDouble()*10);
+        tmpMsg[s + w] = QString::number(view->item(r, w)->text().toDouble()*10);
         w = AddrACWSH;  // 上限
         t = view->item(r, w)->text().toDouble();
-        tmpSet[s + w] = (i == NUMBINRS) ? QString::number(t) : QString::number(t*100);
+        tmpMsg[s + w] = (i == NUMBINRS) ? QString::number(t) : QString::number(t*100);
         w = AddrACWSL;  // 下限
         t = view->item(r, w)->text().toDouble();
-        tmpSet[s + w] = (i == NUMBINRS) ? QString::number(t) : QString::number(t*100);
+        tmpMsg[s + w] = (i == NUMBINRS) ? QString::number(t) : QString::number(t*100);
         w = AddrACWSO;  // 补偿
         t = view->item(r, w)->text().toDouble();
-        tmpSet[s + w] = (i == NUMBINRS) ? QString::number(t) : QString::number(t*100);
+        tmpMsg[s + w] = (i == NUMBINRS) ? QString::number(t) : QString::number(t*100);
         w = AddrACWSA;  // 电弧
-        tmpSet[s + w] = view->item(r, w)->text();
+        tmpMsg[s + w] = view->item(r, w)->text();
     }
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
-    tmpSet.insert(AddrText, "aip_config");
-    emit sendAppMsg(tmpSet);
+    tmpMsg.insert(AddrEnum, Qt::Key_Save);
+    tmpMsg.insert(AddrText, "aip_config");
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
 }
 
 void TypSetAcw::recvAppMsg(QTmpMap msg)

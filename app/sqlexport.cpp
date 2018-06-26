@@ -12,284 +12,199 @@ SqlExport::SqlExport(QObject *parent) : QObject(parent)
 {
 }
 
-void SqlExport::recvSqlMap(QVariantMap msg)
-{
-    switch (msg.value("enum").toInt()) {
-    case Qt::Key_Game:
-        config = msg;
-        if (exportFile() == -1) {
-            tmpMap.insert("enum", QMessageBox::Abort);
-        } else {
-            tmpMap.insert("enum", Qt::Key_View);
-        }
-        emit sendSqlMap(tmpMap);
-        tmpMap.clear();
-        config.clear();
-        break;
-    case QMessageBox::Abort:
-        break;
-    default:
-        break;
-    }
-}
-
-int SqlExport::checkUdisk()
-{
-    QString path;
-#ifdef __arm__
-    QProcess cmddf;
-    cmddf.start("df -h");
-    cmddf.waitForFinished();
-    QByteArray bytedf = cmddf.readAll();
-    cmddf.deleteLater();
-
-    QStringList listdf = QString(bytedf).split("\n");
-    for (int i=0; i < listdf.size(); i++) {
-        if (listdf.at(i).startsWith("/dev/sd")) {
-            QStringList tmp = listdf.at(i).split(" ");
-            path = tmp.last();
-        }
-    }
-#endif
-    config[QString::number(0x0004)] = path;
-    return 0;
-}
-
-int SqlExport::exportFile()
+int SqlExport::exportFile(QTmpMap msg)
 {
     QElapsedTimer t;
     t.start();
-    if (createFile() == -1)
-        return -1;
-    if (selectNumb() == -1)
-        return-1;
-    if (selectItem() == -1)
-        return-1;
-    if (exportHead() == -1)
-        return-1;
-    if (exportData() == -1)
-        return-1;
+    if (createFile(msg) == Qt::Key_Stop)
+        return Qt::Key_Stop;
+    if (selectNumb(msg) == Qt::Key_Stop)
+        return Qt::Key_Stop;
+    if (selectItem(msg) == Qt::Key_Stop)
+        return Qt::Key_Stop;
+    if (exportHead(msg) == Qt::Key_Stop)
+        return Qt::Key_Stop;
+    if (exportData(msg) == Qt::Key_Stop)
+        return Qt::Key_Stop;
     file->close();
     showText(tr("导出成功,实际用时%1ms").arg(t.elapsed()));
     return 0;
 }
 
-int SqlExport::createFile()
+int SqlExport::createFile(QTmpMap msg)
 {
-    file = new QFile(QString("%1").arg(config.value("path").toString()));
+    QString path = msg.value(AddrText).toString();
+    file = new QFile(QString("%1").arg(path));
     if (!file->open(QFile::WriteOnly)) {
         showText(tr("文件打开失败"));
-        return -1;
+        return Qt::Key_Stop;
     }
-    return 0;
+    return Qt::Key_Meta;
 }
 
-int SqlExport::selectNumb()
+int SqlExport::selectNumb(QTmpMap msg)
 {
-    QSqlQuery query(QSqlDatabase::database(config.value("name").toString()));
-    QString cmd;
-    cmd = "select count(*) from aip_record where numb=0";
-    if (config.keys().contains("from") && config.keys().contains("stop")) {
-        quint64 id_from = config.value("from").toLongLong();
-        quint64 id_stop = config.value("stop").toLongLong();
-        cmd += tr(" and uuid > %1 and uuid < %2").arg(id_from).arg(id_stop);
-    }
+    QString name = msg.value(AddrData).toString();
+    quint64 from = msg.value(AddrFrom).toLongLong();
+    quint64 stop = msg.value(AddrStop).toLongLong();
+
+    QSqlQuery query(QSqlDatabase::database(name));
+    QString cmd = tr("select count(*) from aip_record where R_ITEM=65535");
+    cmd += tr(" and R_UUID > %1 and R_UUID < %2").arg(from).arg(stop);
+
     if (!query.exec(cmd)) {
         showText(tr("查询数据失败,%1").arg(query.lastError().text()));
-        return -1;
+        return Qt::Key_Stop;
     }
     if (!query.next()) {
         showText(tr("查询数据失败,%1").arg(query.lastError().text()));
-        return -1;
+        return Qt::Key_Stop;
     }
     quan = query.value(0).toInt();
-    tmpMap.insert("enum", QMessageBox::Question);
-    tmpMap.insert("quan", quan);
-    emit sendSqlMap(tmpMap);
-    tmpMap.clear();
-    return 0;
+    showText(tr("共找到%1条数据").arg(quan));
+    query.clear();
+
+    return Qt::Key_Meta;
 }
 
-int SqlExport::selectItem()
+int SqlExport::selectItem(QTmpMap msg)
 {
-    QSqlQuery query(QSqlDatabase::database("record"));
-    QString cmd;
-    numbs.clear();
-    cmd = tr("select distinct numb from aip_record where numb >= %1").arg(0x0100);
-    if (config.keys().contains("from") && config.keys().contains("stop")) {
-        quint64 id_from = config.value("from").toLongLong();
-        quint64 id_stop = config.value("stop").toLongLong();
-        cmd += tr(" and uuid > %1 and uuid < %2").arg(id_from).arg(id_stop);
-    }
+    QString name = msg.value(AddrData).toString();
+    quint64 from = msg.value(AddrFrom).toLongLong();
+    quint64 stop = msg.value(AddrStop).toLongLong();
+
+    QSqlQuery query(QSqlDatabase::database(name));
+    QString cmd = tr("select distinct R_ITEM from aip_record where R_ITEM < %1").arg(0xFFFF);
+    cmd += tr(" and R_UUID > %1 and R_UUID < %2").arg(from).arg(stop);
     if (!query.exec(cmd)) {
         showText(tr("查询数据失败,%1").arg(query.lastError().text()));
-        return -1;
+        return Qt::Key_Stop;
     }
+    numbs.clear();
     while (query.next()) {
         numbs.append(query.value(0).toInt());
     }
-    return 0;
+    numbs.append(DataFile);
+    return Qt::Key_Meta;
 }
 
-int SqlExport::exportHead()
+int SqlExport::exportHead(QTmpMap msg)
 {
+    quint64 from = msg.value(AddrFrom).toLongLong();
+    quint64 stop = msg.value(AddrStop).toLongLong();
+
     QStringList title;
-    title << tr("日期") << tr("时间") << tr("型号") << tr("判定")
-          << tr("用户") << tr("温度") << tr("工位") << tr("编码");
-    QStringList names;
-    names << "电阻" << "反嵌" << "绝缘" << "交耐" << "直耐"
-          << "匝间" << "电参" << "电感" << "堵转" << "低启"
-          << "霍尔" << "负载" << "空载" << "BEMF";
-    QStringList other;
-    other << tr("-电阻-") << tr("磁旋") << tr("x") << tr("x") << tr("x")
-          << tr("x") << tr("转向") << tr("-电感-");
+
+    QString str;
+    str.append(tr("导出者编号:"));
+    str.append(QString::number(tmpSet.value(DataUser).toInt() - tmpSet.value(AddrUser).toInt() + 1));
+    str.append("  ");
+    str.append(tr("总日期范围:"));
+    str.append(QDateTime::fromMSecsSinceEpoch(from >> 20).date().toString("yyyy-MM-dd"));
+    str.append("~");
+    str.append(QDateTime::fromMSecsSinceEpoch(stop >> 20).date().toString("yyyy-MM-dd"));
+    file->write(ToGbk(str));
+    file->write("\n");
+
+    tmpMsg.insert(DataFile, tr("型号"));
+    tmpMsg.insert(DataUser, tr("用户"));
+    tmpMsg.insert(DataDate, tr("日期"));
+    tmpMsg.insert(DataPlay, tr("启动"));
+    tmpMsg.insert(DataStop, tr("完成"));
+    tmpMsg.insert(DataTemp, tr("温度"));
+    tmpMsg.insert(DataWork, tr("工位"));
+    tmpMsg.insert(DataCode, tr("条码"));
+    tmpMsg.insert(DataOKNG, tr("判定"));
+
+    int addr = 0;
+    addr = tmpSet.value(AddrDCRR1).toInt() + CACHEDCR;  // 电阻结果地址
+    for(int i=0; i < 72; i++) {
+        tmpMsg.insert(addr + i, QString("片间R%1").arg(i+1, 2, 10, QChar('0')));
+    }
+    addr = tmpSet.value(AddrDCRR2).toInt() + CACHEDCR;  // 电阻结果地址
+    for(int i=0; i < 72; i++) {
+        tmpMsg.insert(addr + i, QString("焊接R%1").arg(i+1, 2, 10, QChar('0')));
+    }
+    addr = tmpSet.value(AddrDCRR3).toInt() + CACHEDCR;  // 电阻结果地址
+    for(int i=0; i < 36; i++) {
+        tmpMsg.insert(addr + i, QString("跨间R%1").arg(i+1, 2, 10, QChar('0')));
+    }
+    addr = tmpSet.value(AddrACWR1).toInt() + CACHEACW;  // 轴铁耐压结果地址
+    tmpMsg.insert(addr, QString("轴铁耐压"));
+    addr = tmpSet.value(AddrACWR2).toInt() + CACHEACW;  // 轴线耐压结果地址
+    tmpMsg.insert(addr, QString("轴线耐压"));
+    addr = tmpSet.value(AddrACWR3).toInt() + CACHEACW;  // 铁线耐压结果地址
+    tmpMsg.insert(addr, QString("铁线耐压"));
+    addr = tmpSet.value(AddrACWR4).toInt() + CACHEACW;  // 绝缘电阻结果地址
+    tmpMsg.insert(addr, QString("绝缘电阻"));
+    addr = tmpSet.value(AddrIMPR1).toInt() + CACHEIMP;  // 匝间果地址
+    for(int i=0; i < 72; i++) {
+        tmpMsg.insert(addr + i, QString("匝间D%1").arg(i+1, 2, 10, QChar('0')));
+    }
+    addr = tmpSet.value(AddrType).toInt();
+    for (int i=0; i < 100; i++) {
+        tmpMsg.insert(addr + i, tmpSet.value(addr + i).toString());
+    }
 
     qSort(numbs.begin(), numbs.end());
 
+    title.clear();
     for (int i=0; i < numbs.size(); i++) {
-        QString name;
-        int t = numbs.at(i)%256;
-        int n = numbs.at(i)/256;
-        if (t < 0x80) {
-            name = names.at(n-1);
-            title.append(QString("%1项目%2").arg(name).arg(t));
-            title.append(QString("%1参数%2").arg(name).arg(t));
-            title.append(QString("%1结果%2").arg(name).arg(t));
-            title.append(QString("%1判定%2").arg(name).arg(t));
-        } else {
-            if (n < other.size())
-                name = other.at(n-1);
-            else
-                name = tr("其他");
-            title.append(QString("%1项目").arg(name));
-            title.append(QString("%1参数").arg(name));
-            title.append(QString("%1结果").arg(name));
-            title.append(QString("%1判定").arg(name));
-        }
+        title.append(tmpMsg.value(numbs.at(i)).toString());
     }
     file->write(ToGbk(title.join(",")));
     file->write("\n");
     return 0;
 }
 
-int SqlExport::exportData()
+int SqlExport::exportData(QTmpMap msg)
 {
-    QSqlQuery query(QSqlDatabase::database("record"));
-    QString cmd;
-    quint64 uuid = 0;
-    QStringList groupBuffer;
+    QString name = msg.value(AddrData).toString();
+    quint64 from = msg.value(AddrFrom).toLongLong();
+    quint64 stop = msg.value(AddrStop).toLongLong();
+
+    QSqlQuery query(QSqlDatabase::database(name));
+    quint64 numb = 0;
     QStringList lineBuffer;
-    QMap<int, QString> buffer;
+    QTmpMap bufstd;
     for (int i=0; i < numbs.size(); i++) {
-        buffer[numbs.at(i)] = QString(",,,");
+        bufstd[numbs.at(i)] = QString(" ");
     }
-    QMap<int, QString> tempBuffer = buffer;
+    QTmpMap buftmp = bufstd;
     int t = 0;
-    if (config.keys().contains("from") && config.keys().contains("stop")) {
-        quint64 id_from = config.value("from").toLongLong();
-        quint64 id_stop = config.value("stop").toLongLong();
-        uuid = id_from;
-        while (1) {
-            cmd = tr("select * from aip_record where guid > %1").arg(uuid);
-            if (!query.exec(cmd)) {
-                qDebug() << query.lastError();
-                showText(tr("查询数据失败,%1").arg(query.lastError().text()));
-                return -1;
-            }
-            while (query.next()) {
-                uuid = query.value(0).toULongLong();
-                if (uuid > id_stop) {
+    while (1) {
+        QString cmd = tr("select * from aip_record where ");
+        cmd += tr(" R_UUID > %1 and R_UUID < %2").arg(from).arg(stop);
+        if (!query.exec(cmd)) {
+            showText(tr("查询数据失败,%1").arg(query.lastError().text()));
+            return Qt::Key_Stop;
+        }
+        while (query.next()) {
+            numb = query.value(1).toInt();
+
+            buftmp.insert(numb, query.value(3).toString());
+            if (numb == 0xFFFF) {
+                buftmp.insert(DataFile, tmpSet.value(query.value(2).toInt()).toString());
+                foreach (int n, numbs) {
+                    lineBuffer.append(buftmp.value(n).toString());
+                }
+                file->write(ToGbk(lineBuffer.join(",")));
+                file->write("\n");
+                lineBuffer.clear();
+                buftmp = bufstd;
+                t++;
+                if (t % LENTH == 0)
                     break;
-                }
-                quint64 guid = query.value(1).toULongLong();
-                int numb = query.value(2).toInt();
-                groupBuffer.clear();
-                groupBuffer.append(query.value(3).toString());
-                groupBuffer.append(query.value(4).toString());
-                groupBuffer.append(query.value(5).toString());
-                groupBuffer.append(query.value(6).toString());
-                tempBuffer[numb] = groupBuffer.join(",");
-                if (uuid == guid) {
-                    foreach(int n, tempBuffer.keys()) {
-                        lineBuffer.append(tempBuffer[n]);
-                    }
-                    file->write(ToGbk(lineBuffer.join(",")));
-                    file->write("\n");
-                    lineBuffer.clear();
-                    tempBuffer = buffer;
-                    t++;
-                    if (t%LENTH == 0)
-                        break;
-                }
             }
-            query.clear();
-            showText(tr("已导出%1/%2").arg(t).arg(quan));
-            if (t >= quan)
-                break;
         }
-    } else {
-        while (1) {
-            cmd = tr("select * from aip_record where guid > %1").arg(uuid);
-            if (!query.exec(cmd)) {
-                qDebug() << query.lastError();
-                showText(tr("查询数据失败,%1").arg(query.lastError().text()));
-                return -1;
-            }
-            while (query.next()) {
-                uuid = query.value(0).toULongLong();
-                quint64 guid = query.value(1).toULongLong();
-                int numb = query.value(2).toInt();
-                groupBuffer.clear();
-                groupBuffer.append(query.value(3).toString());
-                groupBuffer.append(query.value(4).toString());
-                groupBuffer.append(query.value(5).toString());
-                groupBuffer.append(query.value(6).toString());
-                tempBuffer[numb] = groupBuffer.join(",");
-                if (uuid == guid) {
-                    foreach(int n, tempBuffer.keys()) {
-                        lineBuffer.append(tempBuffer[n]);
-                    }
-                    file->write(ToGbk(lineBuffer.join(",")));
-                    file->write("\n");
-                    lineBuffer.clear();
-                    tempBuffer = buffer;
-                    t++;
-                    if (t%LENTH == 0)
-                        break;
-                }
-            }
-            query.clear();
-            showText(tr("已导出%1/%2").arg(t).arg(quan));
-            if (t >= quan)
-                break;
-        }
+        tmpMsg.insert(AddrEnum, Qt::Key_Word);
+        tmpMsg.insert(AddrRate, t*100/quan);
+        emit sendAppMsg(tmpMsg);
+        tmpMsg.clear();
+        if (t >= quan)
+            break;
     }
-    return 0;
-}
-
-int SqlExport::removeUdisk()
-{
-#ifdef __arm__
-    QProcess cmddf;
-    cmddf.start("df -h");
-    cmddf.waitForFinished();
-    QByteArray bytedf = cmddf.readAll();
-
-    QStringList listdf = QString(bytedf).split("\n");
-    QString path;
-    for (int i=0; i < listdf.size(); i++) {
-        if (listdf.at(i).startsWith("/dev/sd")) {
-            QStringList tmp = listdf.at(i).split(" ");
-            if (tmp.last().startsWith("/mnt/usb")) {
-                path = tmp.first();
-                cmddf.start(tr("umount %1").arg(path));
-                cmddf.waitForFinished();
-            }
-        }
-    }
-    cmddf.deleteLater();
-#endif
-    return 0;
+    return Qt::Key_Meta;
 }
 
 QByteArray SqlExport::ToGbk(const QString &inStr)
@@ -300,9 +215,24 @@ QByteArray SqlExport::ToGbk(const QString &inStr)
 
 void SqlExport::showText(QString err)
 {
-    tmpMap.insert("enum", QMessageBox::Information);
-    tmpMap.insert("text", err);
-    emit sendSqlMap(tmpMap);
-    tmpMap.clear();
+    tmpMsg.insert(AddrEnum, Qt::Key_Word);
+    tmpMsg.insert(AddrText, err);
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
+}
+
+void SqlExport::recvAppMsg(QTmpMap msg)
+{
+    int c = msg.value(AddrEnum).toInt();
+    switch (c) {
+    case Qt::Key_Copy:
+        tmpSet = msg;
+        break;
+    case Qt::Key_Book:
+        exportFile(msg);
+        break;
+    default:
+        break;
+    }
 }
 

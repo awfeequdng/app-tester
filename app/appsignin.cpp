@@ -271,17 +271,17 @@ void AppSignin::initSettings()
 void AppSignin::saveSettings()
 {
     isOk = true;
-    tmpSet[DataSign] = 1;
     int r = tmpSet[DataUser].toInt();
-    tmpSet[0 + DataAuto] = autosign->isChecked() ? 1 : 0;
-    tmpSet[r + AddrSave] = autosave->isChecked() ? 1 : 0;
-    tmpSet[r + AddrLast] = QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss");
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
+    tmpMsg[DataSign] = 1;
+    tmpMsg[0 + DataAuto] = autosign->isChecked() ? 1 : 0;
+    tmpMsg[r + AddrSave] = autosave->isChecked() ? 1 : 0;
+    tmpMsg[r + AddrLast] = QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss");
+    tmpMsg.insert(AddrEnum, Qt::Key_Save);
     if (isAuto)
         isAuto = false;
-    else
-        tmpSet.insert(AddrText, "aip_system");
-    emit sendAppMsg(tmpSet);
+    tmpMsg.insert(AddrText, "aip_system");
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
 
     tmpMsg.insert(AddrEnum, Qt::Key_Game);
     emit sendAppMsg(tmpMsg);

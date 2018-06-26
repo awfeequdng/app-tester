@@ -38,6 +38,9 @@ const int AddrFreq = 0x05;  // 频率
 const int AddrPort = 0x06;  // 端口
 const int AddrSend = 0x07;
 const int AddrRecv = 0x08;
+const int AddrFrom = 0x09;
+const int AddrStop = 0x0A;
+const int AddrFile = 0x0B;
 
 const int AddrDCRR1 = 1001;  // 片间结果区地址
 const int AddrDCRR2 = 1002;  // 焊接结果区地址
@@ -73,36 +76,23 @@ const int AddrIMPS1 = 1058;  // 匝间配置区地址
 const int AddrIMPSW = 1059;  // 标准波形区地址
 const int AddrDCRSW = 1060;  // 片间标准区地址
 
-const int DataSoft = 1110;  // 软件版本
-const int DataStat = 1111;  // 软件状态
-const int DataTime = 1112;  // 开机时间
-const int DataSign = 1113;  // 登录状态
-const int DataPlay = 1114;  // 启动时间
-const int DataStop = 1115;  // 完成时间
-const int DataCode = 1116;  // 条码状态
-const int DataTemp = 1117;  // 当前温度
-const int DataOKNG = 1118;  // 测试判定
-const int DataPort = 1119;
-
-const int DataDCRV = 1120;  // 电阻版本
-const int DataDCRS = 1121;  // 电阻状态
-const int DataDCRJ = 1123;  // 电阻判定
-
-const int DataACWV = 1130;  // 耐压版本
-const int DataACWS = 1131;  // 耐压状态
-
-const int DataIMPV = 1140;  // 匝间版本
-const int DataIMPS = 1141;  // 匝间状态
-const int DataIMPQ = 1142;  // 匝间编号
-const int DataIMPJ = 1143;  // 匝间判定
-const int DataIMPU = 1144;  // 匝间电压
-const int DataIMPG = 1145;  // 档位
-const int DataIMPF = 1146;  // 频率
-
 const int DataFile = 22000;  // 当前型号
 const int DataUser = 22001;  // 当前用户
 const int DataAuto = 22002;  // 自动保存
 const int DataSave = 22003;  // 日志输出
+const int DataSign = 22004;  // 登录状态
+
+const int DataDate = 22010;  // 测试日期
+const int DataPlay = 22011;  // 开始时间
+const int DataStop = 22012;  // 完成时间
+
+const int DataWork = 22013;  // 当前工位
+const int DataCode = 22014;  // 条码状态
+const int DataSoft = 22015;  // 软件版本
+const int DataTime = 22016;  // 开机时间
+
+const int DataTemp = 22017;  // 当前温度
+const int DataOKNG = 22018;  // 测试判定
 
 #endif // APPDEFINE
 
