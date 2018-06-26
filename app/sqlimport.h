@@ -20,6 +20,17 @@
 #include "main.h"
 #include "typsetimp.h"
 
+#define DATAOK  0x00
+#define DATANG  0x01
+
+#define TEMPDATE 0x01  // 测试日期
+#define TEMPPLAY 0x02  // 开始时间
+#define TEMPSTOP 0x03  // 完成时间
+#define TEMPWORK 0x04  // 当前工位
+#define TEMPCODE 0x05  // 条码状态
+#define TEMPTEMP 0x06  // 当前温度
+#define TEMPISOK 0x07  // 测试判定
+
 #define SD_SIZE 80000
 
 class SqlImport : public QObject
@@ -45,6 +56,7 @@ private:
     QTmpMap tmpOKNG;
     QElapsedTimer t;
     QTmpMap tmpMap;
+    QTmpMap tmpSet;
 };
 
 #endif // SQLIMPORT_H

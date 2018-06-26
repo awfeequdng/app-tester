@@ -103,16 +103,15 @@ void AppAuthor::initButtonBar()
 
 void AppAuthor::clickButton()
 {
-    tmpMap.insert(AddrEnum, Qt::Key_View);
-    tmpMap.insert(AddrText, QObject::sender()->objectName());
+    tmpMap.insert(Qt::Key_0, Qt::Key_View);
+    tmpMap.insert(Qt::Key_1, QObject::sender()->objectName());
     emit sendAppMsg(tmpMap);
     tmpMap.clear();
 }
 
 void AppAuthor::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(AddrEnum).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         version->setText(msg.value(DataSoft).toString());
         break;

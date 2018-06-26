@@ -19,7 +19,7 @@
 
 #include "main.h"
 
-
+const int DataSoft = 22015;  // 软件版本
 
 class AppAuthor : public QWidget
 {

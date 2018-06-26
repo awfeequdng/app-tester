@@ -217,18 +217,18 @@ void TypSetDcr::initButtons()
 void TypSetDcr::initSettings()
 {
     int s = 0;
-    s = tmpSet[AddrDCRS1].toInt();
+    s = tmpSet[(4000 + Qt::Key_1)].toInt();
     boxWeld->setChecked(tmpSet[s + ISCKDCR1] == "1" ? Qt::Checked : Qt::Unchecked);
     maxWeld->setValue(tmpSet[s + SMAXDCR1].toDouble()/1000);
     boxTemp->setChecked(tmpSet[s + ISTMDCR1] == "1" ? Qt::Checked : Qt::Unchecked);
     maxTemp->setValue(tmpSet[s + TEMPDCR1].toDouble()/1000);
     boxTime->setValue(tmpSet[s + TIMEDCR1].toDouble()/1000);
 
-    s = tmpSet[AddrDCRS2].toInt();
+    s = tmpSet[(4000 + Qt::Key_2)].toInt();
     boxChip->setChecked(tmpSet[s + ISCHDCR2] == "1" ? Qt::Checked : Qt::Unchecked);
     maxChip->setValue(tmpSet[s + SMAXDCR2].toDouble()/1000);
 
-    s = tmpSet[AddrDCRS3].toInt();
+    s = tmpSet[(4000 + Qt::Key_3)].toInt();
     boxDiag->setChecked(tmpSet[s + ISCHDCR3] == "1" ? Qt::Checked : Qt::Unchecked);
     minDiag->setValue(tmpSet[s + SMINDCR3].toDouble()/1000);
     maxDiag->setValue(tmpSet[s + SMAXDCR3].toDouble()/1000);
@@ -236,8 +236,8 @@ void TypSetDcr::initSettings()
 
 void TypSetDcr::initViewData()
 {
-    int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();  // 电枢片数
-    int r = tmpSet[AddrDCRSW].toInt();  // 标准波形地址
+    int c = tmpSet[tmpSet[(4000 + Qt::Key_0)].toInt()].toInt();  // 电枢片数
+    int r = tmpSet[(4000 + Qt::Key_9)].toInt();  // 标准波形地址
     for (int i=0; i < 72; i++) {
         if (i < c) {
             double t = tmpSet[r + i*2 + 0].toDouble();
@@ -255,7 +255,7 @@ void TypSetDcr::saveSettings()
 {
     btnSave->setEnabled(false);
     int s = 0;
-    s = tmpSet[AddrDCRS1].toInt();
+    s = tmpSet[(4000 + Qt::Key_1)].toInt();
     tmpMsg[s + ISCKDCR1] = boxWeld->isChecked() ? "1" : "0";
     tmpMsg[s + SMAXDCR1] = QString::number(maxWeld->value()*1000);
     tmpMsg[s + ISTMDCR1] = boxTemp->isChecked() ? "1" : "0";
@@ -263,16 +263,16 @@ void TypSetDcr::saveSettings()
     tmpMsg[s + TIMEDCR1] = QString::number(boxTime->value()*1000);
     tmpMsg[s + GEARDCR1] = tmpSet.value(s + GEARDCR1);
 
-    s = tmpSet[AddrDCRS2].toInt();
+    s = tmpSet[(4000 + Qt::Key_2)].toInt();
     tmpMsg[s + ISCHDCR2] = boxChip->isChecked() ? "1" : "0";
     tmpMsg[s + SMAXDCR2] = QString::number(maxChip->value()*1000);
 
-    s = tmpSet[AddrDCRS3].toInt();
+    s = tmpSet[(4000 + Qt::Key_3)].toInt();
     tmpMsg[s + ISCHDCR3] = boxDiag->isChecked() ? "1" : "0";
     tmpMsg[s + SMINDCR3] = QString::number(minDiag->value()*1000);
     tmpMsg[s + SMAXDCR3] = QString::number(maxDiag->value()*1000);
 
-    s = tmpSet[AddrDCRSW].toInt();
+    s = tmpSet[(4000 + Qt::Key_9)].toInt();
     for (int i=0; i < 72; i++) {
         if (view->item(i/12, i%12 + 1)->text().isEmpty())
             break;
@@ -282,8 +282,8 @@ void TypSetDcr::saveSettings()
         double r = view->item(i/12, i%12 + 1)->text().toDouble();
         tmpMsg[s + i*2] = r * qPow(10, p);
     }
-    tmpMsg.insert(AddrEnum, Qt::Key_Save);
-    tmpMsg.insert(AddrText, "aip_config");
+    tmpMsg.insert(Qt::Key_0, Qt::Key_Save);
+    tmpMsg.insert(Qt::Key_1, "aip_config");
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
@@ -292,11 +292,11 @@ void TypSetDcr::sample()
 {
     QPushButton *btn = qobject_cast<QPushButton*>(sender());
     if (btn->text() == tr("片间采样")) {
-        currItem = AddrDCRS1;
+        currItem = (4000 + Qt::Key_1);
     }
-    tmpMsg.insert(AddrEnum, Qt::Key_Send);
-    tmpMsg.insert(AddrText, currItem);
-    tmpMsg.insert(AddrFreq, 0);
+    tmpMsg.insert(Qt::Key_0, Qt::Key_Send);
+    tmpMsg.insert(Qt::Key_1, currItem);
+    tmpMsg.insert(Qt::Key_5, 0);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
@@ -304,14 +304,14 @@ void TypSetDcr::sample()
 void TypSetDcr::recvUpdate(QTmpMap msg)
 {
     int t = 0x04;
-    int addr = tmpSet[AddrModel].toInt();
+    int addr = tmpSet[(4000 + Qt::Key_0)].toInt();
     int quan = tmpSet[addr + AddrDCRSC].toInt();
     int tool = tmpSet[addr + AddrDEVSC].toInt() * quan;  // 夹具针数
-    int r = tmpSet[AddrDCRSW].toInt();  // 电阻标准
+    int r = tmpSet[(4000 + Qt::Key_9)].toInt();  // 电阻标准
 
     int g = 0;
-    if (currItem == AddrDCRS1) {
-        int s = tmpSet[AddrDCRR1].toInt() + CACHEDCR;  // 电阻结果
+    if (currItem == (4000 + Qt::Key_1)) {
+        int s = tmpSet[(3000 + Qt::Key_1)].toInt() + CACHEDCR;  // 电阻结果
         for (int i=0; i < tool; i++) {
             int t1 = msg[s + t*i + DATADCRR].toInt();
             int t2 = msg[s + t*i + GEARDCRR].toInt();
@@ -321,15 +321,14 @@ void TypSetDcr::recvUpdate(QTmpMap msg)
             tmpSet[r + i*2 + 0] = t1;
             tmpSet[r + i*2 + 1] = g;
         }
-        tmpSet[tmpSet[AddrDCRS1].toInt() + 5] = g;
+        tmpSet[tmpSet[(4000 + Qt::Key_1)].toInt() + 5] = g;
     }
     initViewData();
 }
 
 void TypSetDcr::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(0).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         btnSave->setEnabled(true);
@@ -340,11 +339,11 @@ void TypSetDcr::recvAppMsg(QTmpMap msg)
         recvUpdate(msg);
         break;
     case Qt::Key_Zoom:
-        if (msg.value(AddrText).toInt() == AddrDCRS1)
+        if (msg.value(Qt::Key_1).toInt() == (4000 + Qt::Key_1))
             btnWeld->click();
-        if (msg.value(AddrText).toInt() == AddrDCRS3)
+        if (msg.value(Qt::Key_1).toInt() == (4000 + Qt::Key_3))
             btnDiag->click();
-        if (msg.value(AddrText).toInt() == AddrDCRSW)
+        if (msg.value(Qt::Key_1).toInt() == (4000 + Qt::Key_9))
             btnSave->click();
         break;
     default:

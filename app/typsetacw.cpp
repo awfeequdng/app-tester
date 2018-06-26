@@ -176,7 +176,7 @@ void TypSetAcw::initSettings()
     int w = 0;
     double t = 0;
     for (int i=0; i < 4; i++) {
-        int s = tmpSet[AddrACWS1 + i].toInt();
+        int s = tmpSet[(4000 + Qt::Key_4) + i].toInt();
         int r = (i == NUMBINRS) ? (i - NUMBINRS) : (i - 0);
         BoxQModel *view = (i == NUMBINRS) ? mInrView : mAcwView;
         w = AddrACWSC; // 测试
@@ -209,7 +209,7 @@ void TypSetAcw::saveSettings()
     int w = 0;
     double t = 0;
     for (int i=0; i < 4; i++) {
-        int s = tmpSet[AddrACWS1 + i].toInt();
+        int s = tmpSet[(4000 + Qt::Key_4) + i].toInt();
         int r = (i == NUMBINRS) ? (i - NUMBINRS) : (i - 0);
         BoxQModel *view = (i == NUMBINRS) ? mInrView : mAcwView;
         w = AddrACWSC; // 测试
@@ -232,16 +232,15 @@ void TypSetAcw::saveSettings()
         w = AddrACWSA;  // 电弧
         tmpMsg[s + w] = view->item(r, w)->text();
     }
-    tmpMsg.insert(AddrEnum, Qt::Key_Save);
-    tmpMsg.insert(AddrText, "aip_config");
+    tmpMsg.insert(Qt::Key_0, Qt::Key_Save);
+    tmpMsg.insert(Qt::Key_1, "aip_config");
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
 
 void TypSetAcw::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(0).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         btnSave->setEnabled(true);

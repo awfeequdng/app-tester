@@ -150,7 +150,7 @@ void AppMaster::initDelegate()
 
 void AppMaster::initSettings()
 {
-    int r = tmpSet[AddrUser].toInt() + 5;  // 用户存放地址
+    int r = tmpSet[(2000 + Qt::Key_5)].toInt() + 5;  // 用户存放地址
     for (int i=0; i < M_ROW; i++) {
         int s = r + i*5;
         QString name = tmpSet[s + AddrName].toString();
@@ -173,8 +173,8 @@ void AppMaster::initSettings()
 
 void AppMaster::saveSettings()
 {
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
-    tmpSet.insert(AddrText, "aip_system");
+    tmpSet.insert(Qt::Key_0, Qt::Key_Save);
+    tmpSet.insert(Qt::Key_1, "aip_system");
     emit sendAppMsg(tmpSet);
 }
 
@@ -200,7 +200,7 @@ void AppMaster::appendMaster()
     QString t_time = QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss");
     if (t_name.isEmpty())
         return;
-    int r = tmpSet[AddrUser].toInt();
+    int r = tmpSet[(2000 + Qt::Key_5)].toInt();
     int s = r + t_numb.toInt() * 5;
     tmpSet[s + AddrName] = t_name;
     tmpSet[s + AddrPass] = t_pass;
@@ -215,7 +215,7 @@ void AppMaster::removeMaster()
     if (row < 0)
         return;
     int p = view->item(row, 0)->text().toInt();
-    int s = tmpSet[AddrUser].toInt() + p*5;
+    int s = tmpSet[(2000 + Qt::Key_5)].toInt() + p*5;
     if (s == tmpSet[DataUser].toInt()) {
         QMessageBox::warning(this, tr("警告"), tr("不能删除当前用户"), QMessageBox::Ok);
     } else {
@@ -230,8 +230,7 @@ void AppMaster::removeMaster()
 
 void AppMaster::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(0).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         break;

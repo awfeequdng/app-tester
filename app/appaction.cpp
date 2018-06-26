@@ -85,7 +85,7 @@ void AppAction::initDelegate()
 
 void AppAction::initSettings()
 {
-    int s = tmpSet[AddrShow].toInt();
+    int s = tmpSet[(2000 + Qt::Key_6)].toInt();
     for (int i=0; i < A_ROW; i++) {
         int t = s + i*4;
         int r = tmpSet[t + AddrRole].toInt();
@@ -103,7 +103,7 @@ void AppAction::initSettings()
 
 void AppAction::saveSettings()
 {
-    int s = AddrShow;
+    int s = (2000 + Qt::Key_6);
     for (int i=0; i < A_ROW; i++) {
         int t = s + i*4;
         QString role = view->item(i, 1)->text();
@@ -111,15 +111,14 @@ void AppAction::saveSettings()
             tmpSet[t + AddrRole] = QString::number(roles.indexOf(role) + 1);
         }
     }
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
-    tmpSet.insert(AddrText, "aip_system");
+    tmpSet.insert(Qt::Key_0, Qt::Key_Save);
+    tmpSet.insert(Qt::Key_1, "aip_system");
     emit sendAppMsg(tmpSet);
 }
 
 void AppAction::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(AddrEnum).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         break;

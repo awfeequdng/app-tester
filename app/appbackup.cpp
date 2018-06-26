@@ -136,7 +136,7 @@ void AppBackup::initMacText()
 
 void AppBackup::initSettings()
 {
-    int r = tmpSet[AddrBack].toInt();
+    int r = tmpSet[(1000 + Qt::Key_0)].toInt();
     for (int i=0; i < txts.size(); i++) {
         txts.at(i)->setText(tmpSet[r + i].toString());
     }
@@ -144,12 +144,12 @@ void AppBackup::initSettings()
 
 void AppBackup::saveSettings()
 {
-    int r = tmpSet[AddrBack].toInt();
+    int r = tmpSet[(1000 + Qt::Key_0)].toInt();
     for (int i=0; i < txts.size(); i++) {
         tmpSet[r + i] = txts.at(i)->text();
     }
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
-    tmpSet.insert(AddrText, "aip_backup");
+    tmpSet.insert(Qt::Key_0, Qt::Key_Save);
+    tmpSet.insert(Qt::Key_1, "aip_backup");
     emit sendAppMsg(tmpSet);
 }
 
@@ -236,8 +236,7 @@ void AppBackup::recovery()
 
 void AppBackup::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(AddrEnum).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         break;

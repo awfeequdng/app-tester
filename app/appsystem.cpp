@@ -42,7 +42,7 @@ void AppSystem::initSystem()
     QStringList names;
     names << tr("语言设置") << tr("测试模式") << tr("启动方式") << tr("亮度设定")
           << tr("音量设定") << tr("条码起始") << tr("条码长度") << tr("合格报警")
-          << tr("报警提示");
+          << tr("报警提示") << tr("气泵延时");
     for (int i=0; i < names.size(); i++) {
         QHBoxLayout *box = new QHBoxLayout;
         boxLayout->addLayout(box);
@@ -135,7 +135,7 @@ void AppSystem::initDelegate()
 
 void AppSystem::initSettings()
 {
-    int r = tmpSet[AddrSyst].toInt();
+    int r = tmpSet[(2000 + Qt::Key_1)].toInt();
     for (int i=0; i < texts.size(); i++) {  // 系统配置存放在0x0020
         if (i < 5) {
             texts.at(i)->setCurrentIndex(tmpSet[r + i].toInt());
@@ -143,7 +143,7 @@ void AppSystem::initSettings()
             texts.at(i)->lineEdit()->setText(tmpSet[r + i].toString());
         }
     }
-    int s = tmpSet[AddrInfo].toInt();
+    int s = tmpSet[(2000 + Qt::Key_2)].toInt();
     for (int i=0; i < ctrls.size(); i++) {  // 本机设置存放在0x0030
         ctrls.at(i)->setText(tmpSet[s + i].toString());
     }
@@ -154,7 +154,7 @@ void AppSystem::initSettings()
 
 void AppSystem::saveSettings()
 {
-    int r = tmpSet[AddrSyst].toInt();
+    int r = tmpSet[(2000 + Qt::Key_1)].toInt();
     for (int i=0; i < texts.size(); i++) {  // 系统配置存放在0x0020
         if (i < 5) {
             tmpSet[r + i] = QString::number(texts.at(i)->currentIndex());
@@ -162,12 +162,12 @@ void AppSystem::saveSettings()
             tmpSet[r + i] = texts.at(i)->currentText();
         }
     }
-    int s = tmpSet[AddrInfo].toInt();
+    int s = tmpSet[(2000 + Qt::Key_2)].toInt();
     for (int i=0; i < ctrls.size(); i++) {  // 本机设置存放在0x0030
         tmpSet[s + i] = ctrls.at(i)->text();
     }
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
-    tmpSet.insert(AddrText, "aip_system");
+    tmpSet.insert(Qt::Key_0, Qt::Key_Save);
+    tmpSet.insert(Qt::Key_1, "aip_system");
     emit sendAppMsg(tmpSet);
 
     QSettings *set = new QSettings("./nandflash/userinfo.txt", QSettings::IniFormat);
@@ -189,17 +189,16 @@ void AppSystem::saveSettings()
 
 void AppSystem::setLocalTime()
 {
-    tmpMsg.insert(AddrEnum, Qt::Key_Time);
-    tmpMsg.insert(AddrData, time->dateTime());
-    tmpMsg.insert(AddrText, "time");
+    tmpMsg.insert(Qt::Key_0, Qt::Key_Time);
+    tmpMsg.insert(Qt::Key_4, time->dateTime());
+    tmpMsg.insert(Qt::Key_1, "time");
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
 
 void AppSystem::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(AddrEnum).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         break;

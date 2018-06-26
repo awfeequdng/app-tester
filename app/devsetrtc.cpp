@@ -50,11 +50,10 @@ void DevSetRtc::saveDevRtc(QDateTime t)
 
 void DevSetRtc::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(AddrEnum).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Time:
-        if (msg.value(AddrText).toString() == "time")
-            saveDevRtc(msg.value(AddrData).toDateTime());
+        if (msg.value(Qt::Key_1).toString() == "time")
+            saveDevRtc(msg.value(Qt::Key_4).toDateTime());
         break;
     default:
         break;

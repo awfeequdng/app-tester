@@ -185,7 +185,7 @@ void TypConfig::initSettings()
 {
     btnZoom->setEnabled(true);
     int p = page->text().toInt() - 1;    // 页码
-    int r = tmpSet[AddrType].toInt();
+    int r = tmpSet[(2000 + Qt::Key_4)].toInt();
     int s = r + C_ROW*p;       // 起始地址
     for (int i=0; i < C_ROW; i++) {
         int t = s + i;
@@ -200,7 +200,7 @@ void TypConfig::initSettings()
     r = tmpSet[DataFile].toInt();
     type->setText(tr("%1").arg(tmpSet[r].toString()));
 
-    r = tmpSet[AddrModel].toInt();
+    r = tmpSet[(4000 + Qt::Key_0)].toInt();
     for (int i=0; i < 2; i++) {
         settings->item(i, 1)->setText(tmpSet[r + i].toString());
     }
@@ -208,12 +208,12 @@ void TypConfig::initSettings()
 
 void TypConfig::saveSettings()
 {
-    int r = tmpSet[AddrModel].toInt();
+    int r = tmpSet[(4000 + Qt::Key_0)].toInt();
     for (int i=0; i < 2; i++) {
         tmpMsg[r + i] = settings->item(i, 1)->text();
     }
-    tmpMsg.insert(AddrEnum, Qt::Key_Save);
-    tmpMsg.insert(AddrText, "aip_config");
+    tmpMsg.insert(Qt::Key_0, Qt::Key_Save);
+    tmpMsg.insert(Qt::Key_1, "aip_config");
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
@@ -237,10 +237,10 @@ void TypConfig::createModel()
         qWarning() << "sql error:" << query.lastError() << t_name << c_name;
     QSqlDatabase::database(sqlName).commit();
 
-    int r = tmpSet[AddrType].toInt();
+    int r = tmpSet[(2000 + Qt::Key_4)].toInt();
     tmpSet[r + t_numb.toInt() - 1] = t_name;
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
-    tmpSet.insert(AddrText, "aip_system");
+    tmpSet.insert(Qt::Key_0, Qt::Key_Save);
+    tmpSet.insert(Qt::Key_1, "aip_system");
     emit sendAppMsg(tmpSet);
 
     initSettings();
@@ -256,10 +256,10 @@ void TypConfig::selectModel()
     if (t_name.isEmpty())
         return;
 
-    int r = tmpSet[AddrType].toInt();
+    int r = tmpSet[(2000 + Qt::Key_4)].toInt();
     tmpSet[DataFile] = r + t_numb.toInt() - 1;
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
-    tmpSet.insert(AddrText, "aip_reload");
+    tmpSet.insert(Qt::Key_0, Qt::Key_Save);
+    tmpSet.insert(Qt::Key_1, "aip_reload");
     emit sendAppMsg(tmpSet);
 
     initSettings();
@@ -285,11 +285,11 @@ void TypConfig::removeModel()
     QSqlDatabase::database(sqlName).commit();
 
 
-    int r = tmpSet[AddrType].toInt();
+    int r = tmpSet[(2000 + Qt::Key_4)].toInt();
     tmpSet[r + t_numb.toInt() - 1] = t_name;
 
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
-    tmpSet.insert(AddrText, "aip_system");
+    tmpSet.insert(Qt::Key_0, Qt::Key_Save);
+    tmpSet.insert(Qt::Key_1, "aip_system");
     emit sendAppMsg(tmpSet);
 
     initSettings();
@@ -298,7 +298,7 @@ void TypConfig::removeModel()
 void TypConfig::clickZoom()
 {
     btnZoom->setEnabled(false);
-    tmpMsg.insert(AddrEnum, Qt::Key_Zoom);
+    tmpMsg.insert(Qt::Key_0, Qt::Key_Zoom);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
@@ -352,15 +352,14 @@ void TypConfig::clickViewBar()
 
 void TypConfig::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(0).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         btnSave->setEnabled(true);
         break;
     case Qt::Key_Less:
     case Qt::Key_Meta:
-        isShow = c;
+        isShow = msg.value(Qt::Key_0).toInt();
         break;
     default:
         break;

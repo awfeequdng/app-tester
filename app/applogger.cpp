@@ -92,8 +92,8 @@ void AppLogger::output(QtMsgType type, const QString &msg)
         log.flush();
         log.close();
     } else if (t == 2) {
-        tmpMsg.insert(AddrEnum, Qt::Key_Flip);
-        tmpMsg.insert(AddrText, msg);
+        tmpMsg.insert(Qt::Key_0, Qt::Key_Flip);
+        tmpMsg.insert(Qt::Key_1, msg);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
     }
@@ -164,8 +164,8 @@ void AppLogger::initLayout()
 void AppLogger::saveSettings()
 {
     tmpSet[DataSave] = QString::number(combo->currentIndex());
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
-    tmpSet.insert(AddrText, "aip_system");
+    tmpSet.insert(Qt::Key_0, Qt::Key_Save);
+    tmpSet.insert(Qt::Key_1, "aip_system");
     emit sendAppMsg(tmpSet);
 }
 
@@ -202,8 +202,7 @@ void AppLogger::changeHandle(int t)
 
 void AppLogger::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(AddrEnum).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         combo->setCurrentIndex(tmpSet[DataSave].toInt());

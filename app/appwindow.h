@@ -24,7 +24,6 @@
 #include "devscreen.h"
 #include "tcpserver.h"
 #include "tcpsocket.h"
-#include "tcponline.h"
 
 #include "appauthor.h"
 #include "appsignin.h"

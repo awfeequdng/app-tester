@@ -181,7 +181,7 @@ void TypSetImp::initDelegate()
 void TypSetImp::initSettings()
 {
     int w = 0;
-    int s = tmpSet[AddrIMPS1].toInt();
+    int s = tmpSet[(4000 + Qt::Key_8)].toInt();
     w = AddrIMPSC; // 测试
     Qt::CheckState c = (tmpSet[s + w]) == "1" ? Qt::Checked : Qt::Unchecked;
     mView->item(0, w)->setCheckState(c);
@@ -209,7 +209,7 @@ void TypSetImp::initSettings()
     impView->setText(QString::number(from->value()), 3);
     impView->setText(QString::number(stop->value()), 2);
 
-    int r = tmpSet[AddrIMPSW].toInt();  // 波形存储地址
+    int r = tmpSet[(4000 + Qt::Key_A)].toInt();  // 波形存储地址
     r += numb->text().toInt() * IMP_SIZE;
     tmpWave.clear();
     for (int i=0; i < IMP_SIZE; i++) {
@@ -222,7 +222,7 @@ void TypSetImp::saveSettings()
 {
     btnSave->setEnabled(false);
     int w = 0;
-    int s = tmpSet[AddrIMPS1].toInt();
+    int s = tmpSet[(4000 + Qt::Key_8)].toInt();
     w = AddrIMPSC; // 测试
     tmpMsg[s + w] = mView->item(0, w)->checkState() == Qt::Checked ? 1 : 0;
     w = AddrIMPSN;  // 名称
@@ -246,13 +246,13 @@ void TypSetImp::saveSettings()
     w = AddrIMPF2;  // 终点
     tmpMsg[s + w] = QString::number(stop->value());
 
-    int r = tmpSet[AddrIMPSW].toInt();  // 波形存储地址
-    int c = tmpSet[tmpSet[AddrModel].toInt()].toInt();  // 电枢片数
+    int r = tmpSet[(4000 + Qt::Key_A)].toInt();  // 波形存储地址
+    int c = tmpSet[tmpSet[(4000 + Qt::Key_0)].toInt()].toInt();  // 电枢片数
     for (int i=0; i < c*IMP_SIZE; i++) {
         tmpMsg.insert(r + i, tmpSet.value(r + i));
     }
-    tmpMsg.insert(AddrEnum, Qt::Key_Save);
-    tmpMsg.insert(AddrText, "aip_config");
+    tmpMsg.insert(Qt::Key_0, Qt::Key_Save);
+    tmpMsg.insert(Qt::Key_1, "aip_config");
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
@@ -281,7 +281,7 @@ void TypSetImp::lineUpdate()
 
 void TypSetImp::waveSwitch()
 {
-    int addr = tmpSet[AddrModel].toInt();  // 综合配置地址
+    int addr = tmpSet[(4000 + Qt::Key_0)].toInt();  // 综合配置地址
     int quan = tmpSet[addr + 0].toInt();  // 电枢片数
 
     QPushButton *btn = qobject_cast<QPushButton*>(sender());
@@ -296,7 +296,7 @@ void TypSetImp::waveSwitch()
     n = qMax(1, n);
     numb->setText(QString::number(n));
 
-    int r = tmpSet[AddrIMPSW].toInt();  // 波形存储地址
+    int r = tmpSet[(4000 + Qt::Key_A)].toInt();  // 波形存储地址
     r += (n-1)*IMP_SIZE;
     tmpWave.clear();
     for (int i=0; i < IMP_SIZE; i++) {
@@ -316,9 +316,9 @@ void TypSetImp::waveUpdate()
         f = (f <= 0) ? 0 : f -1;
     }
     text->setText(QString::number(f));
-    tmpMsg.insert(AddrEnum, Qt::Key_Send);
-    tmpMsg.insert(AddrText, AddrIMPS1);
-    tmpMsg.insert(AddrFreq, f);
+    tmpMsg.insert(Qt::Key_0, Qt::Key_Send);
+    tmpMsg.insert(Qt::Key_1, (4000 + Qt::Key_8));
+    tmpMsg.insert(Qt::Key_5, f);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
     time = 0;
@@ -326,12 +326,12 @@ void TypSetImp::waveUpdate()
 
 void TypSetImp::recvUpdate(QTmpMap msg)
 {
-    int real = tmpSet[AddrIMPR1].toInt();  // 测试结果地址
-    int addr = tmpSet[AddrIMPW1].toInt();  // 测试波形地址
-    int parm = tmpSet[AddrIMPSW].toInt();  // 标准波形地址
+    int real = tmpSet[(3000 + Qt::Key_8)].toInt();  // 测试结果地址
+    int addr = tmpSet[(3000 + Qt::Key_A)].toInt();  // 测试波形地址
+    int parm = tmpSet[(4000 + Qt::Key_A)].toInt();  // 标准波形地址
     int imps = msg.value(real + STATIMPA).toInt();  // 状态
     int code = msg.value(real + NUMBIMPA).toInt();  // 编号
-    int stdn = tmpSet[tmpSet[AddrIMPS1].toInt() + AddrIMPSL].toInt();  // 采样点
+    int stdn = tmpSet[tmpSet[(4000 + Qt::Key_8)].toInt() + AddrIMPSL].toInt();  // 采样点
 
     if (imps == DataTest) {
         tmpWave.clear();
@@ -352,8 +352,7 @@ void TypSetImp::recvUpdate(QTmpMap msg)
 
 void TypSetImp::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(0).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         btnSave->setEnabled(true);
@@ -364,9 +363,9 @@ void TypSetImp::recvAppMsg(QTmpMap msg)
         recvUpdate(msg);
         break;
     case Qt::Key_Zoom:
-        if (msg.value(AddrText).toInt() == AddrIMPS1)
+        if (msg.value(Qt::Key_1).toInt() == (4000 + Qt::Key_8))
             btnWave->click();
-        if (msg.value(AddrText).toInt() == AddrIMPSW)
+        if (msg.value(Qt::Key_1).toInt() == (4000 + Qt::Key_A))
             btnSave->click();
         break;
     default:

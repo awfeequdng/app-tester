@@ -32,6 +32,8 @@
 #include "appmaster.h"
 #include "appaction.h"
 
+#define TEMPSIGN  0x00  // 登录状态
+
 class AppSignin : public QDialog
 {
     Q_OBJECT

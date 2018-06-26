@@ -71,8 +71,8 @@ bool SqlImport::readSdcard()
 
 bool SqlImport::initBackup()
 {
-    tmpMap.insert(AddrEnum, Qt::Key_Copy);
-    tmpMap.insert(AddrText, "copy");
+    tmpMap.insert(Qt::Key_0, Qt::Key_Copy);
+    tmpMap.insert(Qt::Key_1, "copy");
     emit sendAppMsg(tmpMap);
     tmpMap.clear();
     QProcess cmddu;
@@ -99,8 +99,8 @@ bool SqlImport::initRecord()
     if (!query.exec(cmd))
         qWarning() << "aip_record:" << query.lastError();
     query.clear();
-    tmpMap.insert(AddrEnum, Qt::Key_Copy);
-    tmpMap.insert(AddrText, "over");
+    tmpMap.insert(Qt::Key_0, Qt::Key_Copy);
+    tmpMap.insert(Qt::Key_1, "over");
     emit sendAppMsg(tmpMap);
     tmpMap.clear();
     return true;
@@ -115,9 +115,9 @@ void SqlImport::saveSqlite(QTmpMap msg)
     QSqlDatabase::database("record").transaction();
     QSqlQuery query(QSqlDatabase::database("record"));
     if (1) {
-        int test = msg[AddrModel].toInt();
+        int test = msg[(4000 + Qt::Key_0)].toInt();
         tmpQuan[test] = tmpQuan[test].toInt() + 1;
-        if (msg.value(DataOKNG).toInt() == 0) {
+        if (msg.value(tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPISOK).toInt() == 0) {
             tmpOKNG[test] = tmpOKNG[test].toInt() + 1;
         }
         query.prepare("replace into aip_sqlite values(?,?,?,?)");
@@ -128,9 +128,9 @@ void SqlImport::saveSqlite(QTmpMap msg)
         query.exec();
     }
     for (int t=0; t < 3; t++) {
-        int test = msg[AddrDCRS1 + t].toInt();  // 是否测试
+        int test = msg[(4000 + Qt::Key_1) + t].toInt();  // 是否测试
         if (msg[test].toInt() == 1) {
-            int addr = msg[AddrDCRR1 + t].toInt();  // 电阻结果地址 版本,温度,状态,判定
+            int addr = msg[(3000 + Qt::Key_1) + t].toInt();  // 电阻结果地址 版本,温度,状态,判定
             tmpQuan[test] = tmpQuan[test].toInt() + 1;
             if (msg.value(addr + OKNGDCRA).toInt() == 0) {
                 tmpOKNG[test] = tmpOKNG[test].toInt() + 1;
@@ -144,9 +144,9 @@ void SqlImport::saveSqlite(QTmpMap msg)
         }
     }
     for (int t=0; t < 4; t++) {
-        int test = msg[AddrACWS1 + t].toInt();  // 是否测试
+        int test = msg[(4000 + Qt::Key_4) + t].toInt();  // 是否测试
         if (msg[test].toInt() == 1) {
-            int addr = msg[AddrACWR1 + t].toInt();  // 高压结果地址 版本,温度,状态,判定
+            int addr = msg[(3000 + Qt::Key_4) + t].toInt();  // 高压结果地址 版本,温度,状态,判定
             tmpQuan[test] = tmpQuan[test].toInt() + 1;
             if (msg.value(addr + OKNGACWA).toInt() == 0) {
                 tmpOKNG[test] = tmpOKNG[test].toInt() + 1;
@@ -160,9 +160,9 @@ void SqlImport::saveSqlite(QTmpMap msg)
         }
     }
     if (1) {
-        int test = msg[AddrIMPS1].toInt();
+        int test = msg[(4000 + Qt::Key_8)].toInt();
         if (msg[test].toInt() == 1) {
-            int addr = msg[AddrIMPR1].toInt();  // 匝间结果地址 版本,温度,状态,判定
+            int addr = msg[(3000 + Qt::Key_8)].toInt();  // 匝间结果地址 版本,温度,状态,判定
             tmpQuan[test] = tmpQuan[test].toInt() + 1;
             if (msg.value(addr + OKNGIMPA).toInt() == 0) {
                 tmpOKNG[test] = tmpOKNG[test].toInt() + 1;
@@ -186,67 +186,69 @@ void SqlImport::saveRecord(QTmpMap msg)
     quint64 uuid = snow.getId();
     int type = msg[DataFile].toInt();
 
+    int addr = tmpSet.value((3000 + Qt::Key_0)).toInt();
+
     query.prepare("insert into aip_record values(?,?,?,?)");  // 测试日期
     query.addBindValue(uuid);
-    query.addBindValue(DataDate);
+    query.addBindValue(addr + TEMPDATE);
     query.addBindValue(type);
     query.addBindValue(QDate::currentDate().toString("yyyy-MM-dd"));
     query.exec();
 
     query.prepare("insert into aip_record values(?,?,?,?)");  // 开始时间
     query.addBindValue(uuid);
-    query.addBindValue(DataPlay);
+    query.addBindValue(addr + TEMPPLAY);
     query.addBindValue(type);
-    query.addBindValue(msg.value(DataPlay).toTime().toString("hh:mm:ss"));
+    query.addBindValue(msg.value(addr + TEMPPLAY).toTime().toString("hh:mm:ss"));
     query.exec();
 
     query.prepare("insert into aip_record values(?,?,?,?)");  // 完成时间
     query.addBindValue(uuid);
-    query.addBindValue(DataStop);
+    query.addBindValue(addr + TEMPSTOP);
     query.addBindValue(type);
-    query.addBindValue(msg.value(DataStop).toTime().toString("hh:mm:ss"));
+    query.addBindValue(msg.value(addr + TEMPSTOP).toTime().toString("hh:mm:ss"));
     query.exec();
 
     query.prepare("insert into aip_record values(?,?,?,?)");  // 当前用户
     query.addBindValue(uuid);
     query.addBindValue(DataUser);
     query.addBindValue(type);
-    query.addBindValue(msg.value(DataUser).toInt() - msg.value(AddrUser).toInt() + 1);
+    query.addBindValue(msg.value(DataUser).toInt() - msg.value((2000 + Qt::Key_5)).toInt() + 1);
     query.exec();
 
     query.prepare("insert into aip_record values(?,?,?,?)");  // 当前温度
     query.addBindValue(uuid);
-    query.addBindValue(DataTemp);
+    query.addBindValue(addr + TEMPTEMP);
     query.addBindValue(type);
-    query.addBindValue(msg.value(DataTemp).toString());
+    query.addBindValue(msg.value(addr + TEMPTEMP).toString());
     query.exec();
 
     query.prepare("insert into aip_record values(?,?,?,?)");  // 当前工位
     query.addBindValue(uuid);
-    query.addBindValue(DataWork);
+    query.addBindValue(addr + TEMPWORK);
     query.addBindValue(type);
-    query.addBindValue(msg.value(DataWork).toInt() == 0x11 ? 1 : 2);
+    query.addBindValue(msg.value(addr + TEMPWORK).toInt() == 0x11 ? 1 : 2);
     query.exec();
 
     query.prepare("insert into aip_record values(?,?,?,?)");  // 当前编码
     query.addBindValue(uuid);
-    query.addBindValue(DataCode);
+    query.addBindValue(addr + TEMPCODE);
     query.addBindValue(type);
-    query.addBindValue(msg.value(DataCode).toString());
+    query.addBindValue(msg.value(addr + TEMPCODE).toString());
     query.exec();
 
     query.prepare("insert into aip_record values(?,?,?,?)");  // 总判定
     query.addBindValue(uuid);
-    query.addBindValue(DataOKNG);
+    query.addBindValue(addr + TEMPISOK);
     query.addBindValue(type);
-    query.addBindValue(msg.value(DataOKNG).toInt());
+    query.addBindValue(msg.value(addr + TEMPISOK).toInt());
     query.exec();
 
-    int c = msg[AddrModel].toInt();
+    int c = msg[(4000 + Qt::Key_0)].toInt();
     int weld = msg[c].toInt();
     for (int t=0; t < 3; t++) {
-        int test = msg[AddrDCRS1 + t].toInt();
-        int addr = msg[AddrDCRR1 + t].toInt() + CACHEDCR;  // 电阻结果地址 档位,结果,小数,判定
+        int test = msg[(4000 + Qt::Key_1) + t].toInt();
+        int addr = msg[(3000 + Qt::Key_1) + t].toInt() + CACHEDCR;  // 电阻结果地址 档位,结果,小数,判定
         int quan = (t == 2) ? weld/2 : weld;
         if (msg[test].toInt() == 1) {
             for (int i=0; i < quan; i++) {
@@ -264,8 +266,8 @@ void SqlImport::saveRecord(QTmpMap msg)
         }
     }
     for (int t=0; t < 4; t++) {
-        int test = msg[AddrACWS1 + t].toInt();
-        int addr = msg[AddrACWR1 + t].toInt() + CACHEACW;  // 高压结果地址 电压,结果,小数,判定
+        int test = msg[(4000 + Qt::Key_4) + t].toInt();
+        int addr = msg[(3000 + Qt::Key_4) + t].toInt() + CACHEACW;  // 高压结果地址 电压,结果,小数,判定
         if (msg[test].toInt() == 1) {
             double r = msg[addr + DATAACWR].toDouble();
             double p = msg[addr + GEARACWR].toDouble();
@@ -283,9 +285,9 @@ void SqlImport::saveRecord(QTmpMap msg)
         }
     }
     if (1) {
-        int test = msg[AddrIMPS1].toInt();
+        int test = msg[(4000 + Qt::Key_8)].toInt();
         int time = msg[test + AddrIMPSA].toInt();
-        int addr = msg[AddrIMPR1].toInt() + CACHEIMP;  // 匝间结果地址 电压,结果,频率,判定
+        int addr = msg[(3000 + Qt::Key_8)].toInt() + CACHEIMP;  // 匝间结果地址 电压,结果,频率,判定
         int quan = (time*2 == weld) ? weld/2 : weld;
         if (msg[test + AddrIMPSC].toInt() == 1) {
             for (int i=0; i < quan; i++) {
@@ -311,10 +313,12 @@ void SqlImport::saveRecord(QTmpMap msg)
 
 void SqlImport::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(AddrEnum).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
+    case Qt::Key_Copy:
+        tmpSet = msg;
+        break;
     case Qt::Key_Save:
-        if (msg.value(AddrText).toString() == "aip_record") {
+        if (msg.value(Qt::Key_1).toString() == "aip_record") {
             saveSqlite(msg);
             saveRecord(msg);
         }

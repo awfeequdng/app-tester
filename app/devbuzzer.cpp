@@ -40,11 +40,10 @@ void DevBuzzer::sendBuzzer(double duty)
 
 void DevBuzzer::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(AddrEnum).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Call:
-        if (!msg.value(AddrBeep).isNull())
-            sendBuzzer(msg.value(AddrBeep).toDouble());
+        if (!msg.value(Qt::Key_3).isNull())
+            sendBuzzer(msg.value(Qt::Key_3).toDouble());
         break;
     default:
         break;

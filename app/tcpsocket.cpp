@@ -242,7 +242,7 @@ void TcpSocket::recvSocketConnected()
 {
     display(tr("TCP连接成功"));
 #ifdef __arm__
-    int r = tmpSet.value(AddrBack).toInt();
+    int r = tmpSet.value((1000 + Qt::Key_0)).toInt();
     QStringList dev;
     dev.append(tmpSet.value(r + 1).toString());
     dev.append(getHardwareAddress());
@@ -255,7 +255,7 @@ void TcpSocket::recvSocketConnected()
     connect(timer, SIGNAL(timeout()), this, SLOT(sendSocketBeat()));
     timer->start(5000);
 
-    tmpMsg.insert(AddrEnum, Qt::Key_WLAN);
+    tmpMsg.insert(Qt::Key_0, Qt::Key_WLAN);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
@@ -304,7 +304,7 @@ void TcpSocket::readSqlite()
 #ifndef __arm__
     isOK = false;
     mOnlineView->select();
-    int r = tmpSet.value(AddrBack).toInt();
+    int r = tmpSet.value((1000 + Qt::Key_0)).toInt();
     QString str = tmpSet.value(r + 9).toString();
     for (int i=0; i < mOnlineView->rowCount(); i++) {
         QString mac = mOnlineView->index(i, 2).data().toString();

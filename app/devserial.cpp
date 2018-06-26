@@ -79,7 +79,7 @@ void DevSerial::clickButton(int id)
     switch (id) {
     case Qt::Key_Stop:
     case Qt::Key_Play:
-        tmpMsg.insert(AddrEnum, id);
+        tmpMsg.insert(Qt::Key_0, id);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
         break;
@@ -107,11 +107,10 @@ void DevSerial::calibration()
 
 void DevSerial::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(0).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Call:
-        if (!msg.value(AddrText).isNull())
-            com->write(msg.value(AddrText).toString().toUtf8());
+        if (!msg.value(Qt::Key_1).isNull())
+            com->write(msg.value(Qt::Key_1).toString().toUtf8());
     default:
         break;
     }

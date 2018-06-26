@@ -34,6 +34,7 @@ const int SystCode = 0x05;
 const int SystSize = 0x06;
 const int SystTime = 0x07;
 const int SystWarn = 0x08;
+const int SystWait = 0x09;
 
 class AppSystem : public QWidget
 {

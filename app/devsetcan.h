@@ -41,6 +41,7 @@
 #include "typsetdcr.h"
 #include "typsetacw.h"
 #include "typsetimp.h"
+#include "sqlimport.h"
 
 const int CAN_ID_DCR = 0x0022;
 const int CAN_ID_ACW = 0x0023;

@@ -33,7 +33,7 @@ int SqlExport::exportFile(QTmpMap msg)
 
 int SqlExport::createFile(QTmpMap msg)
 {
-    QString path = msg.value(AddrText).toString();
+    QString path = msg.value(Qt::Key_1).toString();
     file = new QFile(QString("%1").arg(path));
     if (!file->open(QFile::WriteOnly)) {
         showText(tr("文件打开失败"));
@@ -44,9 +44,9 @@ int SqlExport::createFile(QTmpMap msg)
 
 int SqlExport::selectNumb(QTmpMap msg)
 {
-    QString name = msg.value(AddrData).toString();
-    quint64 from = msg.value(AddrFrom).toLongLong();
-    quint64 stop = msg.value(AddrStop).toLongLong();
+    QString name = msg.value(Qt::Key_4).toString();
+    quint64 from = msg.value(Qt::Key_9).toLongLong();
+    quint64 stop = msg.value(Qt::Key_A).toLongLong();
 
     QSqlQuery query(QSqlDatabase::database(name));
     QString cmd = tr("select count(*) from aip_record where R_ITEM=65535");
@@ -69,9 +69,9 @@ int SqlExport::selectNumb(QTmpMap msg)
 
 int SqlExport::selectItem(QTmpMap msg)
 {
-    QString name = msg.value(AddrData).toString();
-    quint64 from = msg.value(AddrFrom).toLongLong();
-    quint64 stop = msg.value(AddrStop).toLongLong();
+    QString name = msg.value(Qt::Key_4).toString();
+    quint64 from = msg.value(Qt::Key_9).toLongLong();
+    quint64 stop = msg.value(Qt::Key_A).toLongLong();
 
     QSqlQuery query(QSqlDatabase::database(name));
     QString cmd = tr("select distinct R_ITEM from aip_record where R_ITEM < %1").arg(0xFFFF);
@@ -90,14 +90,14 @@ int SqlExport::selectItem(QTmpMap msg)
 
 int SqlExport::exportHead(QTmpMap msg)
 {
-    quint64 from = msg.value(AddrFrom).toLongLong();
-    quint64 stop = msg.value(AddrStop).toLongLong();
+    quint64 from = msg.value(Qt::Key_9).toLongLong();
+    quint64 stop = msg.value(Qt::Key_A).toLongLong();
 
     QStringList title;
 
     QString str;
     str.append(tr("导出者编号:"));
-    str.append(QString::number(tmpSet.value(DataUser).toInt() - tmpSet.value(AddrUser).toInt() + 1));
+    str.append(QString::number(tmpSet.value(DataUser).toInt() - tmpSet.value((2000 + Qt::Key_5)).toInt() + 1));
     str.append("  ");
     str.append(tr("总日期范围:"));
     str.append(QDateTime::fromMSecsSinceEpoch(from >> 20).date().toString("yyyy-MM-dd"));
@@ -106,42 +106,43 @@ int SqlExport::exportHead(QTmpMap msg)
     file->write(ToGbk(str));
     file->write("\n");
 
+    int addr = tmpSet.value((3000 + Qt::Key_0)).toInt();
+
     tmpMsg.insert(DataFile, tr("型号"));
     tmpMsg.insert(DataUser, tr("用户"));
-    tmpMsg.insert(DataDate, tr("日期"));
-    tmpMsg.insert(DataPlay, tr("启动"));
-    tmpMsg.insert(DataStop, tr("完成"));
-    tmpMsg.insert(DataTemp, tr("温度"));
-    tmpMsg.insert(DataWork, tr("工位"));
-    tmpMsg.insert(DataCode, tr("条码"));
-    tmpMsg.insert(DataOKNG, tr("判定"));
+    tmpMsg.insert(tmpSet.value(addr + TEMPDATE).toInt(), tr("日期"));
+    tmpMsg.insert(tmpSet.value(addr + TEMPPLAY).toInt(), tr("启动"));
+    tmpMsg.insert(tmpSet.value(addr + TEMPSTOP).toInt(), tr("完成"));
+    tmpMsg.insert(tmpSet.value(addr + TEMPTEMP).toInt(), tr("温度"));
+    tmpMsg.insert(tmpSet.value(addr + TEMPWORK).toInt(), tr("工位"));
+    tmpMsg.insert(tmpSet.value(addr + TEMPCODE).toInt(), tr("条码"));
+    tmpMsg.insert(tmpSet.value(addr + TEMPISOK).toInt(), tr("判定"));
 
-    int addr = 0;
-    addr = tmpSet.value(AddrDCRR1).toInt() + CACHEDCR;  // 电阻结果地址
+    addr = tmpSet.value((3000 + Qt::Key_1)).toInt() + CACHEDCR;  // 电阻结果地址
     for(int i=0; i < 72; i++) {
         tmpMsg.insert(addr + i, QString("片间R%1").arg(i+1, 2, 10, QChar('0')));
     }
-    addr = tmpSet.value(AddrDCRR2).toInt() + CACHEDCR;  // 电阻结果地址
+    addr = tmpSet.value((3000 + Qt::Key_2)).toInt() + CACHEDCR;  // 电阻结果地址
     for(int i=0; i < 72; i++) {
         tmpMsg.insert(addr + i, QString("焊接R%1").arg(i+1, 2, 10, QChar('0')));
     }
-    addr = tmpSet.value(AddrDCRR3).toInt() + CACHEDCR;  // 电阻结果地址
+    addr = tmpSet.value((3000 + Qt::Key_3)).toInt() + CACHEDCR;  // 电阻结果地址
     for(int i=0; i < 36; i++) {
         tmpMsg.insert(addr + i, QString("跨间R%1").arg(i+1, 2, 10, QChar('0')));
     }
-    addr = tmpSet.value(AddrACWR1).toInt() + CACHEACW;  // 轴铁耐压结果地址
+    addr = tmpSet.value((3000 + Qt::Key_4)).toInt() + CACHEACW;  // 轴铁耐压结果地址
     tmpMsg.insert(addr, QString("轴铁耐压"));
-    addr = tmpSet.value(AddrACWR2).toInt() + CACHEACW;  // 轴线耐压结果地址
+    addr = tmpSet.value((3000 + Qt::Key_5)).toInt() + CACHEACW;  // 轴线耐压结果地址
     tmpMsg.insert(addr, QString("轴线耐压"));
-    addr = tmpSet.value(AddrACWR3).toInt() + CACHEACW;  // 铁线耐压结果地址
+    addr = tmpSet.value((3000 + Qt::Key_6)).toInt() + CACHEACW;  // 铁线耐压结果地址
     tmpMsg.insert(addr, QString("铁线耐压"));
-    addr = tmpSet.value(AddrACWR4).toInt() + CACHEACW;  // 绝缘电阻结果地址
+    addr = tmpSet.value((3000 + Qt::Key_7)).toInt() + CACHEACW;  // 绝缘电阻结果地址
     tmpMsg.insert(addr, QString("绝缘电阻"));
-    addr = tmpSet.value(AddrIMPR1).toInt() + CACHEIMP;  // 匝间果地址
+    addr = tmpSet.value((3000 + Qt::Key_8)).toInt() + CACHEIMP;  // 匝间果地址
     for(int i=0; i < 72; i++) {
         tmpMsg.insert(addr + i, QString("匝间D%1").arg(i+1, 2, 10, QChar('0')));
     }
-    addr = tmpSet.value(AddrType).toInt();
+    addr = tmpSet.value((2000 + Qt::Key_4)).toInt();
     for (int i=0; i < 100; i++) {
         tmpMsg.insert(addr + i, tmpSet.value(addr + i).toString());
     }
@@ -159,9 +160,9 @@ int SqlExport::exportHead(QTmpMap msg)
 
 int SqlExport::exportData(QTmpMap msg)
 {
-    QString name = msg.value(AddrData).toString();
-    quint64 from = msg.value(AddrFrom).toLongLong();
-    quint64 stop = msg.value(AddrStop).toLongLong();
+    QString name = msg.value(Qt::Key_4).toString();
+    quint64 from = msg.value(Qt::Key_9).toLongLong();
+    quint64 stop = msg.value(Qt::Key_A).toLongLong();
 
     QSqlQuery query(QSqlDatabase::database(name));
     quint64 numb = 0;
@@ -197,8 +198,8 @@ int SqlExport::exportData(QTmpMap msg)
                     break;
             }
         }
-        tmpMsg.insert(AddrEnum, Qt::Key_Word);
-        tmpMsg.insert(AddrRate, t*100/quan);
+        tmpMsg.insert(Qt::Key_0, Qt::Key_Word);
+        tmpMsg.insert(Qt::Key_2, t*100/quan);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
         if (t >= quan)
@@ -215,16 +216,15 @@ QByteArray SqlExport::ToGbk(const QString &inStr)
 
 void SqlExport::showText(QString err)
 {
-    tmpMsg.insert(AddrEnum, Qt::Key_Word);
-    tmpMsg.insert(AddrText, err);
+    tmpMsg.insert(Qt::Key_0, Qt::Key_Word);
+    tmpMsg.insert(Qt::Key_1, err);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
 
 void SqlExport::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(AddrEnum).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         break;

@@ -392,60 +392,96 @@ void AppTester::initWaveIMPW()
 
 void AppTester::initSettings()
 {
-    boxChart->setNum(tmpSet[tmpSet[AddrModel].toInt()].toInt());
-    int r = 0;
-    if (1) {  // 初始化用户显示
-        if (tmpSet[DataSign].toInt() == 0) {
-            status->item(0, 1)->setText(tr("未登录"));
-        } else {
-            r = tmpSet[DataUser].toInt();
-            status->item(0, 1)->setText(tmpSet[r].toString());
-        }
+    if (Qt::Key_0) {  // 初始化状态栏显示
+        int temp = tmpSet.value((3000 + Qt::Key_0)).toInt();  // 时临数据地址
+        int sign = tmpSet.value(temp + TEMPSIGN).toInt();
+        int user = tmpSet.value(DataUser).toInt();
+        int file = tmpSet.value(DataFile).toInt();
+        status->item(0, 1)->setText((sign == 0) ? tr("未登录") : tmpSet.value(user).toString());
+        status->item(0, 3)->setText(tmpSet.value(file).toString());
+
+        int addr = tmpSet.value((4000 + Qt::Key_0)).toInt();  // 综合配置地址
+        boxChart->setNum(tmpSet.value(addr + AddrDCRSC).toInt()); // 电枢片数
     }
-    if (1) {  // 初始化型号显示
-        r = tmpSet[DataFile].toInt();
-        status->item(0, 3)->setText(tmpSet[r].toString());
+    if (Qt::Key_1) {  // 初始化片间电阻
+        int addr = tmpSet.value((4000 + Qt::Key_1)).toInt();  // 片间配置地址
+        int test = tmpSet.value(addr + ISCKDCR1).toInt();  // 是否测试
+        int gear = tmpSet.value(addr + GEARDCR1).toInt();  // 测试档位
+        QString tt = test == 1 ? titleOK : titleNG;
+        QString gg = gear >= 4 ? "mΩ" : "Ω";
+        tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;%2%3%&nbsp;%4%5</p>";
+        tt = tt.arg("片间电阻").arg("离散:±");
+        tt = tt.arg(QString::number(tmpSet[addr+1].toDouble()/1000, 'f', 2));
+        tt = tt.arg(tr("单位:")).arg(gg);
+        dcrTitles.at(0)->setText(tt);
+        textDCR1->clear();
+        dcrView->setZero();
+        dcrView->update();
+
+        QString ww = (test == 1) ? largeOK : largeEN;
+        dcrLabels.at(0)->setText(ww.arg("挂钩顺序"));
+        dcrLabels.at(1)->setText(ww.arg("------"));
+        dcrLabels.at(2)->setText(ww.arg("--"));
+    }
+    if (Qt::Key_2) {  // 初始化焊接电阻
+        int addr = tmpSet.value((4000 + Qt::Key_2)).toInt();  // 焊接配置地址
+        int test = tmpSet.value(addr + ISCHDCR2).toInt();  // 是否测试
+        QString tt = test == 1 ? titleOK : titleNG;
+        tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;&lt; %2mΩ</p>";
+        tt = tt.arg("焊接电阻").arg(QString::number(tmpSet[addr+1].toDouble()/1000, 'f', 2));
+        dcrTitles.at(1)->setText(tt);
+        textDCR2->clear();
     }
 
-    QString tt;
+    if (Qt::Key_3) {  // 初始化跨间电阻
+        double addr = tmpSet.value((4000 + Qt::Key_3)).toInt();  // 跨间配置地址
+        double test = tmpSet.value(addr + ISCHDCR3).toInt();
+        double smin = tmpSet.value(addr + SMINDCR3).toDouble();
+        double smax = tmpSet.value(addr + SMAXDCR3).toDouble();
+        QString tt = test == 1 ? titleOK : titleNG;
+        tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;%2:%3~%4Ω</p>";
+        tt = tt.arg("跨间电阻").arg("均值");
+        tt = tt.arg(QString::number(smin/1000, 'f', 3)).arg(QString::number(smax/1000, 'f', 3));
+        dcrTitles.at(2)->setText(tt);
+        textDCR3->clear();
+    }
     for (int i=0; i < 4; i++) {  // 初始化介电强度
-        r = tmpSet[AddrACWS1 + i].toInt();  // 高压配置地址
-        tt = tmpSet[r+0].toDouble() == 1 ? titleOK : titleNG;
-        double c = tmpSet[r + AddrACWSC].toDouble();
-        double v = tmpSet[r + AddrACWSV].toDouble()/1000;
-        double h = tmpSet[r + AddrACWSH].toDouble();
-        double l = tmpSet[r + AddrACWSL].toDouble();
-        QString n = tmpSet[r + AddrACWSN].toString();
-        h = (i == NUMBINRS) ? h : h/100;
-        l = (i == NUMBINRS) ? l : l/100;
+        double addr = tmpSet.value((4000 + Qt::Key_4) + i).toInt();  // 介电强度配置地址
+        double test = tmpSet.value(addr + AddrACWSC).toInt();
+        double volt = tmpSet.value(addr + AddrACWSV).toDouble()/1000;
+        double smax = tmpSet.value(addr + AddrACWSH).toDouble();
+        double smin = tmpSet.value(addr + AddrACWSL).toDouble();
+        smax = (i == NUMBINRS) ? smax : smax/100;
+        smin = (i == NUMBINRS) ? smin : smin/100;
+        QString n = tmpSet.value(addr + AddrACWSN).toString();
+        QString tt = test == 1 ? titleOK : titleNG;
         if (i == NUMBINRS) {
             tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;DC:%2kV&nbsp;&nbsp;IR:%3MΩ</p>";
-            tt = tt.arg(n).arg(QString::number(v, 'f', 3));
-            tt = tt.arg(l);
+            tt = tt.arg(n).arg(QString::number(volt, 'f', 3));
+            tt = tt.arg(smin);
         } else {
             tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;I:%3~%4mA</p>";
-            tt = tt.arg(n).arg(QString::number(v, 'f', 3));
-            tt = tt.arg(QString::number(l, 'f', 2)).arg(QString::number(h, 'f', 2));
+            tt = tt.arg(n).arg(QString::number(volt, 'f', 3));
+            tt = tt.arg(QString::number(smin, 'f', 2)).arg(QString::number(smax, 'f', 2));
         }
         acwTitles.at(i)->setText(tt);
-        QString cc = (c == 1) ? largeOK : largeEN;
+        QString cc = (test == 1) ? largeOK : largeEN;
         acwLabels.at(3*i + 0)->setText(cc.arg("-.---kV"));
         acwLabels.at(3*i + 1)->setText(cc.arg((i == NUMBINRS) ? "---.-MΩ" : "-.---mA"));
         acwLabels.at(3*i + 2)->setText(cc.arg("--"));
     }
-    if (1) {  // 初始化匝间显示
-        int r = tmpSet[AddrIMPS1].toInt();  // 匝间配置地址
-        tt = tmpSet[r+0].toDouble() == 1 ? titleOK : titleNG;
-        double c = tmpSet[r + AddrACWSC].toDouble();
-        double v = tmpSet[r + AddrACWSV].toDouble()/1000;
-        double h = tmpSet[r + AddrACWSH].toDouble();
-        QString n = tmpSet[r + AddrACWSN].toString();
-
+    if (Qt::Key_8) {  // 初始化匝间显示
+        double addr = tmpSet.value((4000 + Qt::Key_8)).toInt();  // 匝间配置地址
+        double test = tmpSet.value(addr + AddrIMPSC).toInt();
+        double volt = tmpSet.value(addr + AddrIMPSV).toDouble()/1000;
+        double smax = tmpSet.value(addr + AddrIMPSH).toDouble();
+        QString n = tmpSet.value(addr + AddrACWSN).toString();
+        QString tt = test == 1 ? titleOK : titleNG;
         tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;AC:%2kV&nbsp;&nbsp;&lt;%3%</p>";
-        tt = tt.arg(n).arg(QString::number(v, 'f', 3));
-        tt = tt.arg(QString::number(h, 'f', 2));
+        tt = tt.arg(n).arg(QString::number(volt, 'f', 3));
+        tt = tt.arg(QString::number(smax, 'f', 2));
         impTitles.at(0)->setText(tt);
-        QString color = (c == 1) ? largeOK : largeEN;
+        QString color = (test == 1) ? largeOK : largeEN;
         impLabels.at(0)->setText(color.arg("-.---kV"));
         impLabels.at(1)->setText(color.arg("-.---%"));
         impLabels.at(2)->setText(color.arg("--"));
@@ -455,60 +491,12 @@ void AppTester::initSettings()
         impView->setZero();
         impView->update();
     }
-    if (1) {  // 初始化片间电阻
-        int r = tmpSet[AddrDCRS1].toInt();  // 配置地址
-        int c = tmpSet[r+0].toInt();
-        QString tt = tmpSet[r+0].toDouble() == 1 ? titleOK : titleNG;
-        QString gg = tmpSet[r+5].toDouble() >= 4 ? "mΩ" : "Ω";
-        tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;%2%3%&nbsp;%4%5</p>";
-        tt = tt.arg("片间电阻").arg("离散:±");
-        tt = tt.arg(QString::number(tmpSet[r+1].toDouble()/1000, 'f', 3));
-        tt = tt.arg(tr("单位:")).arg(gg);
-        dcrTitles.at(0)->setText(tt);
-        textDCR1->clear();
-        dcrView->setZero();
-        dcrView->update();
-
-        QString ww = (c == 1) ? largeOK : largeEN;
-        dcrLabels.at(0)->setText(ww.arg("挂钩顺序"));
-        dcrLabels.at(1)->setText(ww.arg("------"));
-        dcrLabels.at(2)->setText(ww.arg("--"));
-    }
-    if (2) {  // 初始化焊接电阻
-        int r = tmpSet[AddrDCRS2].toInt();  // 配置地址
-
-        QString tt = tmpSet[r+0].toDouble() == 1 ? titleOK : titleNG;
-        tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;&lt; %2mΩ</p>";
-        tt = tt.arg("焊接电阻").arg(QString::number(tmpSet[r+1].toDouble()/1000, 'f', 3));
-        dcrTitles.at(1)->setText(tt);
-        textDCR2->clear();
-    }
-    if (3) {  // 初始化跨间电阻
-        int r = tmpSet[AddrDCRS3].toInt();  // 配置地址
-        int c = tmpSet[r+0].toInt();
-        double l = tmpSet[r + 1].toDouble();
-        double h = tmpSet[r + 2].toDouble();
-        double g = tmpSet[tmpSet[AddrDCRS3].toInt()+3].toDouble();
-        h = g < 4 ? h/1000 : h;
-        l = g < 4 ? l/1000 : l;
-        QString tt = c == 1 ? titleOK : titleNG;
-        QString gg = g < 4 ? "Ω" : "mΩ";
-        g = (g > 3) ? g-3 : g;
-
-        tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;%2:%3~%4%5</p>";
-        tt = tt.arg("跨间电阻").arg("均值");
-        tt = tt.arg(QString::number(l, 'f', 3)).arg(QString::number(h, 'f', g));
-        tt = tt.arg(gg);
-        dcrTitles.at(2)->setText(tt);
-        textDCR3->clear();
-    }
 }
 
 void AppTester::initTextView()
 {
-    boxChart->setNum(tmpSet[tmpSet[AddrModel].toInt()].toInt());
     for (int i=0; i < 4; i++) {
-        int parm = tmpSet[AddrACWS1 + i].toInt();  // 高压配置地址
+        int parm = tmpSet[(4000 + Qt::Key_4) + i].toInt();  // 高压配置地址
         if (tmpSet[parm].toInt() == 1) {  // 项目测试
             acwLabels.at(i*3 + 0)->setText(largeOK.arg("-.---kV"));
             if (i == NUMBINRS) {
@@ -520,7 +508,7 @@ void AppTester::initTextView()
         }
     }
     for (int i=0; i < 3; i++) {
-        int parm = tmpSet[AddrDCRS1 + i].toInt();  // 配置地址
+        int parm = tmpSet[(4000 + Qt::Key_1) + i].toInt();  // 配置地址
         if (tmpSet[parm].toInt() == 1) {  // 项目测试
             if (i == 0) {
                 textDCR1->clear();
@@ -536,7 +524,7 @@ void AppTester::initTextView()
         }
     }
     if (1) {
-        int parm = tmpSet[AddrIMPS1].toInt();  // 匝间配置地址
+        int parm = tmpSet[(4000 + Qt::Key_8)].toInt();  // 匝间配置地址
         if (tmpSet[parm].toInt() == 1) {
             impLabels.at(0)->setText(largeOK.arg("-.---kV"));
             impLabels.at(1)->setText(largeOK.arg("-.---%"));
@@ -554,10 +542,10 @@ void AppTester::initTextView()
 
 void AppTester::drawWaveDCRW()
 {
-    int addr = tmpSet[AddrDCRSW].toInt();  // 标准波形地址
-    int real = tmpSet[AddrDCRR1].toInt() + CACHEDCR;  // 实际波形地址
-    int stdd = tmpSet[tmpSet[AddrDCRS1].toInt() + 1].toInt();
-    int from = tmpSet[AddrModel].toInt();
+    int addr = tmpSet[(4000 + Qt::Key_9)].toInt();  // 标准波形地址
+    int real = tmpSet[(3000 + Qt::Key_1)].toInt() + CACHEDCR;  // 实际波形地址
+    int stdd = tmpSet[tmpSet[(4000 + Qt::Key_1)].toInt() + 1].toInt();
+    int from = tmpSet[(4000 + Qt::Key_0)].toInt();
     int quan = tmpSet[from + AddrDCRSC].toInt();
     int tool = tmpSet[from + AddrDEVSC].toInt() * quan;
     QVector<double> xx(tool), yh(tool), yl(tool), yr(tool);
@@ -611,7 +599,7 @@ void AppTester::drawWaveDCRW()
 void AppTester::drawWaveIMPW(int numb)
 {
     QVector<double> stds(IMP_SIZE), real(IMP_SIZE);
-    int addr = tmpSet[AddrIMPSW].toInt();
+    int addr = tmpSet[(4000 + Qt::Key_A)].toInt();
     for (int i=0; i < IMP_SIZE; i++) {
         real[i] = tmpWave.at(i)*100/0x0400;
         stds[i] = tmpSet[addr + numb*IMP_SIZE + i].toInt()*100/0x0400;
@@ -720,10 +708,10 @@ void AppTester::clickStart()
 {
     if (btnPlay->text() == tr("启动测试")) {
         btnPlay->setText(tr("停止测试"));
-        tmpMsg.insert(AddrEnum, Qt::Key_Play);
+        tmpMsg.insert(Qt::Key_0, Qt::Key_Play);
     } else {
         btnPlay->setText(tr("启动测试"));
-        tmpMsg.insert(AddrEnum, Qt::Key_Stop);
+        tmpMsg.insert(Qt::Key_0, Qt::Key_Stop);
     }
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
@@ -731,16 +719,17 @@ void AppTester::clickStart()
 
 void AppTester::clickButton()
 {
-    tmpMsg.insert(AddrEnum, Qt::Key_View);
-    tmpMsg.insert(AddrText, sender()->objectName());
+    tmpMsg.insert(Qt::Key_0, Qt::Key_View);
+    tmpMsg.insert(Qt::Key_1, sender()->objectName());
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
 
 void AppTester::recvTmpMsg(QTmpMap msg)
 {
-    if (!msg.value(DataTemp).isNull()) {
-        double temp = msg.value(DataTemp).toInt();
+    int addr = tmpSet.value((3000 + Qt::Key_0)).toInt();
+    if (!msg.value(addr + TEMPTEMP).isNull()) {
+        double temp = msg.value(addr + TEMPTEMP).toInt();
         if (temp > 0x8000) {
             temp = 0x8000 - temp;
         }
@@ -750,17 +739,17 @@ void AppTester::recvTmpMsg(QTmpMap msg)
 
 void AppTester::recvLedMsg(QTmpMap msg)
 {
-    QString tmp = msg.value(AddrText).toString();
-    if (msg.value(AddrBeep).isNull() && tmp == "LEDY") {
+    QString tmp = msg.value(Qt::Key_1).toString();
+    if (msg.value(Qt::Key_3).isNull() && tmp == "LEDY") {
         initTextView();
         btnHome->setEnabled(false);
         btnConf->setEnabled(false);
         btnPlay->setText(tr("停止测试"));
         textResult->setText(judgeON.arg("ON"));
         boxChart->setRun(1);
-        QString str = (msg.value(AddrData).toInt() == 0x11 ? tr("左") : tr("右"));
+        QString str = (msg.value(Qt::Key_4).toInt() == 0x11 ? tr("左") : tr("右"));
         textWorker->setText(judgeON.arg(str));
-    } else if (msg.value(AddrBeep).toInt() >= 0) {
+    } else if (msg.value(Qt::Key_3).toInt() >= 0) {
         boxChart->setRun(0);
         btnHome->setEnabled(true);
         btnConf->setEnabled(true);
@@ -780,22 +769,19 @@ void AppTester::recvLedMsg(QTmpMap msg)
 
 void AppTester::recvDCRMsg(QTmpMap msg)
 {
-    int from = tmpSet[AddrModel].toInt();
+    int from = tmpSet[(4000 + Qt::Key_0)].toInt();
     int quan = tmpSet[from].toInt();
-    int curr = msg.value(AddrText).toInt();
-    int addr = 0;
+    int curr = msg.value(Qt::Key_1).toInt();
+    int addr = tmpSet.value(curr - 1000).toInt() + CACHEDCR;;
     QTextBrowser *textR = textDCR1;
-    if (curr == AddrDCRS1) {
+    if (curr == (4000 + Qt::Key_1)) {
         textR = textDCR1;
-        addr = tmpSet.value(AddrDCRR1).toInt() + CACHEDCR;
     }
-    if (curr == AddrDCRS2) {
+    if (curr == (4000 + Qt::Key_2)) {
         textR = textDCR2;
-        addr = tmpSet.value(AddrDCRR2).toInt() + CACHEDCR;
     }
-    if (curr == AddrDCRS3) {
+    if (curr == (4000 + Qt::Key_3)) {
         textR = textDCR3;
-        addr = tmpSet.value(AddrDCRR3).toInt() + CACHEDCR;
         quan = quan / 2;
     }
     textR->clear();
@@ -808,12 +794,12 @@ void AppTester::recvDCRMsg(QTmpMap msg)
         tmpSet[addr + i*4 + GEARDCRR] = p;
         p = (p > 3) ? p - 3 : p;
         r = r * qPow(10, -p);
-        QString str = (j == DataOK) ? SmallOK : SmallNG;
-        n = (curr == AddrDCRS1) ? n : i;
+        QString str = (j == DATAOK) ? SmallOK : SmallNG;
+        n = (curr == (4000 + Qt::Key_1)) ? n : i;
         tmpMsg.insert(n, str.arg(tr("%1").arg(QString::number(r, 'f', p))));
-        if (str == SmallNG && curr == AddrDCRS1)
+        if (str == SmallNG && curr == (4000 + Qt::Key_1))
             boxChart->setRow(n);
-        if (str == SmallNG && curr == AddrDCRS2)
+        if (str == SmallNG && curr == (4000 + Qt::Key_2))
             boxChart->setPie(i);
     }
     for (int i=0; i < quan; i++) {
@@ -825,39 +811,37 @@ void AppTester::recvDCRMsg(QTmpMap msg)
         textR->insertHtml(tmpMsg.value(i).toString());
     }
     tmpMsg.clear();
-    if (curr == AddrDCRS1)
+    if (curr == (4000 + Qt::Key_1))
         drawWaveDCRW();
 }
 
 void AppTester::recvACWMsg(QTmpMap msg)
 {
-    int curr = msg.value(AddrText).toInt();
-    int t = curr - AddrACWS1;
-    int s = tmpSet[AddrACWR1 + t].toInt();
-    double j = msg[s + CACHEACW + OKNGACWR].toInt();
-    double v = msg[s + CACHEACW + VOLTACWR].toInt();
-    double r = msg[s + CACHEACW + DATAACWR].toInt();
-    double p = msg[s + CACHEACW + GEARACWR].toInt();
-    QString color = (j == DataNG) ? largeNG : largeOK;
-    QString judge = (j == DataNG) ? "NG" : "OK";
-    r *= qPow(10, -p);
-    QString volt = QString::number(v/1000, 'f', 3) + "kV";
-    QString real = QString::number(r, 'f', 3) + "mA";
-    if (t == NUMBINRS) {
-        real = (r > 500) ? ">500MΩ" : (QString::number(r, 'f', 1) + "MΩ");
+    double curr = msg.value(Qt::Key_1).toInt();
+    double numb = curr - (4000 + Qt::Key_4);
+    double addr = tmpSet.value(curr - 1000).toInt();
+    double isok = msg.value(addr + CACHEACW + OKNGACWR).toInt();
+    double volt = msg.value(addr + CACHEACW + VOLTACWR).toInt();
+    double real = msg.value(addr + CACHEACW + DATAACWR).toInt();
+    double gear = msg.value(addr + CACHEACW + GEARACWR).toInt();
+    real *= qPow(10, -gear);
+    QString strs = QString::number(real, 'f', 3) + "mA";
+    if (numb == NUMBINRS) {
+        strs = (real > 500) ? ">500MΩ" : (QString::number(real, 'f', 1) + "MΩ");
     }
-    acwLabels.at(3*t + 0)->setText(color.arg(volt));
-    acwLabels.at(3*t + 1)->setText(color.arg(real));
-    acwLabels.at(3*t + 2)->setText(color.arg(judge));
+    QString color = (isok == DATANG) ? largeNG : largeOK;
+    acwLabels.at(3*numb + 0)->setText(color.arg(QString::number(volt/1000, 'f', 3) + "kV"));
+    acwLabels.at(3*numb + 1)->setText(color.arg(strs));
+    acwLabels.at(3*numb + 2)->setText(color.arg((isok == DATANG) ? "NG" : "OK"));
 }
 
 void AppTester::recvIMPMsg(QTmpMap msg)
 {
-    int parm = tmpSet[AddrIMPR1].toInt();  // 测试结果地址
-    int addr = tmpSet[AddrIMPW1].toInt();  // 测试波形地址
+    int parm = tmpSet[(3000 + Qt::Key_8)].toInt();  // 测试结果地址
+    int addr = tmpSet[(3000 + Qt::Key_A)].toInt();  // 测试波形地址
     int imps = msg.value(parm + STATIMPA).toInt();  // 状态
     int numb = msg.value(parm + NUMBIMPA).toInt();  // 编号
-    int stdn = tmpSet[tmpSet[AddrIMPS1].toInt() + AddrIMPSL].toInt();  // 采样点
+    int stdn = tmpSet[tmpSet[(4000 + Qt::Key_8)].toInt() + AddrIMPSL].toInt();  // 采样点
     if (imps == DataTest) {  // 测试状态更新波形
         tmpWave.clear();
         for (int i=0; i < IMP_SIZE; i++) {
@@ -866,11 +850,11 @@ void AppTester::recvIMPMsg(QTmpMap msg)
         double volt = msg[parm + 4*numb + VOLTIMPR].toDouble();
         double real = msg[parm + 4*numb + DATAIMPR].toDouble();
         double isok = msg[parm + 4*numb + OKNGIMPR].toDouble();
-        QString okng = (isok == DataNG) ? largeNG : largeOK;
+        QString okng = (isok == DATANG) ? largeNG : largeOK;
         QString tmp = QString::number(real/1000, 'f', real >= 10000 ? 2 : 3) + "%";
         impLabels.at(0)->setText(okng.arg(QString::number(volt/1000, 'f', 3) + "kV"));
         impLabels.at(1)->setText(okng.arg(tmp));
-        impLabels.at(2)->setText(okng.arg((isok == DataNG) ? "NG" : "OK"));
+        impLabels.at(2)->setText(okng.arg((isok == DATANG) ? "NG" : "OK"));
         if (numb == 1) {
             prev = 1;
             impWave = tmpWave;
@@ -881,8 +865,8 @@ void AppTester::recvIMPMsg(QTmpMap msg)
             }
         }
     } else {  // 测试完成更新结果
-        int time = tmpSet[tmpSet[AddrModel].toInt()].toInt();
-        int impt = tmpSet[AddrIMPS1].toInt() + AddrIMPSA;
+        int time = tmpSet[tmpSet[(4000 + Qt::Key_0)].toInt()].toInt();
+        int impt = tmpSet[(4000 + Qt::Key_8)].toInt() + AddrIMPSA;
         time = (time%2 == 0 && time/2  == tmpSet[impt].toInt()) ? time/2 : time;
         for (int i=0; i < time; i++) {
             if (i%12 == 0) {
@@ -892,16 +876,16 @@ void AppTester::recvIMPMsg(QTmpMap msg)
             }
             double real = msg.value(parm + (i+1)*4 + DATAIMPR).toDouble()/1000;
             double isok = msg.value(parm + (i+1)*4 + OKNGIMPR).toInt();
-            QString str = (isok == DataOK) ? SmallOK : SmallNG;
+            QString str = (isok == DATAOK) ? SmallOK : SmallNG;
             textIMPR->insertHtml(str.arg(tr("%1").arg(real, 0, 'f', real >= 10 ? 2 : 3)));
         }
         double v = msg[parm + 4*prev + VOLTIMPR].toDouble();
         double r = msg[parm + 4*prev + DATAIMPR].toDouble();
         double j = msg[parm + 4*prev + OKNGIMPR].toDouble();
-        QString okng = (j == DataNG) ? largeNG : largeOK;
+        QString okng = (j == DATANG) ? largeNG : largeOK;
         impLabels.at(0)->setText(okng.arg(QString::number(v/1000, 'f', 3) + "kV"));
         impLabels.at(1)->setText(okng.arg(QString::number(r/1000, 'f', r >= 10000 ? 2 : 3) + "%"));
-        impLabels.at(2)->setText(okng.arg((j == DataNG) ? "NG" : "OK"));
+        impLabels.at(2)->setText(okng.arg((j == DATANG) ? "NG" : "OK"));
         tmpWave = impWave;
         numb = prev;
     }
@@ -912,20 +896,20 @@ void AppTester::recvUpdate(QTmpMap msg)
 {
     if (this->isHidden())
         return;
-    int curr = msg.value(AddrText).toInt();
+    int curr = msg.value(Qt::Key_1).toInt();
     switch (curr) {
-    case AddrDCRS1:
-    case AddrDCRS2:
-    case AddrDCRS3:
+    case (4000 + Qt::Key_1):
+    case (4000 + Qt::Key_2):
+    case (4000 + Qt::Key_3):
         recvDCRMsg(msg);
         break;
-    case AddrACWS1:
-    case AddrACWS2:
-    case AddrACWS3:
-    case AddrACWS4:
+    case (4000 + Qt::Key_4):
+    case (4000 + Qt::Key_5):
+    case (4000 + Qt::Key_6):
+    case (4000 + Qt::Key_7):
         recvACWMsg(msg);
         break;
-    case AddrIMPS1:
+    case (4000 + Qt::Key_8):
         recvIMPMsg(msg);
         break;
     default:
@@ -935,12 +919,11 @@ void AppTester::recvUpdate(QTmpMap msg)
 
 void AppTester::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(0).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
-        if (!msg.value(DataCode).isNull()) {
-            status->item(1, 3)->setText(msg.value(DataCode).toString());
+        if (!msg.value(TEMPCODE).isNull()) {
+            status->item(1, 3)->setText(msg.value(TEMPCODE).toString());
         }
         break;
     case Qt::Key_News:

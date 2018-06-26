@@ -165,13 +165,13 @@ void TypOffAcw::initBoxACW()
 void TypOffAcw::initSettings()
 {
     int addr = 0;
-    addr = tmpSet.value(AddrINRB).toInt();
+    addr = tmpSet.value((1000 + Qt::Key_2)).toInt();
     for (int i=0; i < inrboxs.size(); i++) {
         if (i%4 < 2) {
             inrboxs.at(i)->setText(tmpSet[addr + i/2 + i%4].toString());
         }
     }
-    addr = tmpSet.value(AddrACWB).toInt();
+    addr = tmpSet.value((1000 + Qt::Key_3)).toInt();
     for (int i=0; i < acwboxs.size(); i++) {
         if (i%4 < 2) {
             acwboxs.at(i)->setText(tmpSet[addr + i/2 + i%4].toString());
@@ -257,8 +257,7 @@ void TypOffAcw::calcACW()
 
 void TypOffAcw::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(AddrEnum).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         break;

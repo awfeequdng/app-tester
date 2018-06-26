@@ -180,8 +180,8 @@ void SqlRecord::recvSelect()
     }
     QVector<double> value(27);
     QList<int> ids;
-    ids << AddrModel << AddrDCRS1 << AddrDCRS2 << AddrDCRS3 << AddrACWS1
-        << AddrACWS2 << AddrACWS3 << AddrACWS4 << AddrIMPS1;
+    ids << (4000 + Qt::Key_0) << (4000 + Qt::Key_1) << (4000 + Qt::Key_2) << (4000 + Qt::Key_3) << (4000 + Qt::Key_4)
+        << (4000 + Qt::Key_5) << (4000 + Qt::Key_6) << (4000 + Qt::Key_7) << (4000 + Qt::Key_8);
     for (int i=0; i < ids.size(); i++) {
         int addr = tmpSet[ids.at(i)].toInt();
         int quan = tmpQuan[addr].toInt();
@@ -211,11 +211,11 @@ void SqlRecord::recvExport()
     quint64 id_from = quint64(t.toMSecsSinceEpoch()) << 20;
     t.setDate(stop->date().addDays(1));
     quint64 id_stop = quint64(t.toMSecsSinceEpoch()) << 20;
-    tmpMsg.insert(AddrEnum, Qt::Key_Book);
-    tmpMsg.insert(AddrText, path);
-    tmpMsg.insert(AddrData, "record");
-    tmpMsg.insert(AddrFrom, id_from);
-    tmpMsg.insert(AddrStop, id_stop);
+    tmpMsg.insert(Qt::Key_0, Qt::Key_Book);
+    tmpMsg.insert(Qt::Key_1, path);
+    tmpMsg.insert(Qt::Key_4, "record");
+    tmpMsg.insert(Qt::Key_9, id_from);
+    tmpMsg.insert(Qt::Key_A, id_stop);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
@@ -234,8 +234,7 @@ void SqlRecord::clickIndex(QModelIndex index)
 
 void SqlRecord::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(AddrEnum).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         break;

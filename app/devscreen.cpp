@@ -45,10 +45,9 @@ void DevScreen::sendScreen(double duty)
 
 void DevScreen::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(AddrEnum).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
-        sendScreen(msg[msg[AddrSyst].toInt() + 3].toInt());
+        sendScreen(msg[msg[(2000 + Qt::Key_1)].toInt() + 3].toInt());
         break;
     default:
         break;

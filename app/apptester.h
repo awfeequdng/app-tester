@@ -34,11 +34,13 @@
 
 #include "main.h"
 
+#include "appsignin.h"
 #include "devsetcan.h"
 #include "typconfig.h"
 #include "typsetdcr.h"
 #include "typsetacw.h"
 #include "typsetimp.h"
+#include "sqlimport.h"
 
 #define NUMS 72
 

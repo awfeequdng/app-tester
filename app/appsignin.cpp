@@ -237,7 +237,7 @@ void AppSignin::initApplyBar()
 void AppSignin::initSettings()
 {
     QStringList users;
-    int c = tmpSet[AddrUser].toInt();  // 用户存储地址
+    int c = tmpSet[(2000 + Qt::Key_5)].toInt();  // 用户存储地址
     int r = tmpSet[DataUser].toInt();  // 当前用户地址
     int a = tmpSet[DataAuto].toInt();  // 自动登录配置
 
@@ -270,20 +270,22 @@ void AppSignin::initSettings()
 
 void AppSignin::saveSettings()
 {
+    tmpMsg.insert(tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPSIGN, 1);
+
     isOk = true;
     int r = tmpSet[DataUser].toInt();
-    tmpMsg[DataSign] = 1;
+
     tmpMsg[0 + DataAuto] = autosign->isChecked() ? 1 : 0;
     tmpMsg[r + AddrSave] = autosave->isChecked() ? 1 : 0;
     tmpMsg[r + AddrLast] = QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss");
-    tmpMsg.insert(AddrEnum, Qt::Key_Save);
+    tmpMsg.insert(Qt::Key_0, Qt::Key_Save);
     if (isAuto)
         isAuto = false;
-    tmpMsg.insert(AddrText, "aip_system");
+    tmpMsg.insert(Qt::Key_1, "aip_system");
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 
-    tmpMsg.insert(AddrEnum, Qt::Key_Game);
+    tmpMsg.insert(Qt::Key_0, Qt::Key_Game);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
@@ -291,7 +293,7 @@ void AppSignin::saveSettings()
 void AppSignin::checkSignin()
 {
     QString tmp = username->currentText();
-    int s = tmpSet[AddrUser].toInt();
+    int s = tmpSet[(2000 + Qt::Key_5)].toInt();
     for (int i=0; i < 100; i += 5) {
         if (tmp == tmpSet[s + i].toString()) {
             tmpSet[DataUser] = s + i;
@@ -312,7 +314,7 @@ void AppSignin::clickLink(QString msg)
 {
     stack->setCurrentIndex(msg.toInt());
     if (sender()->objectName() == "logoff") {
-        tmpMsg.insert(AddrEnum, Qt::Key_Back);
+        tmpMsg.insert(Qt::Key_0, Qt::Key_Back);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
     }
@@ -320,8 +322,7 @@ void AppSignin::clickLink(QString msg)
 
 void AppSignin::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(AddrEnum).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         break;

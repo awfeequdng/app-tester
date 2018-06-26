@@ -91,7 +91,7 @@ void SqlUpload::initBoxCtrl()
 
 void SqlUpload::initSettings()
 {
-    int addr = tmpSet[AddrLoad].toInt();
+    int addr = tmpSet[(2000 + Qt::Key_3)].toInt();
     for (int i=0; i < texts.size(); i++) {  // 上传配置存放在0x0120~0x0127
         texts.at(i)->setText(tmpSet[addr + i].toString());
     }
@@ -99,19 +99,18 @@ void SqlUpload::initSettings()
 
 void SqlUpload::saveSettings()
 {
-    int addr = tmpSet[AddrLoad].toInt();
+    int addr = tmpSet[(2000 + Qt::Key_3)].toInt();
     for (int i=0; i < texts.size(); i++) {  // 上传配置存放在0x0120~0x0127
         tmpSet[addr + i] = texts.at(i)->text();
     }
-    tmpSet.insert(AddrEnum, Qt::Key_Save);
-    tmpSet.insert(AddrText, "aip_system");
+    tmpSet.insert(Qt::Key_0, Qt::Key_Save);
+    tmpSet.insert(Qt::Key_1, "aip_system");
     emit sendAppMsg(tmpSet);
 }
 
 void SqlUpload::recvAppMsg(QTmpMap msg)
 {
-    int c = msg.value(AddrEnum).toInt();
-    switch (c) {
+    switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         break;
