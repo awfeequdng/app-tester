@@ -133,6 +133,7 @@ private slots:
     void recvSqlMsg(QTmpMap msg);
     void recvNewMsg(QTmpMap msg);
     void recvTmpMsg(QTmpMap msg);
+    void recvStaMsg(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     void wait(int ms);
 private:

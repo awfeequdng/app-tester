@@ -103,6 +103,7 @@ private:
     QTmpMap tmpDCR;
     QTmpMap tmpPow;
     QTmpMap tmpRow;
+    QTmpMap tmpSta;
     int currTemp;
     quint8 tmpio;
 };

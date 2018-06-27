@@ -22,6 +22,7 @@
 
 #define DATAOK  0x00
 #define DATANG  0x01
+#define DERROR  0xFF
 
 #define TEMPDATE 0x01  // 测试日期
 #define TEMPPLAY 0x02  // 开始时间
@@ -30,6 +31,12 @@
 #define TEMPCODE 0x05  // 条码状态
 #define TEMPTEMP 0x06  // 当前温度
 #define TEMPISOK 0x07  // 测试判定
+#define TEMPDCRS 0x08
+#define TEMPDCRV 0x09
+#define TEMPACWS 0x0A
+#define TEMPACWV 0x0B
+#define TEMPIMPS 0x0C
+#define TEMPIMPV 0x0D
 
 #define SD_SIZE 80000
 

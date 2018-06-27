@@ -23,6 +23,7 @@
 #include <QMessageBox>
 #include <QTableWidget>
 #include <QHostAddress>
+#include <QTextBrowser>
 #include <QNetworkInterface>
 
 #include "main.h"
@@ -49,9 +50,8 @@ private:
     QGroupBox *boxGroup;
     QGroupBox *macGroup;
     QList<QLineEdit*> txts;
-    QList<QLineEdit*> nets;
-    QTableWidget *view;
     QTmpMap tmpSet;
+    QTextBrowser *text;
 };
 
 #endif // APPBACKUP_H

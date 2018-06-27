@@ -365,7 +365,8 @@ void BoxQLabel::mousePressEvent(QMouseEvent *e)
 {
     if (mode == 4) {
         int w = this->width();
-        if (e->x() > w/2) {
+        int s = (from + stop) * w / IMP_SIZE / 2;
+        if (e->x() > s) {
             stop = e->x() * IMP_SIZE / w;
         } else {
             from = e->x() * IMP_SIZE / w;

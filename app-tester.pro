@@ -4,11 +4,11 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql serialport network xml
+QT       += core gui sql network xml
 
 CONFIG   += serialport
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets serialport
 
 TARGET = aip
 TEMPLATE = app
@@ -34,12 +34,14 @@ HEADERS += \
     app/boxqcombo.h \
     app/boxqinput.h \
     app/boxqitems.h \
+    app/boxqlabel.h \
     app/boxqmodel.h \
     app/devbuzzer.h \
     app/devscreen.h \
     app/devserial.h \
     app/devsetcan.h \
     app/devsetrtc.h \
+    app/main.h \
     app/sqlcreate.h \
     app/sqlexport.h \
     app/sqlimport.h \
@@ -47,6 +49,7 @@ HEADERS += \
     app/sqlsdcard.h \
     app/sqlsnowid.h \
     app/sqlupload.h \
+    app/tcpserver.h \
     app/tcpsocket.h \
     app/typconfig.h \
     app/typoffacw.h \
@@ -54,10 +57,7 @@ HEADERS += \
     app/typoffimp.h \
     app/typsetacw.h \
     app/typsetdcr.h \
-    app/typsetimp.h \
-    app/tcpserver.h \
-    app/boxqlabel.h \
-    app/main.h
+    app/typsetimp.h
 
 SOURCES += \
     app/appaction.cpp \
@@ -75,6 +75,7 @@ SOURCES += \
     app/boxqcombo.cpp \
     app/boxqinput.cpp \
     app/boxqitems.cpp \
+    app/boxqlabel.cpp \
     app/boxqmodel.cpp \
     app/devbuzzer.cpp \
     app/devscreen.cpp \
@@ -89,6 +90,7 @@ SOURCES += \
     app/sqlsdcard.cpp \
     app/sqlsnowid.cpp \
     app/sqlupload.cpp \
+    app/tcpserver.cpp \
     app/tcpsocket.cpp \
     app/typconfig.cpp \
     app/typoffacw.cpp \
@@ -96,7 +98,6 @@ SOURCES += \
     app/typoffimp.cpp \
     app/typsetacw.cpp \
     app/typsetdcr.cpp \
-    app/typsetimp.cpp \
-    app/tcpserver.cpp \
-    app/boxqlabel.cpp
+    app/typsetimp.cpp
+
 

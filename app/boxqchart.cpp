@@ -33,8 +33,6 @@ void BoxQChart::setNum(int num)
         m_width = 28;
     if (num <= 8)
         m_width = 24;
-    pies.clear();
-    rows.clear();
     this->update();
 }
 
@@ -55,6 +53,8 @@ void BoxQChart::setRun(int num)
     m_start = num;
     if (num > 0) {
         m_timer = 0;
+        pies.clear();
+        rows.clear();
     }
 }
 
@@ -100,7 +100,8 @@ void BoxQChart::drawRow(QPainter *painter)
 {
     painter->save();
     double angle = 360.0/m_count;
-    double startAngle = 90-angle;
+//    double startAngle = 90-angle;
+    double startAngle = 90;
     int radius = SCALE*49/100;
     int t = 1;
     if (m_count <= 36)

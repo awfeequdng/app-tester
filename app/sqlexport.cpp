@@ -92,12 +92,13 @@ int SqlExport::exportHead(QTmpMap msg)
 {
     quint64 from = msg.value(Qt::Key_9).toLongLong();
     quint64 stop = msg.value(Qt::Key_A).toLongLong();
+    quint64 user = tmpSet.value(DataUser).toInt() - tmpSet.value((2000 + Qt::Key_5)).toInt() + 1;
 
     QStringList title;
 
     QString str;
     str.append(tr("导出者编号:"));
-    str.append(QString::number(tmpSet.value(DataUser).toInt() - tmpSet.value((2000 + Qt::Key_5)).toInt() + 1));
+    str.append(QString::number(user));
     str.append("  ");
     str.append(tr("总日期范围:"));
     str.append(QDateTime::fromMSecsSinceEpoch(from >> 20).date().toString("yyyy-MM-dd"));
@@ -110,24 +111,24 @@ int SqlExport::exportHead(QTmpMap msg)
 
     tmpMsg.insert(DataFile, tr("型号"));
     tmpMsg.insert(DataUser, tr("用户"));
-    tmpMsg.insert(tmpSet.value(addr + TEMPDATE).toInt(), tr("日期"));
-    tmpMsg.insert(tmpSet.value(addr + TEMPPLAY).toInt(), tr("启动"));
-    tmpMsg.insert(tmpSet.value(addr + TEMPSTOP).toInt(), tr("完成"));
-    tmpMsg.insert(tmpSet.value(addr + TEMPTEMP).toInt(), tr("温度"));
-    tmpMsg.insert(tmpSet.value(addr + TEMPWORK).toInt(), tr("工位"));
-    tmpMsg.insert(tmpSet.value(addr + TEMPCODE).toInt(), tr("条码"));
-    tmpMsg.insert(tmpSet.value(addr + TEMPISOK).toInt(), tr("判定"));
+    tmpMsg.insert(addr + TEMPDATE, tr("日期"));
+    tmpMsg.insert(addr + TEMPPLAY, tr("启动"));
+    tmpMsg.insert(addr + TEMPSTOP, tr("完成"));
+    tmpMsg.insert(addr + TEMPTEMP, tr("温度"));
+    tmpMsg.insert(addr + TEMPWORK, tr("工位"));
+    tmpMsg.insert(addr + TEMPCODE, tr("条码"));
+    tmpMsg.insert(addr + TEMPISOK, tr("判定"));
 
     addr = tmpSet.value((3000 + Qt::Key_1)).toInt() + CACHEDCR;  // 电阻结果地址
-    for(int i=0; i < 72; i++) {
+    for (int i=0; i < 72; i++) {
         tmpMsg.insert(addr + i, QString("片间R%1").arg(i+1, 2, 10, QChar('0')));
     }
     addr = tmpSet.value((3000 + Qt::Key_2)).toInt() + CACHEDCR;  // 电阻结果地址
-    for(int i=0; i < 72; i++) {
+    for (int i=0; i < 72; i++) {
         tmpMsg.insert(addr + i, QString("焊接R%1").arg(i+1, 2, 10, QChar('0')));
     }
     addr = tmpSet.value((3000 + Qt::Key_3)).toInt() + CACHEDCR;  // 电阻结果地址
-    for(int i=0; i < 36; i++) {
+    for (int i=0; i < 36; i++) {
         tmpMsg.insert(addr + i, QString("跨间R%1").arg(i+1, 2, 10, QChar('0')));
     }
     addr = tmpSet.value((3000 + Qt::Key_4)).toInt() + CACHEACW;  // 轴铁耐压结果地址
@@ -139,7 +140,7 @@ int SqlExport::exportHead(QTmpMap msg)
     addr = tmpSet.value((3000 + Qt::Key_7)).toInt() + CACHEACW;  // 绝缘电阻结果地址
     tmpMsg.insert(addr, QString("绝缘电阻"));
     addr = tmpSet.value((3000 + Qt::Key_8)).toInt() + CACHEIMP;  // 匝间果地址
-    for(int i=0; i < 72; i++) {
+    for (int i=0; i < 72; i++) {
         tmpMsg.insert(addr + i, QString("匝间D%1").arg(i+1, 2, 10, QChar('0')));
     }
     addr = tmpSet.value((2000 + Qt::Key_4)).toInt();
@@ -186,7 +187,7 @@ int SqlExport::exportData(QTmpMap msg)
             buftmp.insert(numb, query.value(3).toString());
             if (numb == 0xFFFF) {
                 buftmp.insert(DataFile, tmpSet.value(query.value(2).toInt()).toString());
-                foreach (int n, numbs) {
+                foreach(int n, numbs) {
                     lineBuffer.append(buftmp.value(n).toString());
                 }
                 file->write(ToGbk(lineBuffer.join(",")));

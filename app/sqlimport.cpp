@@ -248,7 +248,7 @@ void SqlImport::saveRecord(QTmpMap msg)
     int weld = msg[c].toInt();
     for (int t=0; t < 3; t++) {
         int test = msg[(4000 + Qt::Key_1) + t].toInt();
-        int addr = msg[(3000 + Qt::Key_1) + t].toInt() + CACHEDCR;  // 电阻结果地址 档位,结果,小数,判定
+        int addr = msg[(3000 + Qt::Key_1) + t].toInt() + CACHEDCR;
         int quan = (t == 2) ? weld/2 : weld;
         if (msg[test].toInt() == 1) {
             for (int i=0; i < quan; i++) {
@@ -267,7 +267,7 @@ void SqlImport::saveRecord(QTmpMap msg)
     }
     for (int t=0; t < 4; t++) {
         int test = msg[(4000 + Qt::Key_4) + t].toInt();
-        int addr = msg[(3000 + Qt::Key_4) + t].toInt() + CACHEACW;  // 高压结果地址 电压,结果,小数,判定
+        int addr = msg[(3000 + Qt::Key_4) + t].toInt() + CACHEACW;
         if (msg[test].toInt() == 1) {
             double r = msg[addr + DATAACWR].toDouble();
             double p = msg[addr + GEARACWR].toDouble();

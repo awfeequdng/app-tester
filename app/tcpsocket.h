@@ -26,6 +26,7 @@
 #include <QSqlTableModel>
 
 #include "main.h"
+#include "appauthor.h"
 
 #define SIGN_IN     1000  // 登录
 #define SIGN_OK     1001  // 登录返回

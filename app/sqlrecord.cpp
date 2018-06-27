@@ -180,10 +180,10 @@ void SqlRecord::recvSelect()
     }
     QVector<double> value(27);
     QList<int> ids;
-    ids << (4000 + Qt::Key_0) << (4000 + Qt::Key_1) << (4000 + Qt::Key_2) << (4000 + Qt::Key_3) << (4000 + Qt::Key_4)
-        << (4000 + Qt::Key_5) << (4000 + Qt::Key_6) << (4000 + Qt::Key_7) << (4000 + Qt::Key_8);
+    ids << Qt::Key_0 << Qt::Key_1 << Qt::Key_2 << Qt::Key_3 << Qt::Key_4
+        << Qt::Key_5 << Qt::Key_6 << Qt::Key_7 << Qt::Key_8;
     for (int i=0; i < ids.size(); i++) {
-        int addr = tmpSet[ids.at(i)].toInt();
+        int addr = tmpSet[4000 + ids.at(i)].toInt();
         int quan = tmpQuan[addr].toInt();
         int okng = tmpOKNG[addr].toInt();
         value[i*3 + 0] = quan;

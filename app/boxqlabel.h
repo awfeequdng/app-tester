@@ -51,7 +51,7 @@ private:
     quint8 mode;
     int from;
     int stop;
-    QString str1,str2,str3,str4;
+    QString str1, str2, str3, str4;
 };
 
 #endif // BOXQLABEL_H

@@ -103,17 +103,17 @@ void TypSetImp::initWaveCtl()
 
     layout->addWidget(new QLabel(tr("计算起点:"), this));
 
-    from = new QSpinBox(this);
-    from->setFixedHeight(35);
-    from->setMaximum(IMP_SIZE);
-    layout->addWidget(from);
+    numbfrom = new QSpinBox(this);
+    numbfrom->setFixedHeight(35);
+    numbfrom->setMaximum(IMP_SIZE);
+    layout->addWidget(numbfrom);
 
     layout->addWidget(new QLabel(tr("计算终点:"), this));
 
-    stop = new QSpinBox(this);
-    stop->setFixedHeight(35);
-    stop->setMaximum(IMP_SIZE);
-    layout->addWidget(stop);
+    numbstop = new QSpinBox(this);
+    numbstop->setFixedHeight(35);
+    numbstop->setMaximum(IMP_SIZE);
+    layout->addWidget(numbstop);
 
     layout->addStretch();
 
@@ -123,9 +123,9 @@ void TypSetImp::initWaveCtl()
     layout->addWidget(btnPrev);
     connect(btnPrev, SIGNAL(clicked(bool)), this, SLOT(waveSwitch()));
 
-    numb = new QLabel(this);
-    numb->setFixedWidth(30);
-    layout->addWidget(numb);
+    numbcurr = new QLabel(this);
+    numbcurr->setFixedWidth(30);
+    layout->addWidget(numbcurr);
 
     QPushButton *btnNext = new QPushButton(this);
     btnNext->setFixedSize(97, 40);
@@ -142,8 +142,8 @@ void TypSetImp::initButtons()
 
     layout->addWidget(new QLabel(tr("频率:"), this));
 
-    text = new QLabel(this);
-    layout->addWidget(text);
+    numbfreq = new QLabel(this);
+    layout->addWidget(numbfreq);
 
     layout->addStretch();
 
@@ -195,22 +195,22 @@ void TypSetImp::initSettings()
     mView->item(0, w)->setText(tmpSet[s + w].toString());
     w = AddrIMPSL;  // 下限
     mView->item(0, w)->setText(tmpSet[s + w].toString());
-    numb->setText(tmpSet[s + w].toString());
+    numbcurr->setText(tmpSet[s + w].toString());
     w = AddrIMPSO;  // 补偿
     mView->item(0, w)->setText(tmpSet[s + w].toString());
     w = AddrIMPSA;  // 间隔
     mView->item(0, w)->setText(tmpSet[s + w].toString());
     w = AddrIMPSF;  // 频率
-    text->setText(tmpSet[s + w].toString());
+    numbfreq->setText(tmpSet[s + w].toString());
     w = AddrIMPF1;  // 起点
-    from->setValue(qMax(1, tmpSet.value(s + w).toInt()));
+    numbfrom->setValue(qMax(1, tmpSet.value(s + w).toInt()));
     w = AddrIMPF2;  // 终点
-    stop->setValue(qMax(200, tmpSet.value(s + w).toInt()));
-    impView->setText(QString::number(from->value()), 3);
-    impView->setText(QString::number(stop->value()), 2);
+    numbstop->setValue(qMax(20, tmpSet.value(s + w).toInt()));
+    impView->setText(QString::number(numbfrom->value()), 3);
+    impView->setText(QString::number(numbstop->value()), 2);
 
     int r = tmpSet[(4000 + Qt::Key_A)].toInt();  // 波形存储地址
-    r += numb->text().toInt() * IMP_SIZE;
+    r += numbcurr->text().toInt() * IMP_SIZE;
     tmpWave.clear();
     for (int i=0; i < IMP_SIZE; i++) {
         tmpWave.append(tmpSet[r + i].toInt());
@@ -240,11 +240,11 @@ void TypSetImp::saveSettings()
     w = AddrIMPSA;  // 间隔
     tmpMsg[s + w] = mView->item(0, w)->text();
     w = AddrIMPSF;  // 频率
-    tmpMsg[s + w] = text->text();
+    tmpMsg[s + w] = numbfreq->text();
     w = AddrIMPF1;  // 起点
-    tmpMsg[s + w] = QString::number(from->value());
+    tmpMsg[s + w] = QString::number(numbfrom->value());
     w = AddrIMPF2;  // 终点
-    tmpMsg[s + w] = QString::number(stop->value());
+    tmpMsg[s + w] = QString::number(numbstop->value());
 
     int r = tmpSet[(4000 + Qt::Key_A)].toInt();  // 波形存储地址
     int c = tmpSet[tmpSet[(4000 + Qt::Key_0)].toInt()].toInt();  // 电枢片数
@@ -268,39 +268,39 @@ void TypSetImp::drawImpWave()
         }
         impView->setWave(y, 4);
     }
-    QString s = QString("编号:%1").arg(numb->text().toInt(), 2, 10, QChar('0'));
+    QString s = QString("编号:%1").arg(numbcurr->text().toInt(), 2, 10, QChar('0'));
     impView->setText(s, 1);
     impView->update();
 }
 
 void TypSetImp::lineUpdate()
 {
-    from->setValue(impView->getFrom());
-    stop->setValue(impView->getStop());
+    numbfrom->setValue(impView->getFrom());
+    numbstop->setValue(impView->getStop());
 }
 
 void TypSetImp::waveSwitch()
 {
-    int addr = tmpSet[(4000 + Qt::Key_0)].toInt();  // 综合配置地址
-    int quan = tmpSet[addr + 0].toInt();  // 电枢片数
+    int addr = tmpSet.value(4000 + Qt::Key_0).toInt();  // 综合配置地址
+    int quan = tmpSet.value(addr + AddrDCRSC).toInt();  // 电枢片数
 
     QPushButton *btn = qobject_cast<QPushButton*>(sender());
-    int n = numb->text().toInt();
+    int numb = numbcurr->text().toInt();
     if (btn->text() == tr("上一个")) {
-        n--;
+        numb--;
     }
     if (btn->text() == tr("下一个")) {
-        n++;
+        numb++;
     }
-    n = qMin(quan, n);
-    n = qMax(1, n);
-    numb->setText(QString::number(n));
+    numb = qMin(quan, numb);
+    numb = qMax(1, numb);
+    numbcurr->setText(QString::number(numb));
 
-    int r = tmpSet[(4000 + Qt::Key_A)].toInt();  // 波形存储地址
-    r += (n-1)*IMP_SIZE;
+    int real = tmpSet.value(4000 + Qt::Key_A).toInt();  // 波形存储地址
+    real += (numb-1)*IMP_SIZE;
     tmpWave.clear();
     for (int i=0; i < IMP_SIZE; i++) {
-        tmpWave.append(tmpSet[r + i].toInt());
+        tmpWave.append(tmpSet[real + i].toInt());
     }
     drawImpWave();
 }
@@ -308,17 +308,17 @@ void TypSetImp::waveSwitch()
 void TypSetImp::waveUpdate()
 {
     QPushButton *btn = qobject_cast<QPushButton*>(sender());
-    int f = text->text().toInt();
+    int freq = numbfreq->text().toInt();
     if (btn->text() == tr("压缩")) {
-        f = (f >= 14) ? 14 : f + 1;
+        freq = (freq >= 14) ? 14 : freq + 1;
     }
     if (btn->text() == tr("拉伸")) {
-        f = (f <= 0) ? 0 : f -1;
+        freq = (freq <= 0) ? 0 : freq -1;
     }
-    text->setText(QString::number(f));
+    numbfreq->setText(QString::number(freq));
     tmpMsg.insert(Qt::Key_0, Qt::Key_Send);
-    tmpMsg.insert(Qt::Key_1, (4000 + Qt::Key_8));
-    tmpMsg.insert(Qt::Key_5, f);
+    tmpMsg.insert(Qt::Key_1, Qt::Key_8);
+    tmpMsg.insert(Qt::Key_5, freq);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
     time = 0;
@@ -332,7 +332,6 @@ void TypSetImp::recvUpdate(QTmpMap msg)
     int imps = msg.value(real + STATIMPA).toInt();  // 状态
     int code = msg.value(real + NUMBIMPA).toInt();  // 编号
     int stdn = tmpSet[tmpSet[(4000 + Qt::Key_8)].toInt() + AddrIMPSL].toInt();  // 采样点
-
     if (imps == DataTest) {
         tmpWave.clear();
         for (int i=0; i < IMP_SIZE; i++) {
@@ -342,10 +341,10 @@ void TypSetImp::recvUpdate(QTmpMap msg)
         if (code == stdn) {
             impWave = tmpWave;
         }
-        numb->setText(QString::number(code));
+        numbcurr->setText(QString::number(code));
     } else if (stdn != 0) {
         tmpWave = impWave;
-        numb->setText(QString::number(stdn));
+        numbcurr->setText(QString::number(stdn));
     }
     drawImpWave();
 }

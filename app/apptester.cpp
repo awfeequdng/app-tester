@@ -741,6 +741,7 @@ void AppTester::recvLedMsg(QTmpMap msg)
 {
     QString tmp = msg.value(Qt::Key_1).toString();
     if (msg.value(Qt::Key_3).isNull() && tmp == "LEDY") {
+        t.restart();
         initTextView();
         btnHome->setEnabled(false);
         btnConf->setEnabled(false);
@@ -764,6 +765,8 @@ void AppTester::recvLedMsg(QTmpMap msg)
             textResult->setText(judgeNG);
         }
         drawAllRate();
+        impView->setText(tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0')) , 1);
+        impView->update();
     }
 }
 
@@ -772,34 +775,34 @@ void AppTester::recvDCRMsg(QTmpMap msg)
     int from = tmpSet[(4000 + Qt::Key_0)].toInt();
     int quan = tmpSet[from].toInt();
     int curr = msg.value(Qt::Key_1).toInt();
-    int addr = tmpSet.value(curr - 1000).toInt() + CACHEDCR;;
+    int addr = tmpSet.value(curr + 3000).toInt() + CACHEDCR;;
     QTextBrowser *textR = textDCR1;
-    if (curr == (4000 + Qt::Key_1)) {
+    if (curr == Qt::Key_1) {
         textR = textDCR1;
     }
-    if (curr == (4000 + Qt::Key_2)) {
+    if (curr == Qt::Key_2) {
         textR = textDCR2;
     }
-    if (curr == (4000 + Qt::Key_3)) {
+    if (curr == Qt::Key_3) {
         textR = textDCR3;
         quan = quan / 2;
     }
     textR->clear();
     for (int i=0; i < quan; i++) {
-        double n = msg.value(addr + i*4 + NUMBDCRR).toInt();
-        double r = msg.value(addr + i*4 + DATADCRR).toInt();
-        double p = msg.value(addr + i*4 + GEARDCRR).toInt();
-        double j = msg.value(addr + i*4 + OKNGDCRR).toInt();
-        tmpSet[addr + i*4 + DATADCRR] = r;
-        tmpSet[addr + i*4 + GEARDCRR] = p;
-        p = (p > 3) ? p - 3 : p;
-        r = r * qPow(10, -p);
-        QString str = (j == DATAOK) ? SmallOK : SmallNG;
-        n = (curr == (4000 + Qt::Key_1)) ? n : i;
-        tmpMsg.insert(n, str.arg(tr("%1").arg(QString::number(r, 'f', p))));
-        if (str == SmallNG && curr == (4000 + Qt::Key_1))
-            boxChart->setRow(n);
-        if (str == SmallNG && curr == (4000 + Qt::Key_2))
+        double numb = msg.value(addr + i*4 + NUMBDCRR).toInt();
+        double real = msg.value(addr + i*4 + DATADCRR).toInt();
+        double gear = msg.value(addr + i*4 + GEARDCRR).toInt();
+        double isok = msg.value(addr + i*4 + OKNGDCRR).toInt();
+        tmpSet.insert(addr + i*4 + DATADCRR, real);
+        tmpSet.insert(addr + i*4 + GEARDCRR, gear);
+        gear = (gear > 3) ? gear - 3 : gear;
+        real = real * qPow(10, -gear);
+        QString str = (isok == DATAOK) ? SmallOK : SmallNG;
+        numb = (curr == Qt::Key_1) ? numb : i;
+        tmpMsg.insert(numb, str.arg(tr("%1").arg(QString::number(real, 'f', gear))));
+        if (str == SmallNG && curr == Qt::Key_1)
+            boxChart->setRow(numb);
+        if (str == SmallNG && curr == Qt::Key_2)
             boxChart->setPie(i);
     }
     for (int i=0; i < quan; i++) {
@@ -811,15 +814,15 @@ void AppTester::recvDCRMsg(QTmpMap msg)
         textR->insertHtml(tmpMsg.value(i).toString());
     }
     tmpMsg.clear();
-    if (curr == (4000 + Qt::Key_1))
+    if (curr == Qt::Key_1)
         drawWaveDCRW();
 }
 
 void AppTester::recvACWMsg(QTmpMap msg)
 {
     double curr = msg.value(Qt::Key_1).toInt();
-    double numb = curr - (4000 + Qt::Key_4);
-    double addr = tmpSet.value(curr - 1000).toInt();
+    double numb = curr - Qt::Key_4;
+    double addr = tmpSet.value(curr + 3000).toInt();
     double isok = msg.value(addr + CACHEACW + OKNGACWR).toInt();
     double volt = msg.value(addr + CACHEACW + VOLTACWR).toInt();
     double real = msg.value(addr + CACHEACW + DATAACWR).toInt();
@@ -837,12 +840,13 @@ void AppTester::recvACWMsg(QTmpMap msg)
 
 void AppTester::recvIMPMsg(QTmpMap msg)
 {
-    int parm = tmpSet[(3000 + Qt::Key_8)].toInt();  // 测试结果地址
-    int addr = tmpSet[(3000 + Qt::Key_A)].toInt();  // 测试波形地址
+    int conf = tmpSet.value(4000 + Qt::Key_8).toInt();  // 测试参数地址
+    int parm = tmpSet.value(3000 + Qt::Key_8).toInt();  // 测试结果地址
+    int addr = tmpSet.value(3000 + Qt::Key_A).toInt();  // 测试波形地址
     int imps = msg.value(parm + STATIMPA).toInt();  // 状态
     int numb = msg.value(parm + NUMBIMPA).toInt();  // 编号
-    int stdn = tmpSet[tmpSet[(4000 + Qt::Key_8)].toInt() + AddrIMPSL].toInt();  // 采样点
-    if (imps == DataTest) {  // 测试状态更新波形
+    int stdn = tmpSet.value(conf + AddrIMPSL).toInt();  // 采样点
+    if (imps >= DataTest) {  // 测试状态更新波形
         tmpWave.clear();
         for (int i=0; i < IMP_SIZE; i++) {
             tmpWave.append(msg[addr + i].toInt());
@@ -898,18 +902,18 @@ void AppTester::recvUpdate(QTmpMap msg)
         return;
     int curr = msg.value(Qt::Key_1).toInt();
     switch (curr) {
-    case (4000 + Qt::Key_1):
-    case (4000 + Qt::Key_2):
-    case (4000 + Qt::Key_3):
+    case Qt::Key_1:
+    case Qt::Key_2:
+    case Qt::Key_3:
         recvDCRMsg(msg);
         break;
-    case (4000 + Qt::Key_4):
-    case (4000 + Qt::Key_5):
-    case (4000 + Qt::Key_6):
-    case (4000 + Qt::Key_7):
+    case Qt::Key_4:
+    case Qt::Key_5:
+    case Qt::Key_6:
+    case Qt::Key_7:
         recvACWMsg(msg);
         break;
-    case (4000 + Qt::Key_8):
+    case Qt::Key_8:
         recvIMPMsg(msg);
         break;
     default:

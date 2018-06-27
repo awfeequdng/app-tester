@@ -794,7 +794,7 @@ void AppWindow::screensShow(QString msg)
     }
     if (msg == "tester") {
         tmpMsg.insert(Qt::Key_0, Qt::Key_Send);
-        tmpMsg.insert(Qt::Key_1, (4000 + Qt::Key_0));
+        tmpMsg.insert(Qt::Key_1, Qt::Key_0);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
     }
@@ -884,7 +884,7 @@ int AppWindow::taskClearData()
     timeTst = 0;
     currTask = 0;
     currTest = 0;
-    currItem = 0;
+    currItem = Qt::Key_0;
     taskShift = Qt::Key_Meta;
     testShift = Qt::Key_Meta;
     return Qt::Key_Away;
@@ -972,13 +972,15 @@ int AppWindow::taskStartBeep()
 int AppWindow::taskClearBeep()
 {
     int ret = Qt::Key_Meta;
-    int rr = tmpSet[(2000 + Qt::Key_1)].toInt();
-    int tt = tmpSet[rr + (tmpSet[tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPISOK].toInt() == DATAOK ? 0x07 : 0x08)].toDouble()*1000;
+    int addr = tmpSet[(2000 + Qt::Key_1)].toInt();  // 系统设置地址
+    int real = tmpSet.value((3000 + Qt::Key_0)).toInt();  // 零散参数地址
+    int isok = tmpSet.value(real + TEMPISOK).toInt();
+    int tt = tmpSet.value(addr + (isok == DATAOK ? SystTime : SystWarn)).toDouble()*1000;
     if (t.elapsed() - timeOut >= tt) {
         timeOut = t.elapsed();
         ret = Qt::Key_Away;
         tmpMsg.insert(Qt::Key_0, Qt::Key_Call);
-        tmpMsg.insert(Qt::Key_1, tmpSet[tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPISOK].toInt() == DATAOK ? "LEDG" : "LEDR");
+        tmpMsg.insert(Qt::Key_1, isok == DATAOK ? "LEDG" : "LEDR");
         tmpMsg.insert(Qt::Key_3, 0);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
@@ -1092,7 +1094,7 @@ int AppWindow::testThread()
             currTest = (currTest >= testMap.size()) ? 0 : currTest;  // 测试流程
             if (currTest == 0) {
                 currItem = getNextItem();
-                if (currItem == 0)
+                if (currItem == Qt::Key_0)
                     ret = Qt::Key_Away;
             }
         }
@@ -1132,12 +1134,11 @@ int AppWindow::getNextItem()
     int item = currItem;
     while (1) {
         item++;
-        if ((4000 + Qt::Key_0) + item > (4000 + Qt::Key_8)) {
-            item = 0;
+        if (item > Qt::Key_8) {
+            item = Qt::Key_0;
             break;
         }
-        int r = tmpSet[(4000 + Qt::Key_0) + item].toInt();
-        if (tmpSet[r].toInt() == 1) {
+        if (tmpSet.value(tmpSet.value(4000 + item).toInt()).toInt() == 1) {
             break;
         }
     }
@@ -1192,56 +1193,53 @@ void AppWindow::recvNewMsg(QTmpMap msg)
 #ifdef __arm__
     emit sendNetMsg(msg);
 #endif
-    int addr = msg.value(Qt::Key_1).toInt();
-    int a = 0;
+    int curr = msg.value(Qt::Key_1).toInt();
+    int real = tmpSet.value(3000 + curr).toInt();  // 测试结果存储地址
+    int addr = tmpSet.value((3000 + Qt::Key_0)).toInt();  // 综合测试结果
     QList <int> keys = msg.keys();
     int tt = 0;
-    switch (addr) {
-    case (4000 + Qt::Key_0):
+    switch (curr) {
+    case Qt::Key_0:
         break;
-    case (4000 + Qt::Key_1):
-    case (4000 + Qt::Key_2):
-    case (4000 + Qt::Key_3):
-        a = tmpSet.value((3000 + Qt::Key_1) + addr - (4000 + Qt::Key_1)).toInt();
-        if (msg[a + STATDCRA].toInt() == 2) {
+    case Qt::Key_1:
+    case Qt::Key_2:
+    case Qt::Key_3:
+        if (msg.value(real + STATDCRA).toInt() == 2) {
             testShift = Qt::Key_Away;
             for (int i=0; i < keys.size(); i++) {
                 tt = keys.at(i);
-                if (tt >= 30000 && tt < 40000)
-                    tmpSet.insert(tt, msg[tt].toString());
+                tmpSet.insert(tt, msg.value(tt).toString());
             }
         }
-        if (msg[a + OKNGDCRA].toInt() == 1) {
-            tmpSet[tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPISOK] = DATANG;
+        if (msg.value(real + OKNGDCRA).toInt() == DATANG) {
+            tmpSet.insert(addr + TEMPISOK, DATANG);
         }
         break;
-    case (4000 + Qt::Key_4):
-    case (4000 + Qt::Key_5):
-    case (4000 + Qt::Key_6):
-    case (4000 + Qt::Key_7):
-        if (msg[tmpSet[(3000 + Qt::Key_4) + addr - (4000 + Qt::Key_4)].toInt() + STATACWA].toInt() == 0) {
+    case Qt::Key_4:
+    case Qt::Key_5:
+    case Qt::Key_6:
+    case Qt::Key_7:
+        if (msg.value(real + STATACWA).toInt() == 0) {
             testShift = Qt::Key_Away;
             for (int i=0; i < keys.size(); i++) {
                 tt = keys.at(i);
-                if (tt >= 30000 && tt < 40000)
-                    tmpSet.insert(tt, msg[tt].toString());
+                tmpSet.insert(tt, msg[tt].toString());
             }
         }
-        if (msg[tmpSet[(3000 + Qt::Key_4) + addr - (4000 + Qt::Key_4)].toInt() + OKNGACWA].toInt() == 1) {
-            tmpSet[tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPISOK] = DATANG;
+        if (msg.value(real + OKNGACWA).toInt() == DATANG) {
+            tmpSet.insert(addr + TEMPISOK, DATANG);
         }
         break;
-    case (4000 + Qt::Key_8):
-        if (msg[tmpSet[(3000 + Qt::Key_8)].toInt() + STATIMPA].toInt() == 0) {
+    case (Qt::Key_8):
+        if (msg.value(real + STATIMPA).toInt() == 0) {
             testShift = Qt::Key_Away;
             for (int i=0; i < keys.size(); i++) {
                 tt = keys.at(i);
-                if (tt >= 30000 && tt < 40000)
-                    tmpSet.insert(tt, msg[tt].toString());
+                tmpSet.insert(tt, msg[tt].toString());
             }
         }
-        if (msg[tmpSet[(3000 + Qt::Key_8)].toInt() + OKNGIMPA].toInt() == 1) {
-            tmpSet[tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPISOK] = DATANG;
+        if (msg.value(real + OKNGIMPA).toInt() == DATANG) {
+            tmpSet.insert(addr + TEMPISOK, DATANG);
         }
         break;
     default:
@@ -1260,6 +1258,40 @@ void AppWindow::recvTmpMsg(QTmpMap msg)
     emit sendAppMsg(msg);
     int addr = tmpSet.value((3000 + Qt::Key_0)).toInt();
     tmpSet.insert(addr + TEMPTEMP, msg.value(addr + TEMPTEMP).toDouble() / 10.0);
+}
+
+void AppWindow::recvStaMsg(QTmpMap msg)
+{;
+    quint32 temp = tmpSet.value(3000 + Qt::Key_0).toInt();
+    if (msg.value(temp + TEMPDCRV).isNull()) {
+        if (tmpSet.value(temp + TEMPDCRV).isNull() || tmpSet.value(temp + TEMPDCRV).toInt() != DERROR) {
+            tmpSet.insert(temp + TEMPDCRV, DERROR);
+            QMessageBox::warning(this, tr("警告"), tr("电阻板异常"), QMessageBox::Ok);
+            qDebug() << "app stop:" << tr("电阻板异常");
+        }
+    } else {
+        tmpSet.insert(temp + TEMPDCRV, msg.value(temp + TEMPDCRV));
+    }
+
+    if (msg.value(temp + TEMPACWV).isNull()) {
+        if (tmpSet.value(temp + TEMPACWV).isNull() || tmpSet.value(temp + TEMPACWV).toInt() != DERROR) {
+            tmpSet.insert(temp + TEMPACWV, DERROR);
+            QMessageBox::warning(this, tr("警告"), tr("电阻板异常"), QMessageBox::Ok);
+            qDebug() << "app stop:" << tr("电阻板异常");
+        }
+    } else {
+        tmpSet.insert(temp + TEMPACWV, msg.value(temp + TEMPACWV));
+    }
+
+    if (msg.value(temp + TEMPIMPV).isNull()) {
+        if (tmpSet.value(temp + TEMPIMPV).isNull() || tmpSet.value(temp + TEMPIMPV).toInt() != DERROR) {
+            tmpSet.insert(temp + TEMPIMPV, DERROR);
+            QMessageBox::warning(this, tr("警告"), tr("电阻板异常"), QMessageBox::Ok);
+            qDebug() << "app stop:" << tr("电阻板异常");
+        }
+    } else {
+        tmpSet.insert(temp + TEMPIMPV, msg.value(temp + TEMPIMPV));
+    }
 }
 
 void AppWindow::recvAppMsg(QTmpMap msg)
@@ -1353,6 +1385,10 @@ void AppWindow::recvAppMsg(QTmpMap msg)
                 wait(1000);
             boxbar->setValue(msg.value(Qt::Key_2).toInt());
         }
+        break;
+    case Qt::Key_Menu:
+        recvStaMsg(msg);
+        break;
     default:
         break;
     }

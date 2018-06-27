@@ -169,7 +169,6 @@ void TcpSocket::sendFileData(qint64)
 
 void TcpSocket::recvSocketCmd(quint16 addr, quint16 cmd, QByteArray msg)
 {
-
     switch (cmd) {
     case FILE_OVER:           // 发送成功
         display(tr("服务器发送成功"));

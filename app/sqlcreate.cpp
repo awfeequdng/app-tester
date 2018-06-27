@@ -42,16 +42,16 @@ void SqlCreate::initTmpDat()
     tmpSet.insert((2000 + Qt::Key_5), 20000 + 2300);  // 用户信息存放在2300
     tmpSet.insert((2000 + Qt::Key_4), 20000 + 2500);  // 型号信息存放在2500
 
-    tmpSet.insert((3000 + Qt::Key_0), 30000 + 0x0FB0);  // 零散结果地址
-    tmpSet.insert((3000 + Qt::Key_1), 30000 + 0x0000);  // 片间结果地址
-    tmpSet.insert((3000 + Qt::Key_2), 30000 + 0x0400);  // 焊接结果地址
-    tmpSet.insert((3000 + Qt::Key_3), 30000 + 0x0800);  // 跨间结果地址
-    tmpSet.insert((3000 + Qt::Key_4), 30000 + 0x0A00);  // 绝缘结果地址
-    tmpSet.insert((3000 + Qt::Key_5), 30000 + 0x0A08);  // 轴铁结果地址
-    tmpSet.insert((3000 + Qt::Key_6), 30000 + 0x0A10);  // 轴线结果地址
-    tmpSet.insert((3000 + Qt::Key_7), 30000 + 0x0A18);  // 铁线结果地址
-    tmpSet.insert((3000 + Qt::Key_8), 30000 + 0x0A20);  // 匝间结果地址
-    tmpSet.insert((3000 + Qt::Key_A), 30000 + 0x0E20);  // 匝间波形地址
+    tmpSet.insert((3000 + Qt::Key_0), 30000 + 0x0000);  // 零散结果地址
+    tmpSet.insert((3000 + Qt::Key_1), 30000 + 0x1000);  // 片间结果地址
+    tmpSet.insert((3000 + Qt::Key_2), 30000 + 0x1400);  // 焊接结果地址
+    tmpSet.insert((3000 + Qt::Key_3), 30000 + 0x1800);  // 跨间结果地址
+    tmpSet.insert((3000 + Qt::Key_4), 30000 + 0x1A00);  // 绝缘结果地址
+    tmpSet.insert((3000 + Qt::Key_5), 30000 + 0x1A08);  // 轴铁结果地址
+    tmpSet.insert((3000 + Qt::Key_6), 30000 + 0x1A10);  // 轴线结果地址
+    tmpSet.insert((3000 + Qt::Key_7), 30000 + 0x1A18);  // 铁线结果地址
+    tmpSet.insert((3000 + Qt::Key_8), 30000 + 0x1A20);  // 匝间结果地址
+    tmpSet.insert((3000 + Qt::Key_A), 30000 + 0x1E20);  // 匝间波形地址
 
     tmpSet.insert((4000 + Qt::Key_0), 40000 + 0x0000);  // 综合配置地址
     tmpSet.insert((4000 + Qt::Key_1), 40000 + 0x0010);  // 片间配置地址

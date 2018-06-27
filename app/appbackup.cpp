@@ -11,7 +11,7 @@
 AppBackup::AppBackup(QWidget *parent) : QWidget(parent)
 {
     initUI();
-    initNetworks();
+
 }
 
 void AppBackup::initUI()
@@ -72,55 +72,8 @@ void AppBackup::initMacText()
     QVBoxLayout *layout = new QVBoxLayout;
     macGroup->setLayout(layout);
 
-    QStringList names;
-    names << tr("硬件地址1") << tr("硬件地址2") << tr("硬件地址3")
-          << tr("本机地址1") << tr("本机地址2") << tr("本机地址3");
-    for (int i=0; i < names.size(); i++) {
-        QHBoxLayout *box = new QHBoxLayout;
-        layout->addLayout(box);
-        QString tmp = QString("%1").arg(i+1, 2, 10, QChar('0'));
-        box->addWidget(new QLabel(tmp + " " + names.at(i) + ":", this));
-        QLineEdit *input = new QLineEdit(this);
-        input->setFixedHeight(30);
-        box->addWidget(input);
-        nets.append(input);
-    }
-
-
-    names.clear();
-    names << tr("硬盘") << "Nand" << tr("SD卡") << "usb1" << "usb2";
-
-    QStringList headers;
-    headers << tr("名称") << tr("容量") << tr("使用");
-
-    view = new QTableWidget(this);
-    view->setRowCount(names.size());
-    view->setColumnCount(headers.size());
-    view->setHorizontalHeaderLabels(headers);
-    view->verticalHeader()->hide();
-    for (int i=0; i < headers.size(); i++) {
-        for (int j=0; j < names.size(); j++) {
-            QTableWidgetItem *item = new QTableWidgetItem;
-            if (i == 0)
-                item->setText(names.at(j));
-            else
-                item->setText("");
-            item->setTextAlignment(Qt::AlignCenter);
-            view->setItem(j, i, item);
-        }
-    }
-#if (QT_VERSION <= QT_VERSION_CHECK(5, 0, 0))
-    view->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
-    view->verticalHeader()->setResizeMode(QHeaderView::Stretch);
-#else
-    view->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    view->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-#endif
-    view->setColumnWidth(0, 70);
-    view->setColumnWidth(2, 70);
-    view->setEditTriggers(QAbstractItemView::AllEditTriggers);
-    layout->addWidget(view);
-
+    text = new QTextBrowser(this);
+    layout->addWidget(text);
     layout->addStretch();
 
     QHBoxLayout *btn = new QHBoxLayout;
@@ -155,69 +108,58 @@ void AppBackup::saveSettings()
 
 void AppBackup::initNetworks()
 {
-    int k = 0;
+    text->clear();
     QList<QNetworkInterface> list = QNetworkInterface::allInterfaces();
     for (int i=0; i < list.size(); i++) {
-        if (list[i].hardwareAddress().size() == 17 &&
-                list[i].hardwareAddress() != "00:00:00:00:00:00") {
-            nets.at(k)->setText(list.at(i).hardwareAddress());
-            k++;
-        }
-    }
-    int t = 3;
-    QList<QHostAddress> hosts = QNetworkInterface::allAddresses();
-    for (int i=0; i < hosts.size(); i++) {
-        if (hosts.at(i).protocol() == QAbstractSocket::IPv4Protocol) {
-            if (hosts.at(i).toString() != "127.0.0.1") {
-                nets.at(t)->setText(hosts.at(i).toString());
-                t++;
-            }
-        }
+        QString str = QString("%1").arg(i+1, 2, 10, QChar('0'));
+        text->insertPlainText(tr("[%1] %2\n").arg(str).arg(list.at(i).hardwareAddress()));
+        QList<QNetworkAddressEntry> addr = list.at(i).addressEntries();
+        text->insertPlainText(tr("[%1] %2\n").arg(str).arg(addr.at(0).ip().toString()));
     }
     QProcess sys;
     sys.start("df -h");
     sys.waitForReadyRead();
-    QByteArray msg = sys.readAll();
-
-    QStringList s = QString(msg).split("\n");
-    for (int i=0; i < s.size(); i++) {
-        if (QString(s.at(i)).endsWith("/")) {
-            QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
-            if (t.size() >= 6) {
-                view->item(0, 1)->setText(t.at(1));
-                view->item(0, 2)->setText(t.at(4));
+    if (1) {
+        QByteArray msg = sys.readAll();
+        QStringList s = QString(msg).split("\n");
+        for (int i=0; i < s.size(); i++) {
+            if (QString(s.at(i)).endsWith("/")) {
+                QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
+                text->insertPlainText(tr("[DiskA]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1)));
             }
-        }
-        if (QString(s.at(i)).endsWith("/mnt/nandflash")) {
-            QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
-            if (t.size() >= 6) {
-                view->item(1, 1)->setText(t.at(1));
-                view->item(1, 2)->setText(t.at(4));
+            if (QString(s.at(i)).endsWith("/mnt/sdcard")) {
+                QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
+                text->insertPlainText(tr("[DiskB]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1)));
             }
-        }
-        if (QString(s.at(i)).endsWith("/mnt/sdcard")) {
-            QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
-            if (t.size() >= 6) {
-                view->item(2, 1)->setText(t.at(1));
-                view->item(2, 2)->setText(t.at(4));
+            if (QString(s.at(i)).endsWith("/mnt/nandflash")) {
+                QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
+                text->insertPlainText(tr("[DiskC]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1)));
             }
-        }
-        if (QString(s.at(i)).endsWith("/mnt/usb1")) {
-            QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
-            if (t.size() >= 6) {
-                view->item(3, 1)->setText(t.at(1));
-                view->item(3, 2)->setText(t.at(4));
+            if (QString(s.at(i)).endsWith("/mnt/usb1")) {
+                QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
+                text->insertPlainText(tr("[DiskD]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1)));
             }
-        }
-        if (QString(s.at(i)).endsWith("/mnt/usb2")) {
-            QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
-            if (t.size() >= 6) {
-                view->item(4, 1)->setText(t.at(1));
-                view->item(4, 2)->setText(t.at(4));
+            if (QString(s.at(i)).endsWith("/mnt/usb2")) {
+                QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
+                text->insertPlainText(tr("[DiskE]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1)));
             }
         }
     }
     sys.close();
+    sys.start("ps");
+    sys.waitForReadyRead();
+    if (1) {
+        QByteArray msg = sys.readAll();
+        QStringList s = QString(msg).split("\n");
+        for (int i=0; i < s.size(); i++) {
+            if (QString(s.at(i)).contains("aip")) {
+                QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
+                text->insertPlainText(tr("[MSize]\tUSED:%1\n").arg(t.at(2)));
+            }
+        }
+    }
+    sys.close();
+    sys.deleteLater();
 }
 
 void AppBackup::recovery()
@@ -251,6 +193,7 @@ void AppBackup::showEvent(QShowEvent *e)
 {
     this->setFocus();
     initSettings();
+    initNetworks();
     e->accept();
 }
 

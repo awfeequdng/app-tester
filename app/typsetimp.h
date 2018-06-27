@@ -40,7 +40,6 @@
 #define STATIMPA 0x02  // 状态
 #define OKNGIMPA 0x03  // 判定
 
-
 #define VOLTIMPR 0x00  // 电压
 #define DATAIMPR 0x01  // 结果
 #define FREQIMPR 0x02  // 频率
@@ -90,8 +89,8 @@ private:
     BoxQLabel *impView;
     QTableView *view;
     BoxQModel *mView;
-    QLabel *text;
-    QLabel *numb;
+    QLabel *numbfreq;
+    QLabel *numbcurr;
     QList<int> tmpWave;
     QList<int> impWave;
     int time;
@@ -99,8 +98,8 @@ private:
     QTmpMap tmpMsg;
     QPushButton *btnWave;
     QPushButton *btnSave;
-    QSpinBox *from;
-    QSpinBox *stop;
+    QSpinBox *numbfrom;
+    QSpinBox *numbstop;
 };
 
 #endif // TYPSETIMP_H

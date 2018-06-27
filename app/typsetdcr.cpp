@@ -292,7 +292,7 @@ void TypSetDcr::sample()
 {
     QPushButton *btn = qobject_cast<QPushButton*>(sender());
     if (btn->text() == tr("片间采样")) {
-        currItem = (4000 + Qt::Key_1);
+        currItem = Qt::Key_1;
     }
     tmpMsg.insert(Qt::Key_0, Qt::Key_Send);
     tmpMsg.insert(Qt::Key_1, currItem);
@@ -310,7 +310,7 @@ void TypSetDcr::recvUpdate(QTmpMap msg)
     int r = tmpSet[(4000 + Qt::Key_9)].toInt();  // 电阻标准
 
     int g = 0;
-    if (currItem == (4000 + Qt::Key_1)) {
+    if (currItem == Qt::Key_1) {
         int s = tmpSet[(3000 + Qt::Key_1)].toInt() + CACHEDCR;  // 电阻结果
         for (int i=0; i < tool; i++) {
             int t1 = msg[s + t*i + DATADCRR].toInt();
