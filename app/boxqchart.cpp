@@ -18,7 +18,7 @@ BoxQChart::BoxQChart(QWidget *parent) : QLabel(parent)
     m_count = 24;
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(setStr()));
-    timer->start(500);
+    timer->start(10);
     setStr();
 }
 
@@ -53,6 +53,7 @@ void BoxQChart::setRun(int num)
     m_start = num;
     if (num > 0) {
         m_timer = 0;
+        m_turn = 0;
         pies.clear();
         rows.clear();
     }
@@ -66,8 +67,10 @@ void BoxQChart::setTurn(int turn)
 void BoxQChart::setStr()
 {
     m_timer++;
-    m_title = QTime::currentTime().toString("hh:mm");
-    this->update();
+    if (m_timer % 10 == 0) {
+        m_title = QTime::currentTime().toString("hh:mm");
+        this->update();
+    }
 }
 
 void BoxQChart::mouseReleaseEvent(QMouseEvent *e)
@@ -100,7 +103,7 @@ void BoxQChart::drawRow(QPainter *painter)
 {
     painter->save();
     double angle = 360.0/m_count;
-//    double startAngle = 90-angle;
+    //    double startAngle = 90-angle;
     double startAngle = 90;
     int radius = SCALE*49/100;
     int t = 1;
@@ -144,7 +147,7 @@ void BoxQChart::drawPie(QPainter *painter)
         } else {
             painter->setBrush(QBrush(QColor("#808000")));
         }
-        if (m_start > 0 && (m_timer % m_count == i)) {
+        if (m_start > 0 && ((m_timer * m_count / 850) == i)) {
             painter->setBrush(QBrush(QColor("#00FF00")));
         }
         painter->drawPie(-radius, -radius, radius << 1, radius << 1,

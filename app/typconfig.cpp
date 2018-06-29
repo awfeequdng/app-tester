@@ -173,12 +173,7 @@ void TypConfig::initDelegate()
     t->setDecimals(0);
     t->setMaxinum(72);
     settings->setItemDelegateForRow(0, t);
-
-    QStringList n;
-    n << "1" << "2";
-    BoxQCombo *s = new BoxQCombo;
-    s->setItemNames(n);
-    settings->setItemDelegateForRow(1, s);
+    settings->setItemDelegateForRow(1, new BoxQItems);
 }
 
 void TypConfig::initSettings()

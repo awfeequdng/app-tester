@@ -27,7 +27,7 @@ public:
 signals:
     void sendAppMsg(QTmpMap msg);
 public slots:
-    void initSocket();
+    void initSocket(QString host);
 protected:
     void incomingConnection(int handle);
 private slots:

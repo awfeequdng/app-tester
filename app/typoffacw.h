@@ -33,23 +33,20 @@ private slots:
     void initUI();
     void initLayout();
     void initBoxINR();
-    void initBoxACW();
     void initSettings();
-    void zeroINR();
-    void calcINR();
-    void zeroACW();
-    void calcACW();
+    void zero();
+    void calc();
+    void read();
+    void send();
+    void recvNewMsg(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
     QGroupBox *inr;
-    QGroupBox *acw;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
     QList<QPushButton*> inrs;
-    QList<QPushButton*> acws;
     QList<QLineEdit*> inrboxs;
-    QList<QLineEdit*> acwboxs;
 };
 
 #endif // TYPOFFACW_H

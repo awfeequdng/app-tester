@@ -227,7 +227,7 @@ void SqlImport::saveRecord(QTmpMap msg)
     query.addBindValue(uuid);
     query.addBindValue(addr + TEMPWORK);
     query.addBindValue(type);
-    query.addBindValue(msg.value(addr + TEMPWORK).toInt() == 0x11 ? 1 : 2);
+    query.addBindValue((msg.value(addr + TEMPWORK).toInt() == 0x11) ? 1 : 2);
     query.exec();
 
     query.prepare("insert into aip_record values(?,?,?,?)");  // 当前编码
@@ -241,7 +241,7 @@ void SqlImport::saveRecord(QTmpMap msg)
     query.addBindValue(uuid);
     query.addBindValue(addr + TEMPISOK);
     query.addBindValue(type);
-    query.addBindValue(msg.value(addr + TEMPISOK).toInt());
+    query.addBindValue((msg.value(addr + TEMPISOK).toInt() == 0) ? "OK" : "NG");
     query.exec();
 
     int c = msg[(4000 + Qt::Key_0)].toInt();

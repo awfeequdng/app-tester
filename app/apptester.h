@@ -88,7 +88,7 @@ private slots:
     void initWaveIMPW();
     void initSettings();
     void initTextView();
-    void drawWaveDCRW();
+    void drawWaveDCRW(QTmpMap msg);
     void drawWaveIMPW(int numb);
     void showViewSize();
 
@@ -137,7 +137,7 @@ private:
     QList<int> tmpWave;
     QList<int> impWave;
     QList<double> diff;
-    double prev;
+    double impPrev;
     double min;
     int minb;
     QElapsedTimer t;
@@ -149,6 +149,7 @@ private:
     BoxQLabel *allView;
     QList<int> tmpDcr;
     QList<int> tmpPow;
+    QStringList tmpImp;
 };
 
 #endif // APPTESTER_H

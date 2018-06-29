@@ -53,7 +53,7 @@ int AppWindow::initTitle()
     static const QTime tt = QTime::fromString(__TIME__, "hh:mm:ss");
 
     QDateTime t(dt, tt);
-    verNumb = QString("V-%1").arg(t.toString("yyMMdd-hhmm"));
+    verNumb = QString("V-2.2.%1").arg(t.toString("yyMMdd-hhmm"));
     QString ttt = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
     qWarning() << "app vern:" << verNumb << ttt;
     this->setWindowTitle(tr("电枢测试仪%1").arg(verNumb));
@@ -219,8 +219,6 @@ int AppWindow::initTester()
 
 int AppWindow::initSignin()
 {
-    tmpSet.insert(tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPSIGN, 0);
-
     QString name = "signin";
     QString mark = tr("用户登录");
     initButton(mark, name);
@@ -342,7 +340,7 @@ int AppWindow::initSetDcr()
 int AppWindow::initSetAcw()
 {
     QString name = "setacw";
-    QString mark = tr("介电强度");
+    QString mark = tr("耐压配置");
     initButton(mark, name);
 
     TypSetAcw *app = new TypSetAcw(this);
@@ -387,7 +385,7 @@ int AppWindow::initOffDcr()
 int AppWindow::initOffAcw()
 {
     QString name = "offacw";
-    QString mark = tr("绝缘调试");
+    QString mark = tr("耐压调试");
     initButton(mark, name);
 
     TypOffAcw *app = new TypOffAcw(this);
@@ -575,12 +573,17 @@ int AppWindow::sendSignin()
 
 int AppWindow::initSocket()
 {
+    volatile int back = tmpSet.value(1000 + Qt::Key_0).toInt();  // 后台配置地址
+    QString host = tmpSet.value(back + 9).toString();  // 目标IP
     TcpSocket *tcp = new TcpSocket;
     tcp->setObjectName("socket");
     connect(tcp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
     connect(this, SIGNAL(sendNetMsg(QTmpMap)), tcp, SLOT(recvAppMsg(QTmpMap)));
     tcp->connectToServer(tmpSet);
     tcp->moveToThread(sql);
+#ifndef __arm__
+    tcp->readSqlite(host);
+#endif
 
     TcpServer *app = new TcpServer;
     app->setObjectName("socket");
@@ -589,7 +592,8 @@ int AppWindow::initSocket()
 #ifdef __arm__
     app->listen(QHostAddress::Any, 5999);
 #else
-    app->initSocket();
+    if (host.startsWith("192.168"))
+        app->initSocket(host);
 #endif
     app->moveToThread(sql);
     return Qt::Key_Away;
@@ -660,8 +664,8 @@ void AppWindow::saveBackup(QTmpMap msg)
     QSqlDatabase::database(name).transaction();
     for (int i=0; i < uuids.size(); i++) {
         int uuid = uuids.at(i);
-        if (uuid < 20000 && uuid >= 10000) {
-            tmpSet.insert(uuid, msg.value(uuid));
+        tmpSet.insert(uuid, msg.value(uuid));
+        if (uuid >= 10000 && uuid < 20000) {
             query.prepare("replace into aip_backup values(?,?)");
             query.addBindValue(uuid);
             query.addBindValue(tmpSet[uuid]);
@@ -688,10 +692,12 @@ void AppWindow::saveSqlite(QTmpMap msg)
     for (int i=0; i < uuids.size(); i++) {
         int uuid = uuids.at(i);
         tmpSet.insert(uuid, msg.value(uuid));
-        query.prepare("replace into aip_system values(?,?)");
-        query.addBindValue(uuid);
-        query.addBindValue(msg[uuid]);
-        query.exec();
+        if (uuid >= 20000 && uuid < 30000) {
+            query.prepare("replace into aip_system values(?,?)");
+            query.addBindValue(uuid);
+            query.addBindValue(msg[uuid]);
+            query.exec();
+        }
         boxbar->setValue(i*50/uuids.size());
     }
     QSqlDatabase::database(name).commit();
@@ -743,17 +749,17 @@ void AppWindow::clickButtons()
 
 bool AppWindow::checkAction(QString msg)
 {
-    int temp = tmpSet.value((3000 + Qt::Key_0)).toInt();  // 临时数据地址
-    int s = tmpSet[temp + TEMPSIGN].toInt();  // 是否已登录
-    int r = tmpSet[DataUser].toInt();  // 当前用户地址
-    int c = (s == 1) ? tmpSet[r + AddrRole].toInt() : 4;  // 当前权限等级
+    int temp = tmpSet.value(3000 + Qt::Key_0).toInt();  // 临时数据地址
+    int sign = tmpSet.value(temp + TEMPSIGN).toInt();  // 是否已登录
+    int real = tmpSet.value(DataUser).toInt();  // 当前用户地址
+    int gear = (sign == 1) ? tmpSet.value(real + AddrRole).toInt() : 4;  // 当前权限等级
 
     int addr = shows.indexOf(msg);
     int form = forms.at(addr);  // 当前界面组别
     int role = roles.at(addr);  // 当前界面权限
     QStringList gs;
     for (int i=0; i < shows.size(); i++) {
-        if ((forms.at(i) == form && roles.at(i) >= c) || forms.at(i) == 0) {
+        if ((forms.at(i) == form && roles.at(i) >= gear) || forms.at(i) == 0) {
             gs.append(shows.at(i));
         }
     }
@@ -771,9 +777,9 @@ bool AppWindow::checkAction(QString msg)
         btnFrame->show();
     else
         btnFrame->hide();
-    if (c > role)
+    if (gear > role)
         return false;
-    tmpMsg.insert(Qt::Key_0, c < role ? Qt::Key_Less : Qt::Key_Meta);
+    tmpMsg.insert(Qt::Key_0, gear < role ? Qt::Key_Less : Qt::Key_Meta);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
     return true;
@@ -1034,32 +1040,26 @@ int AppWindow::taskQuickConf()
     wait(200);
 
     tmpMsg.insert(Qt::Key_0, Qt::Key_Zoom);
-    tmpMsg.insert(Qt::Key_1, (4000 + Qt::Key_1));
+    tmpMsg.insert(Qt::Key_1, Qt::Key_1);
     emit sendAppMsg(tmpMsg);
     if (taskQuickWait() == Qt::Key_Meta)
         return Qt::Key_Meta;
 
     tmpMsg.insert(Qt::Key_0, Qt::Key_Zoom);
-    tmpMsg.insert(Qt::Key_1, (4000 + Qt::Key_3));
-    emit sendAppMsg(tmpMsg);
-    if (taskQuickWait() == Qt::Key_Meta)
-        return Qt::Key_Meta;
-
-    tmpMsg.insert(Qt::Key_0, Qt::Key_Zoom);
-    tmpMsg.insert(Qt::Key_1, (4000 + Qt::Key_9));
+    tmpMsg.insert(Qt::Key_1, Qt::Key_Save);
     emit sendAppMsg(tmpMsg);
 
     screensShow("setimp");
     wait(200);
 
     tmpMsg.insert(Qt::Key_0, Qt::Key_Zoom);
-    tmpMsg.insert(Qt::Key_1, (4000 + Qt::Key_8));
+    tmpMsg.insert(Qt::Key_1, Qt::Key_8);
     emit sendAppMsg(tmpMsg);
     if (taskQuickWait() == Qt::Key_Meta)
         return Qt::Key_Meta;
 
     tmpMsg.insert(Qt::Key_0, Qt::Key_Zoom);
-    tmpMsg.insert(Qt::Key_1, (4000 + Qt::Key_A));
+    tmpMsg.insert(Qt::Key_1, Qt::Key_Save);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 
@@ -1266,7 +1266,7 @@ void AppWindow::recvStaMsg(QTmpMap msg)
     if (msg.value(temp + TEMPDCRV).isNull()) {
         if (tmpSet.value(temp + TEMPDCRV).isNull() || tmpSet.value(temp + TEMPDCRV).toInt() != DERROR) {
             tmpSet.insert(temp + TEMPDCRV, DERROR);
-            QMessageBox::warning(this, tr("警告"), tr("电阻板异常"), QMessageBox::Ok);
+            //            QMessageBox::warning(this, tr("警告"), tr("电阻板异常"), QMessageBox::Ok);
             qDebug() << "app stop:" << tr("电阻板异常");
         }
     } else {
@@ -1276,8 +1276,8 @@ void AppWindow::recvStaMsg(QTmpMap msg)
     if (msg.value(temp + TEMPACWV).isNull()) {
         if (tmpSet.value(temp + TEMPACWV).isNull() || tmpSet.value(temp + TEMPACWV).toInt() != DERROR) {
             tmpSet.insert(temp + TEMPACWV, DERROR);
-            QMessageBox::warning(this, tr("警告"), tr("电阻板异常"), QMessageBox::Ok);
-            qDebug() << "app stop:" << tr("电阻板异常");
+            //            QMessageBox::warning(this, tr("警告"), tr("耐压板异常"), QMessageBox::Ok);
+            qDebug() << "app stop:" << tr("耐压板异常");
         }
     } else {
         tmpSet.insert(temp + TEMPACWV, msg.value(temp + TEMPACWV));
@@ -1286,8 +1286,8 @@ void AppWindow::recvStaMsg(QTmpMap msg)
     if (msg.value(temp + TEMPIMPV).isNull()) {
         if (tmpSet.value(temp + TEMPIMPV).isNull() || tmpSet.value(temp + TEMPIMPV).toInt() != DERROR) {
             tmpSet.insert(temp + TEMPIMPV, DERROR);
-            QMessageBox::warning(this, tr("警告"), tr("电阻板异常"), QMessageBox::Ok);
-            qDebug() << "app stop:" << tr("电阻板异常");
+            //            QMessageBox::warning(this, tr("警告"), tr("匝间板异常"), QMessageBox::Ok);
+            qDebug() << "app stop:" << tr("匝间板异常");
         }
     } else {
         tmpSet.insert(temp + TEMPIMPV, msg.value(temp + TEMPIMPV));

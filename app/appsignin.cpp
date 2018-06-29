@@ -237,16 +237,16 @@ void AppSignin::initApplyBar()
 void AppSignin::initSettings()
 {
     QStringList users;
-    int c = tmpSet[(2000 + Qt::Key_5)].toInt();  // 用户存储地址
-    int r = tmpSet[DataUser].toInt();  // 当前用户地址
-    int a = tmpSet[DataAuto].toInt();  // 自动登录配置
+    int addr = tmpSet.value(2000 + Qt::Key_5).toInt();  // 用户存储地址
+    int real = tmpSet.value(DataUser).toInt();  // 当前用户地址
+    int sign = tmpSet.value(DataAuto).toInt();  // 自动登录配置
 
-    QString curruser = tmpSet[r + AddrName].toString();
-    QString currpass = tmpSet[r + AddrPass].toString();
-    QString currsave = tmpSet[r + AddrSave].toString();
+    QString curruser = tmpSet.value(real + AddrName).toString();
+    QString currpass = tmpSet.value(real + AddrPass).toString();
+    QString currsave = tmpSet.value(real + AddrSave).toString();
 
     users.append(curruser);
-    for (int i=c; i < c + 95; i+=5) {
+    for (int i=addr; i < addr + 95; i+=5) {
         if (tmpSet[i].toString() != curruser)
             users.append(tmpSet[i].toString());
     }
@@ -259,7 +259,7 @@ void AppSignin::initSettings()
     } else {
         password->clear();
     }
-    if (a == 1) {
+    if (sign == 1) {
         autosign->setChecked(true);
         if (!isOk) {
             isAuto = true;
@@ -270,14 +270,15 @@ void AppSignin::initSettings()
 
 void AppSignin::saveSettings()
 {
-    tmpMsg.insert(tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPSIGN, 1);
+    int addr = tmpSet.value(3000 + Qt::Key_0).toInt();  // 临时数据区
+    tmpMsg.insert(addr + TEMPSIGN, 1);
 
     isOk = true;
-    int r = tmpSet[DataUser].toInt();
-
-    tmpMsg[0 + DataAuto] = autosign->isChecked() ? 1 : 0;
-    tmpMsg[r + AddrSave] = autosave->isChecked() ? 1 : 0;
-    tmpMsg[r + AddrLast] = QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss");
+    int real = tmpSet.value(DataUser).toInt();  // 当前用户
+    tmpMsg.insert(DataUser, real);
+    tmpMsg.insert(DataAuto, autosign->isChecked() ? 1 : 0);
+    tmpMsg.insert(real + AddrSave, autosave->isChecked() ? 1 : 0);
+    tmpMsg.insert(real + AddrLast, QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss"));
     tmpMsg.insert(Qt::Key_0, Qt::Key_Save);
     if (isAuto)
         isAuto = false;
@@ -293,15 +294,15 @@ void AppSignin::saveSettings()
 void AppSignin::checkSignin()
 {
     QString tmp = username->currentText();
-    int s = tmpSet[(2000 + Qt::Key_5)].toInt();
+    int addr = tmpSet.value(2000 + Qt::Key_5).toInt();  // 用户存储地址
     for (int i=0; i < 100; i += 5) {
-        if (tmp == tmpSet[s + i].toString()) {
-            tmpSet[DataUser] = s + i;
+        if (tmp == tmpSet.value(addr + i).toString()) {
+            tmpSet.insert(DataUser, addr + i);
             break;
         }
     }
-    int r = tmpSet[DataUser].toInt();
-    QString currpass = tmpSet[r + AddrPass].toString();
+    int real = tmpSet.value(DataUser).toInt();
+    QString currpass = tmpSet.value(real + AddrPass).toString();
     if (currpass == password->text()) {
         stack->setCurrentIndex(3);
         saveSettings();

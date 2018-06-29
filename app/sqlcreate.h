@@ -44,7 +44,6 @@ public slots:
     void openConfig(bool isExist);
     void openRecord(bool isExist);
     void initBack(QSqlQuery query);
-    void initINRB(QSqlQuery query);
     void initACWB(QSqlQuery query);
     void initIMPB(QSqlQuery query);
     void initMisc(QSqlQuery query);

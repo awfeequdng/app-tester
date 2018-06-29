@@ -81,6 +81,8 @@ private slots:
     void parseIMP(int id, QByteArray msg);
     void judgeIMP();
     void renewIMP();
+    void setupSave(QTmpMap msg);
+    void setupView(QTmpMap msg);
     void setupPump(QTmpMap msg);
     void setupTest(QTmpMap msg);
     void startTest(QTmpMap msg);
@@ -103,9 +105,12 @@ private:
     QTmpMap tmpDCR;
     QTmpMap tmpPow;
     QTmpMap tmpRow;
+    QTmpMap tmpIMP;
     QTmpMap tmpSta;
+    QTmpMap tmpdff;
     int currTemp;
     quint8 tmpio;
+    quint8 xxx;
 };
 
 #endif // DEVSETCAN_H

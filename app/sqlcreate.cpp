@@ -29,10 +29,9 @@ void SqlCreate::initSqlDir()
 void SqlCreate::initTmpDat()
 {
     tmpSet.insert((1000 + Qt::Key_0), 10000 + 0x00);  // 后台数据地址
-    tmpSet.insert((1000 + Qt::Key_1), 10000 + 0x10);  // 电阻后台地址
-    tmpSet.insert((1000 + Qt::Key_2), 10000 + 0x20);  // 绝缘后台地址
-    tmpSet.insert((1000 + Qt::Key_3), 10000 + 0x30);  // 交耐后台地址
-    tmpSet.insert((1000 + Qt::Key_4), 10000 + 0x40);  // 匝间后台地址
+    tmpSet.insert((1000 + Qt::Key_1), 10000 + 0x20);  // 电阻后台地址
+    tmpSet.insert((1000 + Qt::Key_4), 10000 + 0x40);  // 绝缘后台地址
+    tmpSet.insert((1000 + Qt::Key_8), 10000 + 0x60);  // 匝间后台地址
 
     tmpSet.insert((2000 + Qt::Key_0), 22000 + 0000);  // 零散数据地址
     tmpSet.insert((2000 + Qt::Key_1), 20000 + 2120);  // 系统设置存放在2120
@@ -92,7 +91,6 @@ void SqlCreate::openBackup(bool isExist)
         }
         db.transaction();
         initBack(query);
-        initINRB(query);
         initACWB(query);
         initIMPB(query);
         db.commit();
@@ -202,11 +200,11 @@ void SqlCreate::initBack(QSqlQuery query)
     parm << "G201801001";   // 评审编号
     parm << "2018-03";      // 出厂日期
     parm << "1";            // 语言支持
-    parm << "1";            // 工位数量
+    parm << "2";            // 工位数量
     parm << "5000";         // 最高电压
     parm << "0";            // 自动测试
     parm << "2";            // 测试延时
-    parm << "s.aipuo.com";  // 公司网址
+    parm << "192.168.1.50";  // 公司网址
     parm << "6000";         // 连接端口
 
     for (int i=0; i < parm.size(); i++) {
@@ -218,37 +216,17 @@ void SqlCreate::initBack(QSqlQuery query)
     }
 }
 
-void SqlCreate::initINRB(QSqlQuery query)
-{  // 参数校准
-    int from = tmpSet.value((1000 + Qt::Key_2)).toInt();
-    QStringList parm;
-    parm << "500"
-         << "1000"
-         << "100"
-         << "500"
-         << "50"
-         << "500"
-         << "50"
-         << "500";
-    for (int i=0; i < parm.size(); i++) {
-        query.prepare("insert into aip_backup values(?,?)");
-        query.addBindValue(from + i);
-        query.addBindValue(parm.at(i));
-        if (!query.exec())
-            qWarning() << "aip_backup" << query.lastError();
-    }
-}
-
 void SqlCreate::initACWB(QSqlQuery query)
-{
-    int from = tmpSet.value((1000 + Qt::Key_3)).toInt();
+{  // 参数校准
+    int from = tmpSet.value((1000 + Qt::Key_4)).toInt();
     QStringList parm;
-    parm << "500"
-         << "4500"
-         << "300"
-         << "1500"
-         << "10"
-         << "300";
+    parm << "500" << "1000" << "1024" << "500"
+         << "100" << "500" << "1024" << "500"
+         << "50" << "500" << "1024" << "500"
+         << "50" << "500" << "1024" << "500"
+         << "500" << "4500" << "1024" << "500"
+         << "300" << "1500" << "1024" << "500"
+         << "10" << "300" << "1024" << "500";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_backup values(?,?)");
         query.addBindValue(from + i);
@@ -260,18 +238,13 @@ void SqlCreate::initACWB(QSqlQuery query)
 
 void SqlCreate::initIMPB(QSqlQuery query)
 {
-    int from = tmpSet.value((1000 + Qt::Key_4)).toInt();
+    int from = tmpSet.value(1000 + Qt::Key_8).toInt();
     QStringList parm;
-    parm << "500"
-         << "1000"
-         << "1000"
-         << "2000"
-         << "2000"
-         << "3000"
-         << "3000"
-         << "4000"
-         << "4000"
-         << "5000";
+    parm << "500" << "1000" << "1024" << "500"
+         << "1000" << "2000" << "1024" << "500"
+         << "2000" << "3000" << "1024" << "500"
+         << "3000" << "4000" << "1024" << "500"
+         << "4000" << "5000" << "1024" << "500";
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_backup values(?,?)");
         query.addBindValue(from + i);
@@ -286,7 +259,7 @@ void SqlCreate::initMisc(QSqlQuery query)
     int from = tmpSet.value((2000 + Qt::Key_0)).toInt();
     QStringList parm;
     parm << "22500"  // 当前型号
-         << "22300"  // 当前用户
+         << "22305"  // 当前用户
          << "1"  // 自动保存
          << "0";  // 日志输出
 
@@ -532,7 +505,7 @@ void SqlCreate::initConf(QSqlQuery query)
     }
     parm.clear();
     from = tmpSet.value((4000 + Qt::Key_0)).toInt();
-    parm << "10" << "1" << "" << "" << "" << "" << "" << "" << "" << "";  // 综合配置
+    parm << "24" << "1" << "" << "" << "" << "" << "" << "" << "" << "";  // 综合配置
     for (int i=0; i < parm.size(); i++) {
         query.prepare("insert into aip_config values(?,?)");
         query.addBindValue(from + i);

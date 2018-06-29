@@ -89,11 +89,12 @@ void TypSetDcr::initWeldBar()
 
     layout->addStretch();
 
-    QComboBox *box1 = new QComboBox(this);
-    box1->setView(new QListView);
-    box1->addItem(tr("挂钩顺序"));
-    box1->setFixedSize(97, 40);
-    layout->addWidget(box1);
+    boxTurn = new QComboBox(this);
+    boxTurn->setView(new QListView);
+    boxTurn->setFixedSize(97, 40);
+    layout->addWidget(boxTurn);
+    boxTurn->addItem(tr("顺时针"));
+    boxTurn->addItem(tr("逆时针"));
 
     QComboBox *box = new QComboBox(this);
     box->setView(new QListView);
@@ -203,7 +204,7 @@ void TypSetDcr::initButtons()
 
     btnWeld = new QPushButton(this);
     btnWeld->setFixedSize(97, 40);
-    btnWeld->setText(tr("片间采样"));
+    btnWeld->setText(tr("采样"));
     layout->addWidget(btnWeld);
     connect(btnWeld, SIGNAL(clicked(bool)), this, SLOT(sample()));
 
@@ -223,6 +224,7 @@ void TypSetDcr::initSettings()
     boxTemp->setChecked(tmpSet[s + ISTMDCR1] == "1" ? Qt::Checked : Qt::Unchecked);
     maxTemp->setValue(tmpSet[s + TEMPDCR1].toDouble()/1000);
     boxTime->setValue(tmpSet[s + TIMEDCR1].toDouble()/1000);
+    boxTurn->setCurrentIndex(tmpSet[s + TURNDCR1].toDouble());
 
     s = tmpSet[(4000 + Qt::Key_2)].toInt();
     boxChip->setChecked(tmpSet[s + ISCHDCR2] == "1" ? Qt::Checked : Qt::Unchecked);
@@ -262,6 +264,7 @@ void TypSetDcr::saveSettings()
     tmpMsg[s + TEMPDCR1] = QString::number(maxTemp->value()*1000);
     tmpMsg[s + TIMEDCR1] = QString::number(boxTime->value()*1000);
     tmpMsg[s + GEARDCR1] = tmpSet.value(s + GEARDCR1);
+    tmpMsg[s + TURNDCR1] = boxTurn->currentIndex();
 
     s = tmpSet[(4000 + Qt::Key_2)].toInt();
     tmpMsg[s + ISCHDCR2] = boxChip->isChecked() ? "1" : "0";
@@ -290,12 +293,8 @@ void TypSetDcr::saveSettings()
 
 void TypSetDcr::sample()
 {
-    QPushButton *btn = qobject_cast<QPushButton*>(sender());
-    if (btn->text() == tr("片间采样")) {
-        currItem = Qt::Key_1;
-    }
     tmpMsg.insert(Qt::Key_0, Qt::Key_Send);
-    tmpMsg.insert(Qt::Key_1, currItem);
+    tmpMsg.insert(Qt::Key_1, Qt::Key_1);
     tmpMsg.insert(Qt::Key_5, 0);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
@@ -303,26 +302,23 @@ void TypSetDcr::sample()
 
 void TypSetDcr::recvUpdate(QTmpMap msg)
 {
-    int t = 0x04;
-    int addr = tmpSet[(4000 + Qt::Key_0)].toInt();
-    int quan = tmpSet[addr + AddrDCRSC].toInt();
-    int tool = tmpSet[addr + AddrDEVSC].toInt() * quan;  // 夹具针数
-    int r = tmpSet[(4000 + Qt::Key_9)].toInt();  // 电阻标准
+    int loop = 0x04;
+    int addr = tmpSet.value(3000 + Qt::Key_1).toInt();  // 片间结果地址
+    int conf = tmpSet.value(4000 + Qt::Key_0).toInt();  // 综合配置地址
+    int parm = tmpSet.value(4000 + Qt::Key_1).toInt();  // 片间配置地址
+    int real = tmpSet.value(4000 + Qt::Key_9).toInt();  // 电阻标准地址
+    int quan = tmpSet.value(conf + AddrDCRSC).toInt();
+    int tool = tmpSet.value(conf + AddrDEVSC).toInt() * quan;  // 夹具针数
 
-    int g = 0;
-    if (currItem == Qt::Key_1) {
-        int s = tmpSet[(3000 + Qt::Key_1)].toInt() + CACHEDCR;  // 电阻结果
-        for (int i=0; i < tool; i++) {
-            int t1 = msg[s + t*i + DATADCRR].toInt();
-            int t2 = msg[s + t*i + GEARDCRR].toInt();
-            if (i == 0) {
-                g = t2;
-            }
-            tmpSet[r + i*2 + 0] = t1;
-            tmpSet[r + i*2 + 1] = g;
-        }
-        tmpSet[tmpSet[(4000 + Qt::Key_1)].toInt() + 5] = g;
+    int gear = 0;
+    for (int i=0; i < tool; i++) {
+        int t1 = msg.value(addr + CACHEDCR + loop*i + DATADCRR).toInt();
+        int t2 = msg.value(addr + CACHEDCR + loop*i + GEARDCRR).toInt();
+        gear = (i == 0) ? t2 : gear;
+        tmpSet.insert(real + i*2 + 0, t1);
+        tmpSet.insert(real + i*2 + 1, gear);
     }
+    tmpSet.insert(parm + GEARDCR1, gear);
     initViewData();
 }
 
@@ -339,11 +335,9 @@ void TypSetDcr::recvAppMsg(QTmpMap msg)
         recvUpdate(msg);
         break;
     case Qt::Key_Zoom:
-        if (msg.value(Qt::Key_1).toInt() == (4000 + Qt::Key_1))
+        if (msg.value(Qt::Key_1).toInt() == Qt::Key_1)
             btnWeld->click();
-        if (msg.value(Qt::Key_1).toInt() == (4000 + Qt::Key_3))
-            btnDiag->click();
-        if (msg.value(Qt::Key_1).toInt() == (4000 + Qt::Key_9))
+        if (msg.value(Qt::Key_1).toInt() == Qt::Key_Save)
             btnSave->click();
         break;
     default:

@@ -153,6 +153,25 @@ void TcpSocket::sendFileHead(QByteArray data)
     sendSocket(ADDR, FILE_HEAD, msg);
 }
 
+void TcpSocket::readSqlite(QString host)
+{
+#ifndef __arm__
+    isOK = false;
+    hostmac = host;
+    mOnlineView->select();
+    for (int i=0; i < mOnlineView->rowCount(); i++) {
+        QString mac = mOnlineView->index(i, 2).data().toString();
+        QString ver = mOnlineView->index(i, 8).data().toString();
+        if (mac == host && ver.startsWith("V-2.2")) {
+            txPort = mOnlineView->index(i, 4).data().toInt();
+            isOK = true;
+            qDebug() << "tcp show:" << host << isOK;
+            break;
+        }
+    }
+#endif
+}
+
 void TcpSocket::sendFileData(qint64)
 {
     if (sendFile == 0)
@@ -292,27 +311,17 @@ void TcpSocket::display(QString msg)
 void TcpSocket::initSqlite()
 {
 #ifndef __arm__
-    mOnlineView = new QSqlTableModel(this, QSqlDatabase::database("mysql"));
-    mOnlineView->setTable("aip_online");
-    mOnlineView->select();
-#endif
-}
-
-void TcpSocket::readSqlite()
-{
-#ifndef __arm__
-    isOK = false;
-    mOnlineView->select();
-    int r = tmpSet.value((1000 + Qt::Key_0)).toInt();
-    QString str = tmpSet.value(r + 9).toString();
-    for (int i=0; i < mOnlineView->rowCount(); i++) {
-        QString mac = mOnlineView->index(i, 2).data().toString();
-        QString ver = mOnlineView->index(i, 8).data().toString();
-        if (mac == str && ver.startsWith("V-18")) {
-            txPort = mOnlineView->index(i, 4).data().toInt();
-            isOK = true;
-            break;
-        }
+    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL3", "mysql");
+    db.setHostName("192.168.1.55");
+    db.setUserName("root");
+    db.setPassword("87973318");
+    db.setDatabaseName("aip-server");
+    if (db.open()) {
+        mOnlineView = new QSqlTableModel(this, QSqlDatabase::database("mysql"));
+        mOnlineView->setTable("aip_online");
+        mOnlineView->select();
+    } else {
+        qWarning() << "tcp fail:" << db.lastError();
     }
 #endif
 }
@@ -354,7 +363,7 @@ void TcpSocket::recvTcpXml()
 
 void TcpSocket::recvAppMsg(QTmpMap dat)
 {
-    readSqlite();
+    readSqlite(hostmac);
     if (isOK) {
         QList<int> keys = dat.keys();
         QDomDocument doc;

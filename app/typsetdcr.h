@@ -37,6 +37,7 @@
 #define TEMPDCR1 0x03  // 片间温度
 #define TIMEDCR1 0x04  // 片间时间
 #define GEARDCR1 0x05  // 片间档位
+#define TURNDCR1 0x06  // 片间顺序
 
 #define ISCHDCR2 0x00  // 焊接测试
 #define SMAXDCR2 0x01  // 焊接上限
@@ -53,6 +54,7 @@
 #define OKNGDCRA 0x03  // 判定
 #define TURNDCRA 0x04  // 顺序
 #define FROMDCRA 0x05  // 起点
+#define TURNISOK 0x06  // 顺序判定
 
 #define NUMBDCRR 0x00  // 电阻编号
 #define DATADCRR 0x01  // 电阻结果
@@ -89,6 +91,7 @@ private:
     QCheckBox *boxWeld;
     QCheckBox *boxChip;
     QCheckBox *boxDiag;
+    QComboBox *boxTurn;
     QDoubleSpinBox *boxTime;
     QDoubleSpinBox *maxTemp;
     QDoubleSpinBox *maxWeld;
@@ -97,10 +100,8 @@ private:
     QDoubleSpinBox *minDiag;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
-    int currItem;
     QPushButton *btnSave;
     QPushButton *btnWeld;
-    QPushButton *btnDiag;
 };
 
 #endif // TYPSETDCR_H

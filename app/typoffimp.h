@@ -33,8 +33,11 @@ private slots:
     void initLayout();
     void initBoxINR();
     void initSettings();
-    void zeroINR();
-    void calcINR();
+    void zero();
+    void calc();
+    void read();
+    void send();
+    void recvNewMsg(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:

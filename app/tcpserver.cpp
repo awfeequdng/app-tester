@@ -34,12 +34,12 @@ void TcpServer::incomingConnection(int handle)
     tmpMsg.clear();
 }
 
-void TcpServer::initSocket()
+void TcpServer::initSocket(QString host)
 {
     socket = new QTcpSocket(this);
     connect(socket, SIGNAL(readyRead()), this, SLOT(recvSocket()));
     connect(socket, SIGNAL(connected()), this, SLOT(reckOK()));
-    socket->connectToHost("192.168.1.50", 5999);
+    socket->connectToHost(host, 5999);
     connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this,
             SLOT(recvError(QAbstractSocket::SocketError)));
 }

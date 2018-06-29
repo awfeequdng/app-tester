@@ -15,6 +15,7 @@
 #include <QWidget>
 #include <QVariant>
 #include <QProcess>
+#include <QCheckBox>
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QShowEvent>
@@ -43,6 +44,7 @@ private slots:
     void initSettings();
     void saveSettings();
     void initNetworks();
+    void flashopt();
     void recovery();
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
@@ -52,6 +54,7 @@ private:
     QList<QLineEdit*> txts;
     QTmpMap tmpSet;
     QTextBrowser *text;
+    QCheckBox *isBack;
 };
 
 #endif // APPBACKUP_H

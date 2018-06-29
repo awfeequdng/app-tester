@@ -362,9 +362,9 @@ void TypSetImp::recvAppMsg(QTmpMap msg)
         recvUpdate(msg);
         break;
     case Qt::Key_Zoom:
-        if (msg.value(Qt::Key_1).toInt() == (4000 + Qt::Key_8))
+        if (msg.value(Qt::Key_1).toInt() == Qt::Key_8)
             btnWave->click();
-        if (msg.value(Qt::Key_1).toInt() == (4000 + Qt::Key_A))
+        if (msg.value(Qt::Key_1).toInt() == Qt::Key_Save)
             btnSave->click();
         break;
     default:

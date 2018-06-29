@@ -24,6 +24,8 @@
 #include <QtXml/QDomDocument>
 #include <QQueue>
 #include <QSqlTableModel>
+#include <QSqlDatabase>
+#include <QSqlError>
 
 #include "main.h"
 #include "appauthor.h"
@@ -61,6 +63,7 @@ public slots:
     void connectToServer(QTmpMap msg);
     void sendSocket(quint16 addr, quint16 cmd, QByteArray data);
     void sendFileHead(QByteArray data);
+    void readSqlite(QString host);
 public:
     qint64 heart;
 private slots:
@@ -75,7 +78,6 @@ private slots:
     QString getHardwareAddress();
     void display(QString msg);
     void initSqlite();
-    void readSqlite();
     void sendTcpXml();
     void recvTcpXml();
     void recvAppMsg(QTmpMap msg);
@@ -106,6 +108,7 @@ private:
     QTmpMap tmpMsg;
     bool isOK;
     QByteArray tmpByte;
+    QString hostmac;
 };
 
 #endif // TCPSOCKET_H
