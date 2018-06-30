@@ -38,6 +38,8 @@ void TypSetImp::initLayout()
 
 void TypSetImp::initViewDat()
 {
+    work = WORKL;
+    numbcalc = 0;
     QStringList headers;
     headers << tr("测试") << tr("匝间测试") << tr("峰值电压V") << tr("冲击次数")
             << tr("合格上限") << tr("采样点") << tr("电压补偿") << tr("冲击间隔");
@@ -101,19 +103,17 @@ void TypSetImp::initWaveCtl()
     QHBoxLayout *layout = new QHBoxLayout;
     boxLayout->addLayout(layout);
 
-    layout->addWidget(new QLabel(tr("计算起点:"), this));
-
     numbfrom = new QSpinBox(this);
     numbfrom->setFixedHeight(35);
     numbfrom->setMaximum(IMP_SIZE);
     layout->addWidget(numbfrom);
-
-    layout->addWidget(new QLabel(tr("计算终点:"), this));
+    numbfrom->hide();
 
     numbstop = new QSpinBox(this);
     numbstop->setFixedHeight(35);
     numbstop->setMaximum(IMP_SIZE);
     layout->addWidget(numbstop);
+    numbstop->hide();
 
     layout->addStretch();
 
@@ -147,23 +147,33 @@ void TypSetImp::initButtons()
 
     layout->addStretch();
 
-    QPushButton *btnVacuo = new QPushButton(this);
-    btnVacuo->setFixedSize(97, 40);
-    btnVacuo->setText(tr("压缩"));
-    layout->addWidget(btnVacuo);
-    connect(btnVacuo, SIGNAL(clicked(bool)), this, SLOT(waveUpdate()));
+    btnSmin = new QPushButton(this);
+    btnSmin->setFixedSize(97, 40);
+    btnSmin->setText(tr("压缩"));
+    btnSmin->setEnabled(false);
+    layout->addWidget(btnSmin);
+    connect(btnSmin, SIGNAL(clicked(bool)), this, SLOT(sample()));
 
-    QPushButton *btnStretch = new QPushButton(this);
-    btnStretch->setFixedSize(97, 40);
-    btnStretch->setText(tr("拉伸"));
-    layout->addWidget(btnStretch);
-    connect(btnStretch, SIGNAL(clicked(bool)), this, SLOT(waveUpdate()));
+    btnSmax = new QPushButton(this);
+    btnSmax->setFixedSize(97, 40);
+    btnSmax->setText(tr("拉伸"));
+    btnSmax->setEnabled(false);
+    layout->addWidget(btnSmax);
+    connect(btnSmax, SIGNAL(clicked(bool)), this, SLOT(sample()));
 
     btnWave = new QPushButton(this);
     btnWave->setFixedSize(97, 40);
     btnWave->setText(tr("采样"));
+    btnWave->setEnabled(false);
     layout->addWidget(btnWave);
-    connect(btnWave, SIGNAL(clicked(bool)), this, SLOT(waveUpdate()));
+    connect(btnWave, SIGNAL(clicked(bool)), this, SLOT(sample()));
+
+    btnCalc = new QPushButton(this);
+    btnCalc->setFixedSize(97, 40);
+    btnCalc->setText(tr("计算"));
+    btnCalc->setEnabled(false);
+    layout->addWidget(btnCalc);
+    connect(btnCalc, SIGNAL(clicked(bool)), this, SLOT(calc()));
 
     btnSave = new QPushButton(this);
     btnSave->setFixedSize(97, 40);
@@ -277,6 +287,8 @@ void TypSetImp::lineUpdate()
 {
     numbfrom->setValue(impView->getFrom());
     numbstop->setValue(impView->getStop());
+    impView->setText(QString::number(impView->getFrom()), 3);
+    impView->setText(QString::number(impView->getStop()), 2);
 }
 
 void TypSetImp::waveSwitch()
@@ -300,51 +312,95 @@ void TypSetImp::waveSwitch()
     real += (numb-1)*IMP_SIZE;
     tmpWave.clear();
     for (int i=0; i < IMP_SIZE; i++) {
-        tmpWave.append(tmpSet[real + i].toInt());
+        tmpWave.append(tmpSet.value(real + i).toInt());
     }
     drawImpWave();
 }
 
-void TypSetImp::waveUpdate()
+void TypSetImp::sample()
 {
     QPushButton *btn = qobject_cast<QPushButton*>(sender());
     int freq = numbfreq->text().toInt();
     if (btn->text() == tr("压缩")) {
         freq = (freq >= 14) ? 14 : freq + 1;
+        tmpBuf.clear();
+        numbcalc = 0;
+        btnCalc->setText(tr("计算"));
+        btnCalc->setEnabled(false);
     }
     if (btn->text() == tr("拉伸")) {
         freq = (freq <= 0) ? 0 : freq -1;
+        tmpBuf.clear();
+        numbcalc = 0;
+        btnCalc->setText(tr("计算"));
+        btnCalc->setEnabled(false);
     }
     numbfreq->setText(QString::number(freq));
     tmpMsg.insert(Qt::Key_0, Qt::Key_Send);
     tmpMsg.insert(Qt::Key_1, Qt::Key_8);
+    tmpMsg.insert(Qt::Key_4, work);
     tmpMsg.insert(Qt::Key_5, freq);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
     time = 0;
 }
 
+void TypSetImp::calc()
+{
+    volatile int conf = tmpSet.value(4000 + Qt::Key_0).toInt();  // 综合测试参数地址
+    volatile int parm = tmpSet.value(4000 + Qt::Key_8).toInt();  // 匝间测试参数地址
+    volatile int stdw = tmpSet.value(4000 + Qt::Key_A).toInt();  // 匝间标准波形地址
+    volatile int quan = tmpSet.value(conf + AddrDCRSC).toInt();  // 片间数量
+    volatile int spac = tmpSet.value(parm + AddrIMPSA).toInt();  // 采样间隔
+    volatile int stdp = tmpSet.value(parm + AddrIMPSL).toInt();  // 采样点
+    quan = (quan == spac * 2) ? quan / 2 : quan;  // 是否对角
+    tmpWave.clear();
+    for (int i=0; i < quan; i++) {
+        for (int j=0; j < IMP_SIZE; j++) {
+            int addr = stdw + i * IMP_SIZE + j;
+            int t = tmpBuf.value(addr).toInt()  / numbcalc;
+            tmpSet.insert(addr, t);
+            if (stdp - 1 == i || (stdp == 0 && i == quan - 1)) {
+                tmpWave.append(t);
+            }
+        }
+    }
+    tmpBuf.clear();
+    numbcalc = 0;
+    btnCalc->setText(tr("计算"));
+    btnCalc->setEnabled(false);
+    drawImpWave();
+}
+
 void TypSetImp::recvUpdate(QTmpMap msg)
 {
-    int real = tmpSet[(3000 + Qt::Key_8)].toInt();  // 测试结果地址
-    int addr = tmpSet[(3000 + Qt::Key_A)].toInt();  // 测试波形地址
-    int parm = tmpSet[(4000 + Qt::Key_A)].toInt();  // 标准波形地址
-    int imps = msg.value(real + STATIMPA).toInt();  // 状态
-    int code = msg.value(real + NUMBIMPA).toInt();  // 编号
-    int stdn = tmpSet[tmpSet[(4000 + Qt::Key_8)].toInt() + AddrIMPSL].toInt();  // 采样点
-    if (imps == DataTest) {
+    volatile int real = tmpSet.value(3000 + Qt::Key_8).toInt();  // 匝间测试结果地址
+    volatile int tmpw = tmpSet.value(3000 + Qt::Key_A).toInt();  // 匝间测试波形地址
+    volatile int parm = tmpSet.value(4000 + Qt::Key_8).toInt();  // 匝间测试参数地址
+    volatile int stdw = tmpSet.value(4000 + Qt::Key_A).toInt();  // 匝间标准波形地址
+    volatile int stdn = tmpSet.value(parm + AddrIMPSL).toInt();  // 采样点
+    volatile int tmps = msg.value(real + STATIMPA).toInt();  // 状态
+    volatile int tmpn = msg.value(real + NUMBIMPA).toInt();  // 编号
+    if (tmps == DataTest) {
         tmpWave.clear();
         for (int i=0; i < IMP_SIZE; i++) {
-            tmpWave.append(msg[addr + i].toInt());
-            tmpSet[parm + (code-1)*IMP_SIZE + i] = msg[addr + i].toInt();
+            int t = msg.value(tmpw + i).toInt();
+            tmpWave.append(t);
+            tmpSet.insert(stdw + (tmpn-1)*IMP_SIZE + i, t);
+            int k = tmpBuf.value(stdw + (tmpn-1)*IMP_SIZE + i).toInt();
+            tmpBuf.insert(stdw + (tmpn-1)*IMP_SIZE + i, t + k);
         }
-        if (code == stdn) {
+        if (tmpn == stdn) {
             impWave = tmpWave;
         }
-        numbcurr->setText(QString::number(code));
+        numbcurr->setText(QString::number(tmpn));
     } else if (stdn != 0) {
+        numbcalc++;
         tmpWave = impWave;
         numbcurr->setText(QString::number(stdn));
+        btnCalc->setText(tr("计算%1").arg(numbcalc));
+        if (numbcalc >= 4)
+            btnCalc->setEnabled(true);
     }
     drawImpWave();
 }
@@ -366,6 +422,21 @@ void TypSetImp::recvAppMsg(QTmpMap msg)
             btnWave->click();
         if (msg.value(Qt::Key_1).toInt() == Qt::Key_Save)
             btnSave->click();
+        break;
+    case Qt::Key_Call:
+        if (this->isHidden())
+            break;
+        btnWave->setEnabled(false);
+        btnSmax->setEnabled(false);
+        btnSmin->setEnabled(false);
+        break;
+    case Qt::Key_Play:
+        if (this->isHidden())
+            break;
+        work = msg.value(Qt::Key_1).toString() == "R" ? WORKR : WORKL;
+        btnWave->setEnabled(true);
+        btnSmax->setEnabled(true);
+        btnSmin->setEnabled(true);
         break;
     default:
         break;

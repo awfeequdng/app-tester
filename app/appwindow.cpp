@@ -997,6 +997,8 @@ int AppWindow::taskClearBeep()
 
 int AppWindow::taskResetTest()
 {
+    if (taskShift == Qt::Key_Stop)
+        return Qt::Key_Away;
     int addr = tmpSet[(1000 + Qt::Key_0)].toInt();
     int test = tmpSet[addr + 7].toInt();
     int time = tmpSet[addr + 8].toInt();
@@ -1024,12 +1026,19 @@ int AppWindow::taskResetTest()
 
 int AppWindow::taskCheckStop()
 {
-    tmpMsg.insert(Qt::Key_0, Qt::Key_Call);
-    tmpMsg.insert(Qt::Key_1, "LED1");
-    tmpMsg.insert(Qt::Key_3, 0);
-    emit sendAppMsg(tmpMsg);
-    tmpMsg.clear();
-    taskClearData();
+    int addr = tmpSet.value(3000 + Qt::Key_0).toInt();  // 综合测试结果
+    if (currTask <= taskMap.values().indexOf(&AppWindow::taskCheckPlay)) {
+        tmpMsg.insert(Qt::Key_0, Qt::Key_Call);
+        tmpMsg.insert(Qt::Key_1, "LED1");
+        tmpMsg.insert(Qt::Key_3, 0);
+        emit sendAppMsg(tmpMsg);
+        tmpMsg.clear();
+        taskClearData();
+    } else {
+        taskShift = Qt::Key_Stop;
+        currTask = taskMap.values().indexOf(&AppWindow::taskStartSave);
+        tmpSet.insert(addr + TEMPISOK, DATANG);
+    }
     return Qt::Key_Away;
 }
 
@@ -1195,7 +1204,7 @@ void AppWindow::recvNewMsg(QTmpMap msg)
 #endif
     int curr = msg.value(Qt::Key_1).toInt();
     int real = tmpSet.value(3000 + curr).toInt();  // 测试结果存储地址
-    int addr = tmpSet.value((3000 + Qt::Key_0)).toInt();  // 综合测试结果
+    int addr = tmpSet.value(3000 + Qt::Key_0).toInt();  // 综合测试结果
     QList <int> keys = msg.keys();
     int tt = 0;
     switch (curr) {
@@ -1332,6 +1341,10 @@ void AppWindow::recvAppMsg(QTmpMap msg)
         sendSqlite();
         break;
     case Qt::Key_Play:
+        if (stack->currentWidget()->objectName() == "setdcr")
+            emit sendAppMsg(msg);
+        if (stack->currentWidget()->objectName() == "setimp")
+            emit sendAppMsg(msg);
         taskShift = Qt::Key_Play;
         if (msg.value(Qt::Key_1).toString() == "L") {
             station = 0x11;

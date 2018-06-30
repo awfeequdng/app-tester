@@ -80,7 +80,8 @@ private slots:
     void drawImpWave();
     void lineUpdate();
     void waveSwitch();
-    void waveUpdate();
+    void sample();
+    void calc();
     void recvUpdate(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
@@ -96,10 +97,16 @@ private:
     int time;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
+    QTmpMap tmpBuf;
     QPushButton *btnWave;
     QPushButton *btnSave;
+    QPushButton *btnSmin;
+    QPushButton *btnSmax;
+    QPushButton *btnCalc;
     QSpinBox *numbfrom;
     QSpinBox *numbstop;
+    int work;
+    int numbcalc;
 };
 
 #endif // TYPSETIMP_H

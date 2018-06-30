@@ -96,11 +96,11 @@ void TypSetDcr::initWeldBar()
     boxTurn->addItem(tr("顺时针"));
     boxTurn->addItem(tr("逆时针"));
 
-    QComboBox *box = new QComboBox(this);
-    box->setView(new QListView);
-    box->addItem(tr("计算跨阻"));
-    box->setFixedSize(97, 40);
-    layout->addWidget(box);
+//    QComboBox *box = new QComboBox(this);
+//    box->setView(new QListView);
+//    box->addItem(tr("计算跨阻"));
+//    box->setFixedSize(97, 40);
+//    layout->addWidget(box);
 }
 
 void TypSetDcr::initChipBar()
@@ -202,11 +202,19 @@ void TypSetDcr::initButtons()
 
     layout->addStretch();
 
-    btnWeld = new QPushButton(this);
-    btnWeld->setFixedSize(97, 40);
-    btnWeld->setText(tr("采样"));
-    layout->addWidget(btnWeld);
-    connect(btnWeld, SIGNAL(clicked(bool)), this, SLOT(sample()));
+    btnWave = new QPushButton(this);
+    btnWave->setFixedSize(97, 40);
+    btnWave->setText(tr("采样"));
+    btnWave->setEnabled(false);
+    layout->addWidget(btnWave);
+    connect(btnWave, SIGNAL(clicked(bool)), this, SLOT(sample()));
+
+    btnCalc = new QPushButton(this);
+    btnCalc->setFixedSize(97, 40);
+    btnCalc->setText(tr("计算"));
+    btnCalc->setEnabled(false);
+    layout->addWidget(btnCalc);
+    connect(btnCalc, SIGNAL(clicked(bool)), this, SLOT(calc()));
 
     btnSave = new QPushButton(this);
     btnSave->setFixedSize(97, 40);
@@ -217,6 +225,7 @@ void TypSetDcr::initButtons()
 
 void TypSetDcr::initSettings()
 {
+    work = WORKL;
     int s = 0;
     s = tmpSet[(4000 + Qt::Key_1)].toInt();
     boxWeld->setChecked(tmpSet[s + ISCKDCR1] == "1" ? Qt::Checked : Qt::Unchecked);
@@ -295,13 +304,55 @@ void TypSetDcr::sample()
 {
     tmpMsg.insert(Qt::Key_0, Qt::Key_Send);
     tmpMsg.insert(Qt::Key_1, Qt::Key_1);
+    tmpMsg.insert(Qt::Key_4, work);
     tmpMsg.insert(Qt::Key_5, 0);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
 
+void TypSetDcr::calc()
+{
+    if (caches.size() < 2)
+        return;
+    tmpMsg.clear();
+    int loop = 0x04;
+    int addr = tmpSet.value(3000 + Qt::Key_1).toInt();  // 片间结果地址
+    int conf = tmpSet.value(4000 + Qt::Key_0).toInt();  // 综合配置地址
+    int real = tmpSet.value(4000 + Qt::Key_9).toInt();  // 电阻标准地址
+    int quan = tmpSet.value(conf + AddrDCRSC).toInt();
+    int tool = tmpSet.value(conf + AddrDEVSC).toInt() * quan;  // 夹具针数
+    int gear = 0;
+    for (int i=0; i < caches.size(); i++) {
+        QTmpMap tmp = caches.at(i);
+        for (int j=0; j < tool; j++) {
+            volatile int t1 = tmp.value(addr + CACHEDCR + loop*j + DATADCRR).toInt();
+            volatile int t2 = tmp.value(addr + CACHEDCR + loop*j + GEARDCRR).toInt();
+            volatile int t3 = 0;
+            if (i != 0)
+                t3 = tmpMsg.value(real + j*2 + 0).toInt();
+            gear = (j == 0) ? t2 : gear;
+            tmpMsg.insert(real + j*2 + 0, t3 + t1);
+        }
+    }
+    for (int i=0; i < tool; i++) {
+        volatile double t3 = tmpMsg.value(real + i*2 + 0).toInt();
+        tmpMsg.insert(real + i*2 + 0, int(t3/caches.size()));
+    }
+    for (int i=0; i < tmpMsg.keys().size(); i++) {
+        tmpSet.insert(tmpMsg.keys().at(i), tmpMsg.value(tmpMsg.keys().at(i)));
+    }
+    initViewData();
+    caches.clear();
+    btnCalc->setText(tr("计算"));
+    btnCalc->setEnabled(false);
+}
+
 void TypSetDcr::recvUpdate(QTmpMap msg)
 {
+    caches.append(msg);
+    if (caches.size() >= 3)
+        btnCalc->setEnabled(true);
+    btnCalc->setText(tr("计算%1").arg(caches.size()));
     int loop = 0x04;
     int addr = tmpSet.value(3000 + Qt::Key_1).toInt();  // 片间结果地址
     int conf = tmpSet.value(4000 + Qt::Key_0).toInt();  // 综合配置地址
@@ -336,9 +387,20 @@ void TypSetDcr::recvAppMsg(QTmpMap msg)
         break;
     case Qt::Key_Zoom:
         if (msg.value(Qt::Key_1).toInt() == Qt::Key_1)
-            btnWeld->click();
+            btnWave->click();
         if (msg.value(Qt::Key_1).toInt() == Qt::Key_Save)
             btnSave->click();
+        break;
+    case Qt::Key_Call:
+        if (this->isHidden())
+            break;
+        btnWave->setEnabled(false);
+        break;
+    case Qt::Key_Play:
+        if (this->isHidden())
+            break;
+        work = msg.value(Qt::Key_1).toString() == "R" ? WORKR : WORKL;
+        btnWave->setEnabled(true);
         break;
     default:
         break;

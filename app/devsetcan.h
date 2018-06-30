@@ -48,6 +48,8 @@ const int CAN_ID_ACW = 0x0023;
 const int CAN_ID_IMP = 0x0024;
 const int CAN_ID_WAVE = 0x0481;
 
+#define RATIO 14.14
+
 class DevSetCan : public QObject
 {
     Q_OBJECT
@@ -95,6 +97,7 @@ private:
     QQueue<QTmpMap> sender;
     QQueue<QTmpMap> recver;
     int currItem;
+    int prevItem;
     QList<int>wave;
     QElapsedTimer t;
     QTmpMap tmpSet;

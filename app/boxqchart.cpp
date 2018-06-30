@@ -147,7 +147,7 @@ void BoxQChart::drawPie(QPainter *painter)
         } else {
             painter->setBrush(QBrush(QColor("#808000")));
         }
-        if (m_start > 0 && ((m_timer * m_count / 850) == i)) {
+        if (m_start > 0 && ((m_timer / 10) % m_count == i)) {
             painter->setBrush(QBrush(QColor("#00FF00")));
         }
         painter->drawPie(-radius, -radius, radius << 1, radius << 1,

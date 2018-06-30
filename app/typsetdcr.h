@@ -81,6 +81,7 @@ private slots:
     void initViewData();
     void saveSettings();
     void sample();
+    void calc();
     void recvUpdate(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
@@ -101,7 +102,10 @@ private:
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
     QPushButton *btnSave;
-    QPushButton *btnWeld;
+    QPushButton *btnWave;
+    QPushButton *btnCalc;
+    QList<QTmpMap> caches;
+    int work;
 };
 
 #endif // TYPSETDCR_H

@@ -321,11 +321,13 @@ void BoxQLabel::drawAllText(QPainter *painter)
         painter->drawText(x, y, str2);
     }
     if (!str3.isEmpty()) {
+        str3 = QString::number(stop * 100 / IMP_SIZE) + "%";
         int x = w - 0 - fm.size(Qt::TextSingleLine, str3).width();
         int y = h - 5;
         painter->drawText(x, y, str3);
     }
     if (!str4.isEmpty()) {
+        str4 = QString::number(from * 100 / IMP_SIZE) + "%";
         int x = 2;
         int y = h -5;
         painter->drawText(x, y, str4);

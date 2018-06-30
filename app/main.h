@@ -23,6 +23,9 @@ struct pwm_config_info {
     unsigned int count;
 };
 
+#define WORKL 0x11
+#define WORKR 0x14
+
 const int DataFree = 0x00;
 const int DataTest = 0x01;
 
