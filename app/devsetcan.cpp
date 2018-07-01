@@ -533,29 +533,16 @@ void DevSetCan::startACW(QTmpMap map)
     if (curr == NUMBINRS && prevItem >= Qt::Key_4) {  // 计算绝缘
         double prev = tmpSet.value(3000 + prevItem).toInt();  // 上次结果地址
         double parm = tmpSet.value(4000 + currItem).toInt();  // 测试参数存储地址
-        double smax = tmpSet.value(parm + AddrACWSH).toDouble();  // 上限
-        double smin = tmpSet.value(parm + AddrACWSL).toDouble();  // 下限
-        if (tmpSet.value(prev + OKNGACWA).toInt() == DATAOK) {  // 耐压合格,继续计算
-            double volt = tmpSet.value(prev + CACHEACW + VOLTACWR).toDouble();  // 电压
-            double real = tmpSet.value(prev + CACHEACW + DATAACWR).toDouble();  // 结果
-            double gear = tmpSet.value(prev + CACHEACW + GEARACWR).toDouble();  // 档位
-            real = RATIO * volt / (real * qPow(10, -gear));
-            if (((smax == 0) && (real > smin)) || ((smax != 0) && (real > smin && real < smax))) {
-                tmpSet.insert(addr + CACHEACW + OKNGACWR, DATAOK);
-            } else {
-                tmpSet.insert(addr + CACHEACW + OKNGACWR, DATANG);
-                tmpSet.insert(addr + OKNGACWA, DATANG);
-            }
-            real = qMin(real, 9999.0);
-            tmpSet.insert(addr + CACHEACW + VOLTACWR, volt);
-            tmpSet.insert(addr + CACHEACW + DATAACWR, int(real));
+        double quik = tmpSet.value(parm + AddrACWSA).toDouble();  // 快速测试
+        if (tmpSet.value(prev + OKNGACWA).toInt() == DATAOK && quik == 1) {  // 耐压合格,继续计算
+            tmpSet.insert(addr + CACHEACW + DATAACWR, 6000);
             tmpSet.insert(addr + CACHEACW + GEARACWR, 1);
+            tmpSet.insert(addr + CACHEACW + OKNGACWR, DATAOK);
             tmpSet.insert(addr + STATACWA, 0);  // 修改高压板状态
             renewACW();
             return;
         }
     }
-
     QByteArray msg = QByteArray::fromHex("0104001100");  // 01启动;04绝缘;00自动档;11工位;00序号
     msg[1] = (curr == NUMBINRS) ? 0x04 : 0x05;  // 04绝缘/05交耐
     msg[3] = map.value(Qt::Key_4).toInt();
@@ -571,36 +558,44 @@ void DevSetCan::parseACW(QByteArray msg)
     quint8 cmd = quint8(msg.at(0));
     quint8 num = quint8(msg.at(1));
     int curr = currItem - Qt::Key_4;
-    int addr = tmpSet.value(3000 + currItem).toInt();  // 测试结果存储地址
+    volatile int temp = tmpSet.value(3000 + Qt::Key_0).toInt();
+    volatile int addr = tmpSet.value(3000 + currItem).toInt();  // 测试结果存储地址
     if (cmd == 0x00) {
+        qDebug() << "acw recv:" << msg.toHex() << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
         if (currItem == Qt::Key_0) {
-            quint32 temp = tmpSet.value(3000 + Qt::Key_0).toInt();
-            tmpSta.insert(temp + TEMPACWS, quint8(msg.at(1)));
+            tmpSta.insert(temp + TEMPACWS, num);
         } else {
-            qDebug() << "acw recv:" << msg.toHex();
             tmpSet.insert(addr + STATACWA, num);  // 修改高压板状态
             renewACW();
         }
+        tmpACW.clear();
     }
     if (cmd == 0x01) {
-        qDebug() << "acw recv:" << msg.toHex() << currItem;
+        qDebug() << "acw recv:" << msg.toHex() << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
         double parm = tmpSet.value(4000 + currItem).toInt();  // 测试参数存储地址
         double smax = tmpSet.value(parm + AddrACWSH).toDouble();  // 上限
         double smin = tmpSet.value(parm + AddrACWSL).toDouble();  // 下限
         double volt = quint8(msg.at(1))*256 + (quint8)msg.at(2);  // 实测电压
         double real = quint8(msg.at(3))*256 + (quint8)msg.at(4);  // 实测结果
         double gear = quint8(msg.at(5));  // 小数位数
-        tmpSet.insert(addr + CACHEACW + VOLTACWR, volt);
-        tmpSet.insert(addr + CACHEACW + DATAACWR, real);
-        tmpSet.insert(addr + CACHEACW + GEARACWR, gear);
+        if (!tmpACW.isEmpty()) {
+            tmpSet.insert(addr + OKNGACWA, tmpACW.value(addr +OKNGACWA));
+            tmpSet.insert(addr + CACHEACW + VOLTACWR, tmpACW.value(addr + CACHEACW + VOLTACWR));
+            tmpSet.insert(addr + CACHEACW + DATAACWR, tmpACW.value(addr + CACHEACW + DATAACWR));
+            tmpSet.insert(addr + CACHEACW + GEARACWR, tmpACW.value(addr + CACHEACW + GEARACWR));
+            tmpSet.insert(addr + CACHEACW + OKNGACWR, tmpACW.value(addr + CACHEACW + OKNGACWA));
+        }
+        tmpACW.insert(addr + CACHEACW + VOLTACWR, volt);
+        tmpACW.insert(addr + CACHEACW + DATAACWR, real);
+        tmpACW.insert(addr + CACHEACW + GEARACWR, gear);
         real *= qPow(10, -gear);
         smax = (curr == NUMBINRS) ? smax : smax/100;  // 耐压电流倍数100
         smin = (curr == NUMBINRS) ? smin : smin/100;  // 耐压电流倍数100
         if (((smax == 0) && (real > smin)) || ((smax != 0) && (real > smin && real < smax))) {
-            tmpSet.insert(addr + CACHEACW + OKNGACWR, DATAOK);
+            tmpACW.insert(addr + CACHEACW + OKNGACWR, DATAOK);
         } else {
-            tmpSet.insert(addr + CACHEACW + OKNGACWR, DATANG);
-            tmpSet.insert(addr + OKNGACWA, DATANG);
+            tmpACW.insert(addr + CACHEACW + OKNGACWR, DATANG);
+            tmpACW.insert(addr + OKNGACWA, DATANG);
         }
     }
     if (cmd == 0x06) {
@@ -970,17 +965,17 @@ void DevSetCan::recvAppMsg(QTmpMap msg)
         getAllDat();
         putAllDat();
         updateAll();
-                timeOut++;
-                if (timeOut % 500 == 0) {
-        //            currItem = Qt::Key_0;
-        //            sendDevData(CAN_ID_DCR, QByteArray::fromHex("08"));
-        //            sendDevData(CAN_ID_ACW, QByteArray::fromHex("08"));
-        //            sendDevData(CAN_ID_IMP, QByteArray::fromHex("08"));
-                    sendDevData(CAN_ID_DCR, QByteArray::fromHex("05"));
-        //            tmpSta.insert(Qt::Key_0, Qt::Key_Menu);
-        //            emit sendAppMsg(tmpSta);
-        //            tmpSta.clear();
-                }
+        timeOut++;
+        if (timeOut % 500 == 0) {
+            //            currItem = Qt::Key_0;
+            //            sendDevData(CAN_ID_DCR, QByteArray::fromHex("08"));
+            //            sendDevData(CAN_ID_ACW, QByteArray::fromHex("08"));
+            //            sendDevData(CAN_ID_IMP, QByteArray::fromHex("08"));
+            sendDevData(CAN_ID_DCR, QByteArray::fromHex("05"));
+            //            tmpSta.insert(Qt::Key_0, Qt::Key_Menu);
+            //            emit sendAppMsg(tmpSta);
+            //            tmpSta.clear();
+        }
         break;
     case Qt::Key_Send:
         setupTest(msg);

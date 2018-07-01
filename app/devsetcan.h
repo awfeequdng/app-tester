@@ -105,6 +105,7 @@ private:
     QTmpMap tmpMsg;
     int timeOut;
     int numb;
+    QTmpMap tmpACW;
     QTmpMap tmpDCR;
     QTmpMap tmpPow;
     QTmpMap tmpRow;

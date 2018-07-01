@@ -22,6 +22,8 @@
 
 #define DATAOK  0x00
 #define DATANG  0x01
+#define DATAON  0x02
+#define DATADC  0x03
 #define DERROR  0xFF
 
 #define TEMPDATE 0x01  // 测试日期

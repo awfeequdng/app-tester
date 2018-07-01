@@ -575,15 +575,15 @@ int AppWindow::initSocket()
 {
     volatile int back = tmpSet.value(1000 + Qt::Key_0).toInt();  // 后台配置地址
     QString host = tmpSet.value(back + 9).toString();  // 目标IP
-    TcpSocket *tcp = new TcpSocket;
-    tcp->setObjectName("socket");
-    connect(tcp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
-    connect(this, SIGNAL(sendNetMsg(QTmpMap)), tcp, SLOT(recvAppMsg(QTmpMap)));
-    tcp->connectToServer(tmpSet);
-    tcp->moveToThread(sql);
-#ifndef __arm__
-    tcp->readSqlite(host);
-#endif
+//    TcpSocket *tcp = new TcpSocket;
+//    tcp->setObjectName("socket");
+//    connect(tcp, SIGNAL(sendAppMsg(QTmpMap)), this, SLOT(recvAppMsg(QTmpMap)));
+//    connect(this, SIGNAL(sendNetMsg(QTmpMap)), tcp, SLOT(recvAppMsg(QTmpMap)));
+//    tcp->connectToServer(tmpSet);
+//    tcp->moveToThread(sql);
+//#ifndef __arm__
+//    tcp->readSqlite(host);
+//#endif
 
     TcpServer *app = new TcpServer;
     app->setObjectName("socket");

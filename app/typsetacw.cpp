@@ -38,7 +38,7 @@ void TypSetAcw::initInrView()
 {
     QStringList headers;
     headers << tr("测试") << tr("项目") << tr("电压V") << tr("时间s")
-            << tr("上限MΩ") << tr("下限MΩ") << tr("补偿MΩ") << tr("异常报警");
+            << tr("上限MΩ") << tr("下限MΩ") << tr("补偿MΩ") << tr("快速测试");
 
     QStringList names;
     names << tr("绝缘电阻");
@@ -167,7 +167,7 @@ void TypSetAcw::initDelegate()
     acwView->setItemDelegateForColumn(AddrACWSL, curr);
     inrView->setItemDelegateForColumn(AddrACWSO, new BoxQItems);
     acwView->setItemDelegateForColumn(AddrACWSO, new BoxQItems);
-    inrView->setItemDelegateForColumn(AddrACWSA, new BoxQItems);
+//    inrView->setItemDelegateForColumn(AddrACWSA, new BoxQItems);
     acwView->setItemDelegateForColumn(AddrACWSA, new BoxQItems);
 }
 

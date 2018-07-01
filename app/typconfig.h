@@ -83,7 +83,7 @@ private:
 
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
-    QPushButton *btnZoom;
+//    QPushButton *btnZoom;
     QPushButton *btnSave;
 };
 

@@ -112,12 +112,13 @@ void TypConfig::initConfigBar()
     settings->setColumnWidth(0, 70);
     settings->setEditTriggers(QAbstractItemView::AllEditTriggers);
     layout->addWidget(settings);
-    btnZoom = new QPushButton(this);
-    btnZoom->setText(tr("快速设置"));
-    btnZoom->setFixedHeight(40);
-    layout->addWidget(btnZoom);
-    connect(btnZoom, SIGNAL(clicked(bool)), this, SLOT(clickZoom()));
-    layout->addStretch();
+
+//    btnZoom = new QPushButton(this);
+//    btnZoom->setText(tr("快速设置"));
+//    btnZoom->setFixedHeight(40);
+//    layout->addWidget(btnZoom);
+//    connect(btnZoom, SIGNAL(clicked(bool)), this, SLOT(clickZoom()));
+//    layout->addStretch();
 
     QHBoxLayout *nameLayout = new QHBoxLayout;
     nameLayout->addWidget(new QLabel(tr("型号:"), this));
@@ -178,7 +179,7 @@ void TypConfig::initDelegate()
 
 void TypConfig::initSettings()
 {
-    btnZoom->setEnabled(true);
+//    btnZoom->setEnabled(true);
     int p = page->text().toInt() - 1;    // 页码
     int r = tmpSet[(2000 + Qt::Key_4)].toInt();
     int s = r + C_ROW*p;       // 起始地址
@@ -292,7 +293,7 @@ void TypConfig::removeModel()
 
 void TypConfig::clickZoom()
 {
-    btnZoom->setEnabled(false);
+//    btnZoom->setEnabled(false);
     tmpMsg.insert(Qt::Key_0, Qt::Key_Zoom);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();

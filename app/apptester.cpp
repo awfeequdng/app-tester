@@ -758,9 +758,6 @@ void AppTester::recvLedMsg(QTmpMap msg)
             testQu++;
             testOK++;
             textResult->setText(judgeOK);
-            //            //显示测试时间
-            //            impView->setText(tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0')) , 1);
-            //            impView->update();
         }
         if (tmp == "LEDR") {
             testQu++;
