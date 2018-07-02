@@ -58,6 +58,7 @@ const QString largeEN = "<p style='font-size:15pt;color:#666666;' align='center'
 const QString judgeOK = "<p style='font-size:64pt;color:#00FF00;'align='center'><b>OK</b></p>";
 const QString judgeNG = "<p style='font-size:64pt;color:#FF0000;'align='center'><b>NG</b></p>";
 const QString judgeON = "<p style='font-size:64pt;color:#FFFF00;'align='center'><b>%1</b></p>";
+const QString judgeDC = "<p style='font-size:64pt;color:#FF0000;'align='center'><b>DC</b></p>";
 
 class AppTester : public QWidget
 {

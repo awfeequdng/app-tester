@@ -738,8 +738,39 @@ void AppTester::recvTmpMsg(QTmpMap msg)
 
 void AppTester::recvLedMsg(QTmpMap msg)
 {
-    QString tmp = msg.value(Qt::Key_1).toString();
-    if (msg.value(Qt::Key_3).isNull() && tmp == "LEDY") {
+    int stat = msg.value(Qt::Key_2).toInt();
+    int beep = msg.value(Qt::Key_3).toInt();
+    int work = msg.value(Qt::Key_4).toInt();
+    QString isok = judgeNG;
+    switch (stat) {
+    case DATADC:
+        if (beep > 0) {
+            boxChart->setRun(0);
+            btnHome->setEnabled(true);
+            btnConf->setEnabled(true);
+            btnPlay->setText(tr("启动测试"));
+            textResult->setText(judgeDC);
+        }
+        break;
+    case DATAOK:
+        if (beep > 0) {
+            testOK++;
+            isok = judgeOK;
+        }
+        //        break;
+    case DATANG:
+        if (beep > 0) {
+            boxChart->setRun(0);
+            btnHome->setEnabled(true);
+            btnConf->setEnabled(true);
+            btnPlay->setText(tr("启动测试"));
+            testQu++;
+            textResult->setText(isok);
+            drawAllRate();
+        }
+        break;
+
+    case DATAON:  // 启动测试,清理界面
         t.restart();
         initTextView();
         btnHome->setEnabled(false);
@@ -747,23 +778,12 @@ void AppTester::recvLedMsg(QTmpMap msg)
         btnPlay->setText(tr("停止测试"));
         textResult->setText(judgeON.arg("ON"));
         boxChart->setRun(1);
-        QString str = (msg.value(Qt::Key_4).toInt() == 0x11 ? tr("左") : tr("右"));
-        textWorker->setText(judgeON.arg(str));
-    } else if (msg.value(Qt::Key_3).toInt() >= 0) {
-        boxChart->setRun(0);
-        btnHome->setEnabled(true);
-        btnConf->setEnabled(true);
-        btnPlay->setText(tr("启动测试"));
-        if (tmp == "LEDG") {
-            testQu++;
-            testOK++;
-            textResult->setText(judgeOK);
-        }
-        if (tmp == "LEDR") {
-            testQu++;
-            textResult->setText(judgeNG);
-        }
-        drawAllRate();
+        textWorker->setText(judgeON.arg((work == 0x11 ? tr("左") : tr("右"))));
+        break;
+    case DATADD:
+        break;
+    default:
+        break;
     }
 }
 

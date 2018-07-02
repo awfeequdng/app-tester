@@ -133,21 +133,33 @@ void TypSetAcw::initButtons()
 
 void TypSetAcw::initDelegate()
 {
-    BoxDouble *volt = new BoxDouble;
-    volt->setDecimals(0);
-    volt->setMaxinum(5000);
+    BoxDouble *acwv = new BoxDouble;
+    acwv->setDecimals(0);
+    acwv->setMaxinum(3000);
+    acwView->setItemDelegateForColumn(AddrACWSV, acwv);
+
+    BoxDouble *inrv = new BoxDouble;
+    inrv->setDecimals(0);
+    inrv->setMaxinum(1000);
+    inrView->setItemDelegateForColumn(AddrACWSV, inrv);
 
     BoxDouble *time = new BoxDouble;
     time->setDecimals(1);
     time->setMaxinum(999.9);
+    inrView->setItemDelegateForColumn(AddrACWST, time);
+    acwView->setItemDelegateForColumn(AddrACWST, time);
 
     BoxDouble *insr = new BoxDouble;
     insr->setDecimals(0);
     insr->setMaxinum(500);
+    inrView->setItemDelegateForColumn(AddrACWSH, insr);
+    inrView->setItemDelegateForColumn(AddrACWSL, insr);
 
     BoxDouble *curr = new BoxDouble;
     curr->setDecimals(3);
     curr->setMaxinum(25);
+    acwView->setItemDelegateForColumn(AddrACWSH, curr);
+    acwView->setItemDelegateForColumn(AddrACWSL, curr);
 
     BoxDouble *comp = new BoxDouble;
     comp->setDecimals(0);
@@ -157,17 +169,8 @@ void TypSetAcw::initDelegate()
     acwView->setItemDelegateForColumn(AddrACWSC, new BoxQItems);
     inrView->setItemDelegateForColumn(AddrACWSN, new BoxQItems);
     acwView->setItemDelegateForColumn(AddrACWSN, new BoxQItems);
-    inrView->setItemDelegateForColumn(AddrACWSV, volt);
-    acwView->setItemDelegateForColumn(AddrACWSV, volt);
-    inrView->setItemDelegateForColumn(AddrACWST, time);
-    acwView->setItemDelegateForColumn(AddrACWST, time);
-    inrView->setItemDelegateForColumn(AddrACWSH, insr);
-    acwView->setItemDelegateForColumn(AddrACWSH, curr);
-    inrView->setItemDelegateForColumn(AddrACWSL, insr);
-    acwView->setItemDelegateForColumn(AddrACWSL, curr);
     inrView->setItemDelegateForColumn(AddrACWSO, new BoxQItems);
     acwView->setItemDelegateForColumn(AddrACWSO, new BoxQItems);
-//    inrView->setItemDelegateForColumn(AddrACWSA, new BoxQItems);
     acwView->setItemDelegateForColumn(AddrACWSA, new BoxQItems);
 }
 

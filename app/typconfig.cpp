@@ -118,7 +118,7 @@ void TypConfig::initConfigBar()
 //    btnZoom->setFixedHeight(40);
 //    layout->addWidget(btnZoom);
 //    connect(btnZoom, SIGNAL(clicked(bool)), this, SLOT(clickZoom()));
-//    layout->addStretch();
+    layout->addStretch();
 
     QHBoxLayout *nameLayout = new QHBoxLayout;
     nameLayout->addWidget(new QLabel(tr("型号:"), this));

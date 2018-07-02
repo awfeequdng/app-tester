@@ -184,8 +184,18 @@ void TypSetImp::initButtons()
 
 void TypSetImp::initDelegate()
 {
+    BoxDouble *volt = new BoxDouble;
+    volt->setDecimals(0);
+    volt->setMaxinum(3000);
+
+    BoxDouble *time = new BoxDouble;
+    time->setDecimals(0);
+    time->setMaxinum(1);
+
     view->setItemDelegateForColumn(0, new BoxQItems);
     view->setItemDelegateForColumn(1, new BoxQItems);
+    view->setItemDelegateForColumn(2, volt);
+    view->setItemDelegateForColumn(3, time);
 }
 
 void TypSetImp::initSettings()
@@ -293,8 +303,11 @@ void TypSetImp::lineUpdate()
 
 void TypSetImp::waveSwitch()
 {
-    int addr = tmpSet.value(4000 + Qt::Key_0).toInt();  // 综合配置地址
+    volatile int addr = tmpSet.value(4000 + Qt::Key_0).toInt();  // 综合配置地址
+    volatile int parm = tmpSet.value(4000 + Qt::Key_8).toInt();  // 匝间配置地址
     int quan = tmpSet.value(addr + AddrDCRSC).toInt();  // 电枢片数
+    int spac = tmpSet.value(parm + AddrIMPSA).toInt();  // 采样间隔
+    quan = (spac * 2 == quan) ? quan / 2 : quan;  // 对角测试
 
     QPushButton *btn = qobject_cast<QPushButton*>(sender());
     int numb = numbcurr->text().toInt();
@@ -394,13 +407,15 @@ void TypSetImp::recvUpdate(QTmpMap msg)
             impWave = tmpWave;
         }
         numbcurr->setText(QString::number(tmpn));
-    } else if (stdn != 0) {
+    } else {
         numbcalc++;
-        tmpWave = impWave;
         numbcurr->setText(QString::number(stdn));
         btnCalc->setText(tr("计算%1").arg(numbcalc));
         if (numbcalc >= 4)
             btnCalc->setEnabled(true);
+    }
+    if (tmps != DataTest && stdn != 0) {
+        tmpWave = impWave;
     }
     drawImpWave();
 }

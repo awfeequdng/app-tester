@@ -851,15 +851,24 @@ void DevSetCan::setupView(QTmpMap msg)
 
 void DevSetCan::setupPump(QTmpMap msg)
 {
-    QString tmp = msg.value(Qt::Key_1).toString();
-    if (msg.value(Qt::Key_3).isNull() && tmp == "LEDY") {
-        int s = msg.value(Qt::Key_4).toInt();
-        sendDevData(CAN_ID_DCR, QByteArray::fromHex((s == 0x11) ? "0901" : "0904"));
-    } else {
-        sendDevData(CAN_ID_DCR, QByteArray::fromHex("0900"));
+    int stat = msg.value(Qt::Key_2).toInt();  // 状态
+    int work = msg.value(Qt::Key_4).toInt();  // 工位
+    QByteArray pump;
+    switch (stat) {
+    case DATAON:  // 测试中启动气泵
+        pump = QByteArray::fromHex((work == 0x11) ? "0901" : "0904");
+        sendDevData(CAN_ID_DCR, pump);
+        qDebug() << "dcr pump:" << pump.toHex();
+        break;
+    case DATADC:  // 中止测试发下停止
         resetTest(msg);
+        //        break;
+    default:  // 测试完成弹开
+        pump = QByteArray::fromHex("0900");
+        sendDevData(CAN_ID_DCR, pump);
+        qDebug() << "dcr pump:" << pump.toHex();
+        break;
     }
-    qDebug() << "dcr send:" << "pump";
 }
 
 void DevSetCan::setupTest(QTmpMap msg)

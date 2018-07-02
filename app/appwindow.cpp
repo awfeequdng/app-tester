@@ -626,7 +626,6 @@ int AppWindow::initThread()
     currTask = 0;
     currTest = 0;
     station = 0x11;
-    tmpMsg.insert(tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPWORK, station);
 
     return Qt::Key_Away;
 }
@@ -925,9 +924,9 @@ int AppWindow::taskCheckCode()
 int AppWindow::taskStartView()
 {
     tmpMsg.insert(Qt::Key_0, Qt::Key_Call);
+    tmpMsg.insert(Qt::Key_2, DATAON);
     tmpMsg.insert(Qt::Key_1, "LEDY");
     tmpMsg.insert(Qt::Key_4, station);
-    tmpMsg.insert(tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPWORK, station);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 
@@ -957,6 +956,7 @@ int AppWindow::taskStartSave()
     tmpSet.insert(Qt::Key_0, Qt::Key_Save);  // 存储数据
     tmpSet.insert(Qt::Key_1, "aip_record");
     tmpSet.insert(addr + TEMPSTOP, QTime::currentTime());
+    tmpSet.insert(addr + TEMPWORK, station);
     emit sendAppMsg(tmpSet);
     qDebug() <<"app save:" << tr("%1ms").arg(t.elapsed(), 4, 10, QChar('0'));
     return Qt::Key_Away;
@@ -964,9 +964,13 @@ int AppWindow::taskStartSave()
 
 int AppWindow::taskStartBeep()
 {
+    int real = tmpSet.value(3000 + Qt::Key_0).toInt();  // 零散参数地址
+    int isok = tmpSet.value(real + TEMPISOK).toInt();
     int addr = tmpSet[(2000 + Qt::Key_1)].toInt();
-    int beep = tmpSet[addr + SystBeep].toInt() * 10 + 9;
+    int beep = tmpSet.value(addr + SystBeep).toInt() * 10 + 9;
     tmpMsg.insert(Qt::Key_0, Qt::Key_Call);
+    tmpMsg.insert(Qt::Key_1, isok == DATAOK ? "LEDG" : "LEDR");
+    tmpMsg.insert(Qt::Key_2, (taskShift == Qt::Key_Stop) ? DATADC : isok);
     tmpMsg.insert(Qt::Key_3, beep);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
@@ -978,15 +982,15 @@ int AppWindow::taskStartBeep()
 int AppWindow::taskClearBeep()
 {
     int ret = Qt::Key_Meta;
-    int addr = tmpSet[(2000 + Qt::Key_1)].toInt();  // 系统设置地址
-    int real = tmpSet.value((3000 + Qt::Key_0)).toInt();  // 零散参数地址
+    int addr = tmpSet.value(2000 + Qt::Key_1).toInt();  // 系统设置地址
+    int real = tmpSet.value(3000 + Qt::Key_0).toInt();  // 零散参数地址
     int isok = tmpSet.value(real + TEMPISOK).toInt();
     int tt = tmpSet.value(addr + (isok == DATAOK ? SystTime : SystWarn)).toDouble()*1000;
     if (t.elapsed() - timeOut >= tt) {
         timeOut = t.elapsed();
         ret = Qt::Key_Away;
         tmpMsg.insert(Qt::Key_0, Qt::Key_Call);
-        tmpMsg.insert(Qt::Key_1, isok == DATAOK ? "LEDG" : "LEDR");
+//        tmpMsg.insert(Qt::Key_1, isok == DATAOK ? "LEDG" : "LEDR");
         tmpMsg.insert(Qt::Key_3, 0);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
@@ -1015,7 +1019,6 @@ int AppWindow::taskResetTest()
                         station = 0x14;
                     if (test == 3)
                         station = (station == 0x11) ? 0x14 : 0x11;
-                    tmpMsg.insert(tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPWORK, station);
                     t.restart();
                 }
             }
@@ -1030,6 +1033,7 @@ int AppWindow::taskCheckStop()
     if (currTask <= taskMap.values().indexOf(&AppWindow::taskCheckPlay)) {
         tmpMsg.insert(Qt::Key_0, Qt::Key_Call);
         tmpMsg.insert(Qt::Key_1, "LED1");
+        tmpMsg.insert(Qt::Key_2, DATADD);
         tmpMsg.insert(Qt::Key_3, 0);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
@@ -1123,7 +1127,6 @@ int AppWindow::testStartSend()
     tmpMsg.insert(Qt::Key_0, Qt::Key_Play);
     tmpMsg.insert(Qt::Key_1, currItem);
     tmpMsg.insert(Qt::Key_4, station);
-    tmpMsg.insert(tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPWORK, station);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
     return Qt::Key_Away;
@@ -1348,11 +1351,9 @@ void AppWindow::recvAppMsg(QTmpMap msg)
         taskShift = Qt::Key_Play;
         if (msg.value(Qt::Key_1).toString() == "L") {
             station = 0x11;
-            tmpMsg.insert(tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPWORK, station);
         }
         if (msg.value(Qt::Key_1).toString() == "R") {
             station = 0x14;
-            tmpMsg.insert(tmpSet.value((3000 + Qt::Key_0)).toInt() + TEMPWORK, station);
         }
         break;
     case Qt::Key_Stop:  // 停止测试
