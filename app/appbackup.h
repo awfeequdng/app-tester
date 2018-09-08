@@ -29,6 +29,21 @@
 
 #include "main.h"
 
+const int backType = 0x00;
+const int backCode = 0x01;
+const int backArea = 0x04;
+const int backWork = 0x05;
+const int backVolt = 0x06;
+const int backAuto = 0x07;
+const int backWait = 0x08;
+const int backHost = 0x09;
+const int backGrnd = 0x0A;
+const int backMode = 0x0B;
+const int backNMag = 0x0C;
+const int backWave = 0x0D;
+const int backVacu = 0x0E;
+const int backTest = 0x0F;
+
 class AppBackup : public QWidget
 {
     Q_OBJECT

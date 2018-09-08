@@ -274,6 +274,7 @@ void TcpSocket::recvSocketConnected()
     timer->start(5000);
 
     tmpMsg.insert(Qt::Key_0, Qt::Key_WLAN);
+    tmpMsg.insert(Qt::Key_1, "show");
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
 }
@@ -281,6 +282,10 @@ void TcpSocket::recvSocketConnected()
 void TcpSocket::sendSocketBeat()
 {
     if (this->state() != QAbstractSocket::ConnectedState) {
+        tmpMsg.insert(Qt::Key_0, Qt::Key_WLAN);
+        tmpMsg.insert(Qt::Key_1, "hide");
+        emit sendAppMsg(tmpMsg);
+        tmpMsg.clear();
         connectToServer(tmpSet);
     } else {
         sendSocket(ADDR, BEAT, "");

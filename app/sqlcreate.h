@@ -22,7 +22,6 @@
 #include "main.h"
 
 #include "appmaster.h"
-#include "appaction.h"
 #include "typconfig.h"
 
 
@@ -37,7 +36,7 @@ signals:
     void sendAppMsg(QTmpMap msg);
 public slots:
     void initSqlDir();
-public slots:
+private slots:
     void initTmpDat();
     void openBackup(bool isExist);
     void openSystem(bool isExist);

@@ -11,7 +11,6 @@
 AppBackup::AppBackup(QWidget *parent) : QWidget(parent)
 {
     initUI();
-
 }
 
 void AppBackup::initUI()
@@ -147,28 +146,38 @@ void AppBackup::initNetworks()
         for (int i=0; i < s.size(); i++) {
             if (QString(s.at(i)).endsWith("/")) {
                 QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
-                if (t.size() >= 6)
-                    text->insertPlainText(tr("[DiskA]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1)));
+                if (t.size() >= 6) {
+                    QString str = tr("[DiskA]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1));
+                    text->insertPlainText(str);
+                }
             }
             if (QString(s.at(i)).endsWith("/mnt/sdcard")) {
                 QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
-                if (t.size() >= 6)
-                    text->insertPlainText(tr("[DiskB]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1)));
+                if (t.size() >= 6) {
+                    QString str = tr("[DiskB]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1));
+                    text->insertPlainText(str);
+                }
             }
             if (QString(s.at(i)).endsWith("/mnt/nandflash")) {
                 QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
-                if (t.size() >= 6)
-                    text->insertPlainText(tr("[DiskC]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1)));
+                if (t.size() >= 6) {
+                    QString str = tr("[DiskC]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1));
+                    text->insertPlainText(str);
+                }
             }
             if (QString(s.at(i)).endsWith("/mnt/usb1")) {
                 QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
-                if (t.size() >= 6)
-                    text->insertPlainText(tr("[DiskD]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1)));
+                if (t.size() >= 6) {
+                    QString str = tr("[DiskD]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1));
+                    text->insertPlainText(str);
+                }
             }
             if (QString(s.at(i)).endsWith("/mnt/usb2")) {
                 QStringList t = QString(s.at(i)).split(" ", QString::SkipEmptyParts);
-                if (t.size() >= 6)
-                    text->insertPlainText(tr("[DiskE]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1)));
+                if (t.size() >= 6) {
+                    QString str = tr("[DiskE]\tUSED:%1\tALL:%2\n").arg(t.at(4)).arg(t.at(1));
+                    text->insertPlainText(str);
+                }
             }
         }
     }

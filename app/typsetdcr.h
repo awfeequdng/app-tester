@@ -80,8 +80,14 @@ private slots:
     void initSettings();
     void initViewData();
     void saveSettings();
-    void sample();
-    void calc();
+    void autoChange();
+    void change();
+    void clearView();
+    void sampleAuto();
+    void sampleTest();
+    void sampleBack();
+    void sampleOver();
+    void initBtnShow();
     void recvUpdate(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
@@ -102,10 +108,14 @@ private:
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
     QPushButton *btnSave;
-    QPushButton *btnWave;
-    QPushButton *btnCalc;
-    QList<QTmpMap> caches;
+    QPushButton *btnWaveS;
+    QPushButton *btnWaveD;
+    QPushButton *btnWaveC;
+    QList<QTmpMap> waveCopys;
     int work;
+    bool isInit;
+    int gear;
+    int test;
 };
 
 #endif // TYPSETDCR_H

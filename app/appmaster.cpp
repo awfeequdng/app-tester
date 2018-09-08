@@ -8,6 +8,8 @@
 *******************************************************************************/
 #include "appmaster.h"
 
+const int maxRow = 15;
+
 AppMaster::AppMaster(QWidget *parent) : QWidget(parent)
 {
     initUI();
@@ -18,214 +20,132 @@ void AppMaster::initUI()
     initLayout();
     initViewBar();
     initLineBar();
-    initButtons();
     initDelegate();
 }
 
 void AppMaster::initLayout()
 {
-    boxLayout = new QHBoxLayout;
-    btnLayout = new QVBoxLayout;
-
-    QHBoxLayout *tmpLayout = new QHBoxLayout;
-    tmpLayout->addLayout(boxLayout);
-    tmpLayout->addLayout(btnLayout);
-    tmpLayout->setStretch(0, 1);
-
+    QVBoxLayout *mlayout = new QVBoxLayout(this);
     QGroupBox *box = new QGroupBox(this);
-    box->setLayout(tmpLayout);
-
-    QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->addWidget(box);
+    mlayout->addWidget(box);
+    layout = new QVBoxLayout;
+    box->setLayout(layout);
 }
 
 void AppMaster::initViewBar()
 {
     QStringList headers;
-    headers << tr("编号") << tr("用户名称") << tr("用户密码") << tr("用户权限") << tr("登录时间");
+    headers << tr("用户名称") << tr("用户密码")
+            << tr("用户权限") << tr("末次登录时间");
 
     view = new QTableWidget(this);
-    view->setRowCount(M_ROW);
-    view->verticalHeader()->hide();
     view->setColumnCount(headers.size());
     view->setHorizontalHeaderLabels(headers);
+    view->verticalHeader()->setFixedWidth(26);
     view->horizontalHeader()->setFixedHeight(30);
-    for (int i=0; i < headers.size(); i++) {
-        for (int j=0; j < M_ROW; j++) {
+#if (QT_VERSION <= QT_VERSION_CHECK(5, 0, 0))
+    view->verticalHeader()->setResizeMode(QHeaderView::Stretch);
+    view->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
+#else
+    view->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+#endif
+    connect(view, SIGNAL(clicked(QModelIndex)), this, SLOT(clickViewBar()));
+    view->setRowCount(maxRow);
+    for (int col=0; col < headers.size(); col++) {
+        for (int row=0; row < maxRow; row++) {
             QTableWidgetItem *item = new QTableWidgetItem;
             item->setTextAlignment(Qt::AlignCenter);
-            view->setItem(j, i, item);
+            view->setItem(row, col, item);
         }
     }
-#if (QT_VERSION <= QT_VERSION_CHECK(5, 0, 0))
-    view->horizontalHeader()->setResizeMode(4, QHeaderView::Stretch);
-    view->horizontalHeader()->setResizeMode(0, QHeaderView::Fixed);
-    view->verticalHeader()->setResizeMode(QHeaderView::Stretch);
-#else
-    view->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
-    view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
-    view->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-#endif
-    view->setColumnWidth(0, 50);
-    view->setEditTriggers(QAbstractItemView::AllEditTriggers);
-    connect(view, SIGNAL(clicked(QModelIndex)), this, SLOT(clickViewBar()));
-    boxLayout->addWidget(view);
-    boxLayout->setStretch(0, 1);
+    layout->addWidget(view);
 }
 
 void AppMaster::initLineBar()
 {
-    roles << tr("管理员") << tr("技术员") << tr("操作员");
+    gRole << tr("管理员") << tr("技术员") << tr("操作员");
 
-    QVBoxLayout *layout = new QVBoxLayout;
-    btnLayout->addLayout(layout);
+    QHBoxLayout *blayout = new QHBoxLayout;
+    layout->addLayout(blayout);
 
-    QStringList tmp;
-    tmp << tr("编号") << tr("名称") << tr("密码") << tr("权限");
-    QList<QWidget*> win;
+    blayout->addWidget(new QLabel(tr("名称"), this));
+    iName = new QLineEdit(this);
+    iName->setFixedSize(97, 40);
+    blayout->addWidget(iName);
 
-    lineNumb = new QLineEdit(this);
-    lineNumb->setFixedSize(97, 40);
-    win.append(lineNumb);
+    blayout->addWidget(new QLabel(tr("密码"), this));
+    iPass = new QLineEdit(this);
+    iPass->setFixedSize(97, 40);
+    iPass->setEchoMode(QLineEdit::Password);
+    blayout->addWidget(iPass);
 
-    lineName = new QLineEdit(this);
-    lineName->setFixedSize(97, 40);
-    win.append(lineName);
+    blayout->addWidget(new QLabel(tr("权限"), this));
+    iRole = new QComboBox(this);
+    iRole->addItems(gRole);
+    iRole->setFixedSize(97, 40);
+    iRole->setView(new QListView);
+    blayout->addWidget(iRole);
 
-    linePass = new QLineEdit(this);
-    linePass->setFixedSize(97, 40);
-    linePass->setEchoMode(QLineEdit::Password);
-    win.append(linePass);
-
-    boxGroup = new QComboBox(this);
-    boxGroup->setFixedSize(97, 40);
-    boxGroup->addItems(roles);
-    boxGroup->setView(new QListView);
-    win.append(boxGroup);
-
-    for (int i=0; i < tmp.size(); i++) {
-        QHBoxLayout *box = new QHBoxLayout;
-        box->addWidget(new QLabel(tmp.at(i), this));
-        box->addWidget(win.at(i));
-        layout->addLayout(box);
-    }
-
-    layout->addStretch();
-}
-
-void AppMaster::initButtons()
-{
-    btnLayout->addStretch();
-
-    QPushButton *btnAdd = new QPushButton(this);
-    btnAdd->setFixedHeight(40);
-    btnAdd->setText(tr("添加"));
-    btnLayout->addWidget(btnAdd);
-    connect(btnAdd, SIGNAL(clicked(bool)), this, SLOT(appendMaster()));
-
-    QPushButton *btnDel = new QPushButton(this);
-    btnDel->setFixedHeight(40);
-    btnDel->setText(tr("删除"));
-    btnLayout->addWidget(btnDel);
-    connect(btnDel, SIGNAL(clicked(bool)), this, SLOT(removeMaster()));
-
-    QPushButton *save = new QPushButton(this);
-    save->setFixedHeight(40);
-    save->setText(tr("保存"));
-    btnLayout->addWidget(save);
-    connect(save, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
+    blayout->addStretch();
+    QPushButton *btnSave = new QPushButton(this);
+    btnSave->setFixedSize(97, 44);
+    btnSave->setText(tr("保存"));
+    blayout->addWidget(btnSave);
+    connect(btnSave, SIGNAL(clicked(bool)), this, SLOT(saveSettings()));
 }
 
 void AppMaster::initDelegate()
 {
-    BoxQCombo *group = new BoxQCombo;
-    group->setItemNames(roles);
-
-    view->setItemDelegateForColumn(0, new BoxQItems);
-    view->setItemDelegateForColumn(1, new BoxQItems);
-    view->setItemDelegateForColumn(2, new BoxQItems);
-    view->setItemDelegateForColumn(3, new BoxQItems);
-    view->setItemDelegateForColumn(4, new BoxQItems);
+    view->setItemDelegate(new BoxQItems);
 }
 
 void AppMaster::initSettings()
 {
-    int r = tmpSet[(2000 + Qt::Key_5)].toInt() + 5;  // 用户存放地址
-    for (int i=0; i < M_ROW; i++) {
-        int s = r + i*5;
-        QString name = tmpSet[s + AddrName].toString();
+    int user = tmpSet.value(2000 + Qt::Key_5).toInt();  // 用户存放地址
+    for (int i=0; i < maxRow; i++) {
+        int addr = user + (i + 1) * 5;  // 隐藏超级用户
+        int numb = (tmpSet.value(addr + mRole).toInt() - 1) % gRole.size();
+        QString name = tmpSet.value(addr + mName).toString();
         if (!name.isEmpty()) {
-            QString role = roles.at(tmpSet[s + AddrRole].toInt()-1);
-            QString time = tmpSet[s + AddrLast].toString();
-            view->item(i, 1)->setText(name);
-            view->item(i, 2)->setText("*");
-            view->item(i, 3)->setText(role);
-            view->item(i, 4)->setText(time);
+            QString role = gRole.at(numb);
+            QString time = tmpSet.value(addr + mLast).toString();
+            view->item(i, mName)->setText(name);
+            view->item(i, mPass)->setText("*");
+            view->item(i, mRole)->setText(role);
+            view->item(i, mLast)->setText(time);
         } else {
-            view->item(i, 1)->setText("");
-            view->item(i, 2)->setText("");
-            view->item(i, 3)->setText("");
-            view->item(i, 4)->setText("");
+            view->item(i, mName)->setText("");
+            view->item(i, mPass)->setText("");
+            view->item(i, mRole)->setText("");
+            view->item(i, mLast)->setText("");
         }
-        view->item(i, 0)->setText(QString("%1").arg(i+1, 2, 10, QChar('0')));
     }
 }
 
 void AppMaster::saveSettings()
 {
-    tmpSet.insert(Qt::Key_0, Qt::Key_Save);
-    tmpSet.insert(Qt::Key_1, "aip_system");
-    emit sendAppMsg(tmpSet);
+    int row = view->currentRow();
+    if (row >= 0) {
+        int addr = tmpSet.value(2000 + Qt::Key_5).toInt() + (row + 1) * 5;  // 用户存放地址
+        tmpMsg.insert(addr + mRole, iRole->currentIndex() + 1);
+        tmpMsg.insert(addr + mName, iName->text());
+        tmpMsg.insert(addr + mPass, iPass->text());
+        tmpMsg.insert(Qt::Key_0, Qt::Key_Save);
+        tmpMsg.insert(Qt::Key_1, "aip_system");
+        qDebug() << tmpMsg;
+        emit sendAppMsg(tmpMsg);
+        tmpMsg.clear();
+        initSettings();
+    }
 }
 
 void AppMaster::clickViewBar()
 {
     int row = view->currentRow();
-    if (row < 0)
-        return;
-    lineNumb->setText(view->item(row, 0)->text());
-    lineName->setText(view->item(row, 1)->text());
-    linePass->setText(view->item(row, 2)->text());
-
-    int t = roles.indexOf(view->item(row, 3)->text());
-    if (t >= 0)
-        boxGroup->setCurrentIndex(t);
-}
-
-void AppMaster::appendMaster()
-{
-    QString t_numb = lineNumb->text();
-    QString t_name = lineName->text();
-    QString t_pass = linePass->text();
-    QString t_time = QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss");
-    if (t_name.isEmpty())
-        return;
-    int r = tmpSet[(2000 + Qt::Key_5)].toInt();
-    int s = r + t_numb.toInt() * 5;
-    tmpSet[s + AddrName] = t_name;
-    tmpSet[s + AddrPass] = t_pass;
-    tmpSet[s + AddrRole] = boxGroup->currentIndex() + 1;
-    tmpSet[s + AddrLast] = t_time;
-    initSettings();
-}
-
-void AppMaster::removeMaster()
-{
-    int row = view->currentRow();
-    if (row < 0)
-        return;
-    int p = view->item(row, 0)->text().toInt();
-    int s = tmpSet[(2000 + Qt::Key_5)].toInt() + p*5;
-    if (s == tmpSet[DataUser].toInt()) {
-        QMessageBox::warning(this, tr("警告"), tr("不能删除当前用户"), QMessageBox::Ok);
-    } else {
-        tmpSet[s + AddrName] = "";
-        tmpSet[s + AddrPass] = "";
-        tmpSet[s + AddrRole] = "";
-        tmpSet[s + AddrLast] = "";
-        tmpSet[s + AddrSave] = "";
-        initSettings();
-    }
+    iName->setText(view->item(row, mName)->text());
+    iPass->setText(view->item(row, mPass)->text());
+    iRole->setCurrentIndex(qMax(0, gRole.indexOf(view->item(row, mRole)->text())));
 }
 
 void AppMaster::recvAppMsg(QTmpMap msg)

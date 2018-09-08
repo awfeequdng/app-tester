@@ -25,12 +25,11 @@ void SqlRecord::initLayout()
 {
     boxLayout = new QVBoxLayout;
 
-    QGroupBox *group = new QGroupBox(this);
-    group->setTitle(tr("近期数据"));
+    QGroupBox *group = new QGroupBox(tr("近期数据"), this);
     group->setLayout(boxLayout);
 
-    QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->addWidget(group);
+    QVBoxLayout *mlayout = new QVBoxLayout(this);
+    mlayout->addWidget(group);
 }
 
 void SqlRecord::initViewBar()
@@ -53,18 +52,22 @@ void SqlRecord::initTextBar()
 
     type = new QComboBox(this);
     type->setEditable(true);
+    type->setView(new QListView);
     type->setFixedHeight(40);
     layout->addWidget(new QLabel(tr("测试型号"), this));
     layout->addWidget(type);
 
     from = new QDateEdit(this);
     from->setFixedHeight(40);
+    from->setCalendarPopup(true);
+    from->setDate(QDate::currentDate());
     from->setDisplayFormat("yyyy-MM-dd");
     layout->addWidget(new QLabel(tr("起始日期"), this));
     layout->addWidget(from);
 
     stop = new QDateEdit(this);
     stop->setFixedHeight(40);
+    stop->setCalendarPopup(true);
     stop->setDate(QDate::currentDate());
     stop->setDisplayFormat("yyyy-MM-dd");
     layout->addWidget(new QLabel(tr("结束日期"), this));
@@ -81,39 +84,51 @@ void SqlRecord::initTextBar()
 
 void SqlRecord::initButtonBar()
 {
-    timeOut = 0;
-
-    QHBoxLayout *layout = new QHBoxLayout;
-    boxLayout->addLayout(layout);
+    QHBoxLayout *blayout = new QHBoxLayout;
+    boxLayout->addLayout(blayout);
 #ifdef __arm__
     QPushButton *btnExists = new QPushButton(this);
     btnExists->setText(tr("查询优盘"));
     btnExists->setFixedSize(97, 44);
-    layout->addWidget(btnExists);
+    blayout->addWidget(btnExists);
     connect(btnExists, SIGNAL(clicked(bool)), this, SLOT(existsFlashDisk()));
 
     QPushButton *btnDelete = new QPushButton(this);
     btnDelete->setText(tr("卸载优盘"));
     btnDelete->setFixedSize(97, 44);
-    layout->addWidget(btnDelete);
+    blayout->addWidget(btnDelete);
     connect(btnDelete, SIGNAL(clicked(bool)), this, SLOT(deleteFlashDisk()));
 
     text = new QLabel(this);
     text->setText("?");
-    layout->addWidget(text);
+    blayout->addWidget(text);
 #endif
-    layout->addStretch();
+    blayout->addStretch();
 
     QPushButton *btnUpdate = new QPushButton(this);
     btnUpdate->setText(tr("导出数据"));
     btnUpdate->setFixedSize(97, 44);
-    layout->addWidget(btnUpdate);
+    blayout->addWidget(btnUpdate);
     connect(btnUpdate, SIGNAL(clicked(bool)), this, SLOT(recvExport()));
+}
+
+void SqlRecord::initSettings()
+{
+    QSqlQuery query(QSqlDatabase::database("config"));
+    query.exec("select name from sqlite_master where type='table' order by name");
+    type->clear();
+    type->addItem("");
+    while (query.next()) {
+        QString t = query.value(0).toString();
+        QString numb = t.mid(1, 4);
+        tmpTyp.insert(t.mid(6, 50), numb);
+        type->addItem(t.mid(6, 50));
+    }
+    stop->setDate(QDate::currentDate());
 }
 
 void SqlRecord::existsFlashDisk()
 {
-    timeOut = 0;
     QProcess cmddf;
     cmddf.start("df -h");
     if (cmddf.waitForFinished()) {
@@ -197,39 +212,29 @@ void SqlRecord::recvSelect()
 
 void SqlRecord::recvExport()
 {
+    QString file = path;
 #ifdef __arm__
     existsFlashDisk();
-    if (path.isEmpty())
+    if (file.isEmpty())
         return;
-    path.append("/");
+    file.append("/");
 #else
-    path.append("./");
+    file.append("./");
 #endif
-    path.append(tr("%1.csv").arg(QDateTime::currentDateTime().toString("yyyyMMddhhmm")));
+    file.append(tr("%1.csv").arg(QDateTime::currentDateTime().toString("yyyyMMddhhmmss")));
     QDateTime t;
     t.setDate(from->date());
     quint64 id_from = quint64(t.toMSecsSinceEpoch()) << 20;
     t.setDate(stop->date().addDays(1));
     quint64 id_stop = quint64(t.toMSecsSinceEpoch()) << 20;
     tmpMsg.insert(Qt::Key_0, Qt::Key_Book);
-    tmpMsg.insert(Qt::Key_1, path);
-    tmpMsg.insert(Qt::Key_4, "record");
-    tmpMsg.insert(Qt::Key_9, id_from);
-    tmpMsg.insert(Qt::Key_A, id_stop);
+    tmpMsg.insert(Qt::Key_1, file);
+    tmpMsg.insert(Qt::Key_2, "record");
+    tmpMsg.insert(Qt::Key_3, tmpTyp.value(type->currentText()).toString());
+    tmpMsg.insert(Qt::Key_4, id_from);
+    tmpMsg.insert(Qt::Key_5, id_stop);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
-}
-
-void SqlRecord::clickIndex(QModelIndex index)
-{
-    if (item->isHidden())
-        return;
-    int row = index.row();
-    if (row >= 0) {
-        qint64 guid = mView->index(row, 0).data().toLongLong();
-        mItem->setFilter(tr("guid=%1 and numb>100").arg(guid));
-        mItem->select();
-    }
 }
 
 void SqlRecord::recvAppMsg(QTmpMap msg)
@@ -246,6 +251,7 @@ void SqlRecord::recvAppMsg(QTmpMap msg)
 void SqlRecord::showEvent(QShowEvent *e)
 {
     this->setFocus();
+    initSettings();
     recvSelect();
     e->accept();
 }

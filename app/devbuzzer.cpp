@@ -41,10 +41,12 @@ void DevBuzzer::sendBuzzer(double duty)
 void DevBuzzer::recvAppMsg(QTmpMap msg)
 {
     switch (msg.value(Qt::Key_0).toInt()) {
+    case Qt::Key_Down:
     case Qt::Key_Call:
         if (!msg.value(Qt::Key_3).isNull())
             sendBuzzer(msg.value(Qt::Key_3).toDouble());
         break;
+
     default:
         break;
     }

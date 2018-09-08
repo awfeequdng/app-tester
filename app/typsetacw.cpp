@@ -24,6 +24,7 @@ void TypSetAcw::initUI()
 
 void TypSetAcw::initLayout()
 {
+    isInit = false;
     boxLayout = new QVBoxLayout;
     boxLayout->addStretch();
 
@@ -54,6 +55,7 @@ void TypSetAcw::initInrView()
         }
         mInrView->item(i, 0)->setCheckable(true);
     }
+    connect(mInrView, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(change()));
 
     inrView = new QTableView(this);
     inrView->setFixedHeight(80);
@@ -95,7 +97,7 @@ void TypSetAcw::initAcwView()
         }
         mAcwView->item(i, 0)->setCheckable(true);
     }
-    //    connect(mView, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(autoInput()));
+    connect(mAcwView, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(autoChange()));
 
     acwView = new QTableView(this);
     acwView->setFixedHeight(180);
@@ -135,16 +137,19 @@ void TypSetAcw::initDelegate()
 {
     BoxDouble *acwv = new BoxDouble;
     acwv->setDecimals(0);
+    acwv->setMininum(300);
     acwv->setMaxinum(3000);
     acwView->setItemDelegateForColumn(AddrACWSV, acwv);
 
     BoxDouble *inrv = new BoxDouble;
     inrv->setDecimals(0);
+    inrv->setMininum(300);
     inrv->setMaxinum(1000);
     inrView->setItemDelegateForColumn(AddrACWSV, inrv);
 
     BoxDouble *time = new BoxDouble;
     time->setDecimals(1);
+    time->setMininum(0.5);
     time->setMaxinum(999.9);
     inrView->setItemDelegateForColumn(AddrACWST, time);
     acwView->setItemDelegateForColumn(AddrACWST, time);
@@ -153,7 +158,12 @@ void TypSetAcw::initDelegate()
     insr->setDecimals(0);
     insr->setMaxinum(500);
     inrView->setItemDelegateForColumn(AddrACWSH, insr);
-    inrView->setItemDelegateForColumn(AddrACWSL, insr);
+
+    BoxDouble *insl = new BoxDouble;
+    insl->setDecimals(0);
+    insl->setMininum(1);
+    insl->setMaxinum(500);
+    inrView->setItemDelegateForColumn(AddrACWSL, insl);
 
     BoxDouble *curr = new BoxDouble;
     curr->setDecimals(3);
@@ -162,20 +172,25 @@ void TypSetAcw::initDelegate()
     acwView->setItemDelegateForColumn(AddrACWSL, curr);
 
     BoxDouble *comp = new BoxDouble;
-    comp->setDecimals(0);
-    comp->setMaxinum(60000);
+    comp->setDecimals(3);
+    comp->setMaxinum(1);
+    acwView->setItemDelegateForColumn(AddrACWSO, comp);
+
+    BoxDouble *arca = new BoxDouble;
+    arca->setDecimals(0);
+    arca->setMaxinum(9);
+    acwView->setItemDelegateForColumn(AddrACWSA, arca);
 
     inrView->setItemDelegateForColumn(AddrACWSC, new BoxQItems);
     acwView->setItemDelegateForColumn(AddrACWSC, new BoxQItems);
     inrView->setItemDelegateForColumn(AddrACWSN, new BoxQItems);
     acwView->setItemDelegateForColumn(AddrACWSN, new BoxQItems);
     inrView->setItemDelegateForColumn(AddrACWSO, new BoxQItems);
-    acwView->setItemDelegateForColumn(AddrACWSO, new BoxQItems);
-    acwView->setItemDelegateForColumn(AddrACWSA, new BoxQItems);
 }
 
 void TypSetAcw::initSettings()
 {
+    isInit = false;
     int w = 0;
     double t = 0;
     for (int i=0; i < 4; i++) {
@@ -204,6 +219,7 @@ void TypSetAcw::initSettings()
         w = AddrACWSA;  // 电弧
         view->item(r, w)->setText(tmpSet[s + w].toString());
     }
+    isInit = true;
 }
 
 void TypSetAcw::saveSettings()
@@ -241,12 +257,42 @@ void TypSetAcw::saveSettings()
     tmpMsg.clear();
 }
 
+void TypSetAcw::autoChange()
+{
+    change();
+    if (isInit) {
+        for (int i=0; i < 3; i++) {
+            double max = mAcwView->index(i, AddrACWSH).data().toDouble();
+            double min = mAcwView->index(i, AddrACWSL).data().toDouble();
+            if (min > max) {
+                QMessageBox::warning(this, tr("警告"), tr("下限大于上限"), QMessageBox::Ok);
+                mAcwView->item(i, AddrACWSL)->setText("0");
+                break;
+            }
+        }
+    }
+}
+
+void TypSetAcw::change()
+{
+    if (isInit) {  // 初始化完成后才发送界面修改
+        tmpMsg.insert(Qt::Key_0, Qt::Key_Plus);
+        tmpMsg.insert(Qt::Key_1, this->objectName());
+        emit sendAppMsg(tmpMsg);
+        tmpMsg.clear();
+    }
+}
+
 void TypSetAcw::recvAppMsg(QTmpMap msg)
 {
     switch (msg.value(Qt::Key_0).toInt()) {
     case Qt::Key_Copy:
         tmpSet = msg;
         btnSave->setEnabled(true);
+        break;
+    case Qt::Key_Save:
+        if (!this->isHidden())
+            saveSettings();
         break;
     default:
         break;

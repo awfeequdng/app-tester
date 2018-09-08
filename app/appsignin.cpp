@@ -125,15 +125,10 @@ void AppSignin::initLoginBar()
     layout->addWidget(setLabel, 3, 3);
     connect(setLabel, SIGNAL(linkActivated(QString)), this, SLOT(clickLink(QString)));
 
-    autosave = new QCheckBox(this);
-    autosave->setText(tr("记住密码"));
-    autosave->setMinimumSize(64, 32);
-    layout->addWidget(autosave, 3, 1);
-
     autosign = new QCheckBox(this);
-    autosign->setText(tr("自动登录"));
+    autosign->setText(tr("记住密码并自动登录"));
     autosign->setMinimumSize(64, 32);
-    layout->addWidget(autosign, 3, 2);
+    layout->addWidget(autosign, 3, 1, 1, 2);
 
     QPushButton *btnSignin = new QPushButton(this);
     btnSignin->setText(tr("登录"));
@@ -157,10 +152,10 @@ void AppSignin::initInputBar()
         << tr("备用") << tr("备用") << tr("备用") << tr("备用");
 
     for (int i=0; i < tmp.size()/2; i++) {
-        QComboBox *box1 = new QComboBox(this);
+        QLineEdit *box1 = new QLineEdit(this);
         box1->setFixedSize(148, 35);
         inputs.append(box1);
-        QComboBox *box2 = new QComboBox(this);
+        QLineEdit *box2 = new QLineEdit(this);
         box2->setFixedSize(148, 35);
         inputs.append(box2);
         QHBoxLayout *boxLayout = new QHBoxLayout;
@@ -236,14 +231,17 @@ void AppSignin::initApplyBar()
 
 void AppSignin::initSettings()
 {
+    int conf = tmpSet.value(2000 + Qt::Key_4).toInt();  // 登录信息地址
+    for (int i=0; i < inputs.size(); i++) {
+        inputs.at(i)->setText(tmpSet.value(conf + i).toString());
+    }
     QStringList users;
     int addr = tmpSet.value(2000 + Qt::Key_5).toInt();  // 用户存储地址
     int real = tmpSet.value(DataUser).toInt();  // 当前用户地址
     int sign = tmpSet.value(DataAuto).toInt();  // 自动登录配置
 
-    QString curruser = tmpSet.value(real + AddrName).toString();
-    QString currpass = tmpSet.value(real + AddrPass).toString();
-    QString currsave = tmpSet.value(real + AddrSave).toString();
+    QString curruser = tmpSet.value(real + mName).toString();
+    QString currpass = tmpSet.value(real + mPass).toString();
 
     users.append(curruser);
     for (int i=addr; i < addr + 95; i+=5) {
@@ -253,14 +251,9 @@ void AppSignin::initSettings()
     users.removeAll("");
     username->clear();
     username->addItems(users);
-    if (currsave == "1") {
-        autosave->setChecked(true);
-        password->setText(currpass);
-    } else {
-        password->clear();
-    }
     if (sign == 1) {
         autosign->setChecked(true);
+        password->setText(currpass);
         if (!isOk) {
             isAuto = true;
             checkSignin();
@@ -270,15 +263,19 @@ void AppSignin::initSettings()
 
 void AppSignin::saveSettings()
 {
+    int conf = tmpSet.value(2000 + Qt::Key_4).toInt();  // 登录信息地址
+    for (int i=0; i < inputs.size(); i++) {
+        tmpMsg.insert(conf + i, inputs.at(i)->text());
+    }
+
     int addr = tmpSet.value(3000 + Qt::Key_0).toInt();  // 临时数据区
     tmpMsg.insert(addr + TEMPSIGN, 1);
 
     isOk = true;
     int real = tmpSet.value(DataUser).toInt();  // 当前用户
     tmpMsg.insert(DataUser, real);
-    tmpMsg.insert(DataAuto, autosign->isChecked() ? 1 : 0);
-    tmpMsg.insert(real + AddrSave, autosave->isChecked() ? 1 : 0);
-    tmpMsg.insert(real + AddrLast, QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss"));
+    tmpMsg.insert(DataAuto, (autosign->isChecked()) ? 1 : 0);
+    tmpMsg.insert(real + mLast, QDateTime::currentDateTime().toString("yy-MM-dd hh:mm:ss"));
     tmpMsg.insert(Qt::Key_0, Qt::Key_Save);
     if (isAuto)
         isAuto = false;
@@ -302,7 +299,7 @@ void AppSignin::checkSignin()
         }
     }
     int real = tmpSet.value(DataUser).toInt();
-    QString currpass = tmpSet.value(real + AddrPass).toString();
+    QString currpass = tmpSet.value(real + mPass).toString();
     if (currpass == password->text()) {
         stack->setCurrentIndex(3);
         saveSettings();

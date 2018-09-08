@@ -72,6 +72,8 @@ private slots:
     void initDelegate();
     void initSettings();
     void saveSettings();
+    void autoChange();
+    void change();
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
@@ -83,6 +85,7 @@ private:
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
     QPushButton *btnSave;
+    bool isInit;
 };
 
 #endif // TYPSETACW_H

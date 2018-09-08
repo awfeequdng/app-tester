@@ -8,6 +8,8 @@
 *******************************************************************************/
 #include "typconfig.h"
 
+const int maxRow = 15;
+
 TypConfig::TypConfig(QWidget *parent) : QWidget(parent)
 {
     initUI();
@@ -67,6 +69,7 @@ void TypConfig::initViewBar()
     splitter->setStretchFactor(0, 5);
     view->setItemDelegate(new BoxQItems);
     connect(view, SIGNAL(clicked(QModelIndex)), this, SLOT(clickViewBar()));
+    connect(view, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(selectModel()));
 }
 
 void TypConfig::initConfigBar()
@@ -80,44 +83,30 @@ void TypConfig::initConfigBar()
     layout->setMargin(0);
     setFrame->setLayout(layout);
 
-    QStringList headers;
-    headers << tr("名称") << tr("参数");
-
     names << tr("电枢片数") << tr("夹具倍数");
 
     settings = new QTableWidget(this);
     settings->setRowCount(names.size());
-    settings->setColumnCount(headers.size());
-    settings->setHorizontalHeaderLabels(headers);
-    settings->verticalHeader()->hide();
-    for (int i=0; i < headers.size(); i++) {
-        for (int j=0; j < names.size(); j++) {
-            QTableWidgetItem *item = new QTableWidgetItem;
-            if (i == 0)
-                item->setText(names.at(j));
-            else
-                item->setText("");
-            item->setTextAlignment(Qt::AlignCenter);
-            settings->setItem(j, i, item);
-        }
+    settings->setColumnCount(1);
+    settings->setVerticalHeaderLabels(names);
+    settings->horizontalHeader()->setVisible(false);
+    for (int i=0; i < names.size(); i++) {
+        QTableWidgetItem *item = new QTableWidgetItem;
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setText(names.at(i));
+        settings->setItem(i, 0, item);
     }
 #if (QT_VERSION <= QT_VERSION_CHECK(5, 0, 0))
-    settings->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
+    settings->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
     settings->verticalHeader()->setResizeMode(QHeaderView::Stretch);
 #else
-    settings->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    settings->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     settings->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 #endif
     settings->setFixedHeight(100);
-    settings->setColumnWidth(0, 70);
     settings->setEditTriggers(QAbstractItemView::AllEditTriggers);
     layout->addWidget(settings);
 
-//    btnZoom = new QPushButton(this);
-//    btnZoom->setText(tr("快速设置"));
-//    btnZoom->setFixedHeight(40);
-//    layout->addWidget(btnZoom);
-//    connect(btnZoom, SIGNAL(clicked(bool)), this, SLOT(clickZoom()));
     layout->addStretch();
 
     QHBoxLayout *nameLayout = new QHBoxLayout;
@@ -126,6 +115,7 @@ void TypConfig::initConfigBar()
     name->setFixedSize(125, 35);
     nameLayout->addWidget(name);
     layout->addLayout(nameLayout);
+    connect(name, SIGNAL(textChanged(QString)), this, SLOT(change()));
 }
 
 void TypConfig::initButtonBar()
@@ -168,10 +158,9 @@ void TypConfig::initButtonBar()
 
 void TypConfig::initDelegate()
 {
-    settings->setItemDelegateForColumn(0, new BoxQItems);
-
     BoxDouble *t = new BoxDouble;
     t->setDecimals(0);
+    t->setMininum(2);
     t->setMaxinum(72);
     settings->setItemDelegateForRow(0, t);
     settings->setItemDelegateForRow(1, new BoxQItems);
@@ -179,34 +168,37 @@ void TypConfig::initDelegate()
 
 void TypConfig::initSettings()
 {
-//    btnZoom->setEnabled(true);
+    QSqlQuery query(QSqlDatabase::database("config"));
+    query.exec("select name from sqlite_master where type='table' order by name");
+    tmpTyp.clear();
+    while (query.next()) {
+        QString t = query.value(0).toString();
+        QString numb = t.mid(1, 4);
+        tmpTyp.insert(numb.toInt(), t.mid(6, NAME_SIZE));
+    }
     int p = page->text().toInt() - 1;    // 页码
-    int r = tmpSet[(2000 + Qt::Key_4)].toInt();
-    int s = r + C_ROW*p;       // 起始地址
-    for (int i=0; i < C_ROW; i++) {
+    int s = maxRow*p;       // 起始地址
+    for (int i=0; i < maxRow; i++) {
         int t = s + i;
-        view->item(i, 0)->setText(QString("%1").arg(t-r+1, 3, 10, QChar('0')));
-        view->item(i, 1)->setText(tmpSet[t].toString());
+        view->item(i, 0)->setText(QString("%1").arg(t+1, 4, 10, QChar('0')));
+        view->item(i, 1)->setText(tmpTyp.value(t+1).toString());
     }
-    if (isShow == Qt::Key_Less)
-        setFrame->show();
-    else
-        setFrame->hide();
 
-    r = tmpSet[DataFile].toInt();
-    type->setText(tr("%1").arg(tmpSet[r].toString()));
+    type->setText(QString("%1").arg(tmpSet.value(DataType).toString()));
 
-    r = tmpSet[(4000 + Qt::Key_0)].toInt();
+    int r = tmpSet[(4000 + Qt::Key_0)].toInt();
     for (int i=0; i < 2; i++) {
-        settings->item(i, 1)->setText(tmpSet[r + i].toString());
+        settings->item(i, 0)->setText(tmpSet[r + i].toString());
     }
+    isRemove = false;
+    isInit = true;
 }
 
 void TypConfig::saveSettings()
 {
     int r = tmpSet[(4000 + Qt::Key_0)].toInt();
     for (int i=0; i < 2; i++) {
-        tmpMsg[r + i] = settings->item(i, 1)->text();
+        tmpMsg[r + i] = settings->item(i, 0)->text();
     }
     tmpMsg.insert(Qt::Key_0, Qt::Key_Save);
     tmpMsg.insert(Qt::Key_1, "aip_config");
@@ -224,20 +216,28 @@ void TypConfig::createModel()
     if (t_numb.isEmpty()) {
         return;
     }
+    for (int i=0; i < tmpTyp.keys().size(); i++) {
+        QString name = tmpTyp.value(tmpTyp.keys().at(i)).toString();
+        if (t_name == name) {
+            QMessageBox::warning(this, tr("警告"), tr("型号已存在"), QMessageBox::Ok);
+            return;
+        }
+    }
     QString sqlName = "config";
-    QString c_name = tmpSet[tmpSet[DataFile].toInt()].toString();
-
+    QString c_numb = tr("%1").arg(tmpSet.value(DataFile).toInt(), 4, 10, QChar('0'));
+    QString c_name = tmpSet.value(DataType).toString();
+    c_name = tr("T%1_%2").arg(c_numb).arg(c_name);
+    t_name = tr("T%1_%2").arg(t_numb).arg(t_name);
     QSqlQuery query(QSqlDatabase::database(sqlName));
     QSqlDatabase::database(sqlName).transaction();
-    if (!query.exec(tr("create table '%1' as select * from '%2'").arg(t_name).arg(c_name)))
+    QString cmd = tr("create table if not exists '%1' (").arg(t_name);
+    cmd += "uuid integer primary key, parm text)";
+    if (!query.exec(cmd)) {
+        qWarning() << t_name << query.lastError();
+    }
+    if (!query.exec(tr("insert into '%1' select * from '%2'").arg(t_name).arg(c_name)))
         qWarning() << "sql error:" << query.lastError() << t_name << c_name;
     QSqlDatabase::database(sqlName).commit();
-
-    int r = tmpSet[(2000 + Qt::Key_4)].toInt();
-    tmpSet[r + t_numb.toInt() - 1] = t_name;
-    tmpSet.insert(Qt::Key_0, Qt::Key_Save);
-    tmpSet.insert(Qt::Key_1, "aip_system");
-    emit sendAppMsg(tmpSet);
 
     initSettings();
 }
@@ -252,11 +252,12 @@ void TypConfig::selectModel()
     if (t_name.isEmpty())
         return;
 
-    int r = tmpSet[(2000 + Qt::Key_4)].toInt();
-    tmpSet[DataFile] = r + t_numb.toInt() - 1;
-    tmpSet.insert(Qt::Key_0, Qt::Key_Save);
-    tmpSet.insert(Qt::Key_1, "aip_reload");
-    emit sendAppMsg(tmpSet);
+    tmpMsg.insert(DataFile, t_numb);
+    tmpMsg.insert(DataType, t_name);
+    tmpMsg.insert(Qt::Key_0, Qt::Key_Save);
+    tmpMsg.insert(Qt::Key_1, "aip_reload");
+    emit sendAppMsg(tmpMsg);
+    tmpMsg.clear();
 
     initSettings();
 }
@@ -269,48 +270,45 @@ void TypConfig::removeModel()
     QString t_numb = view->item(row, 0)->text();
     QString c_name = view->item(row, 1)->text();
     QString t_name = name->text();
-    if (t_numb.isEmpty())
+    if (c_name == type->text()) {
+        QMessageBox::warning(this, tr("警告"), tr("不能修改当前型号"), QMessageBox::Ok);
+        btnSave->setEnabled(true);
         return;
-    if (t_name.isEmpty())
-        return;
+    }
+    c_name = tr("T%1_%2").arg(t_numb).arg(c_name);
     QString sqlName = "config";
     QSqlQuery query(QSqlDatabase::database(sqlName));
     QSqlDatabase::database(sqlName).transaction();
-    query.exec(tr("create table '%1' as select * from '%2'").arg(t_name).arg(c_name));
+    if (!isRemove) {
+        t_name = tr("T%1_%2").arg(t_numb).arg(t_name);
+        QString cmd = tr("create table if not exists '%1' (").arg(t_name);
+        cmd += "uuid integer primary key, parm text)";
+        if (!query.exec(cmd)) {
+            qWarning() << t_name << query.lastError();
+        }
+        if (!query.exec(tr("insert into '%1' select * from '%2'").arg(t_name).arg(c_name)))
+            qWarning() << "sql error:" << query.lastError() << t_name << c_name;
+    }
     query.exec(tr("drop table '%1'").arg(c_name));
     QSqlDatabase::database(sqlName).commit();
 
-
-    int r = tmpSet[(2000 + Qt::Key_4)].toInt();
-    tmpSet[r + t_numb.toInt() - 1] = t_name;
-
-    tmpSet.insert(Qt::Key_0, Qt::Key_Save);
-    tmpSet.insert(Qt::Key_1, "aip_system");
-    emit sendAppMsg(tmpSet);
-
     initSettings();
-}
-
-void TypConfig::clickZoom()
-{
-//    btnZoom->setEnabled(false);
-    tmpMsg.insert(Qt::Key_0, Qt::Key_Zoom);
-    emit sendAppMsg(tmpMsg);
-    tmpMsg.clear();
+    btnSave->setEnabled(true);
 }
 
 void TypConfig::clickSave()
 {
+    if (isRemove) {
+        removeModel();
+        isRemove = false;
+        return;
+    }
     btnSave->setEnabled(false);
     int row = qMax(0, view->currentRow());
     QString n = view->item(row, 1)->text();  // 点中的型号
     QString c = name->text();  // 输出的型号
-    QString p = type->text();
-    if ((!c.isEmpty() && !n.isEmpty() && n == c && n == p) || c.isEmpty()) {  // 保存型号
+    if ((!c.isEmpty() && !n.isEmpty() && n == c) || c.isEmpty()) {  // 保存型号
         saveSettings();
-    }
-    if ((!c.isEmpty() && !n.isEmpty() && n == c && n != p)) {  // 调入型号
-        selectModel();
     }
     if ((!c.isEmpty() && !n.isEmpty() && n != c)) {  // 修改型号
         removeModel();
@@ -341,9 +339,16 @@ void TypConfig::clickButtons()
 void TypConfig::clickViewBar()
 {
     int row = view->currentRow();
-    if (row < 0)
-        return;
-    name->setText(view->item(row, 1)->text());
+    if (row >= 0)
+        name->setText(view->item(row, 1)->text());
+}
+
+void TypConfig::change()
+{
+    int row = view->currentRow();
+    if (row >= 0) {
+        isRemove = (!view->item(row, 1)->text().isEmpty() && name->text().isEmpty());
+    }
 }
 
 void TypConfig::recvAppMsg(QTmpMap msg)
@@ -352,10 +357,6 @@ void TypConfig::recvAppMsg(QTmpMap msg)
     case Qt::Key_Copy:
         tmpSet = msg;
         btnSave->setEnabled(true);
-        break;
-    case Qt::Key_Less:
-    case Qt::Key_Meta:
-        isShow = msg.value(Qt::Key_0).toInt();
         break;
     default:
         break;

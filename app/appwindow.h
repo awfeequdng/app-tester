@@ -22,6 +22,7 @@
 #include "devsetrtc.h"
 #include "devbuzzer.h"
 #include "devscreen.h"
+#include "devds1302.h"
 #include "tcpserver.h"
 #include "tcpsocket.h"
 
@@ -31,7 +32,8 @@
 #include "appbackup.h"
 #include "applogger.h"
 #include "appmaster.h"
-#include "appaction.h"
+#include "apppermit.h"
+#include "apprt3070.h"
 #include "typconfig.h"
 #include "typsetdcr.h"
 #include "typsetacw.h"
@@ -48,10 +50,12 @@
 #include "apptester.h"
 
 #include "boxdialog.h"
+#include "boxstatus.h"
 
 #include "main.h"
 
-#define WIDTH 150
+#define BTN_WIDTH 150
+#define BTN_LENTH 55
 
 class AppWindow : public QMainWindow
 {
@@ -75,7 +79,8 @@ private slots:
     int initSignin();
     int initSystem();
     int initMaster();
-    int initAction();
+    int initPermit();
+    int initRT3070();
     int initBackup();
     int initLogger();
     int initConfig();
@@ -97,13 +102,14 @@ private slots:
     int sendSignin();
     int initSocket();
     int initThread();
-    void initButton(QString title, QString name);
+    int initWidget(int numb, int form, QString name, QString mark, QWidget *app);
     void showBoxPop(QString text, int t);
     void saveBackup(QTmpMap msg);
     void saveSqlite(QTmpMap msg);
     void saveConfig(QTmpMap msg);
     void clickButtons();
     bool checkAction(QString msg);
+    bool screensSave(QString msg);
     void screensShow(QString msg);
     void recvAppShow(QString msg);
     virtual void cloudAntimation();
@@ -120,8 +126,6 @@ private slots:
     int taskClearBeep();
     int taskResetTest();
     int taskCheckStop();
-    int taskQuickConf();
-    int taskQuickWait();
     int testThread();
     int testClearData();
     int testStartSend();
@@ -130,7 +134,7 @@ private slots:
     void showBarCode();
     virtual void keyReleaseEvent(QKeyEvent *e);
     void loopBoxbar();
-    void recvSqlMsg(QTmpMap msg);
+    void recvPlay(QTmpMap msg);
     void recvNewMsg(QTmpMap msg);
     void recvTmpMsg(QTmpMap msg);
     void recvStaMsg(QTmpMap msg);
@@ -142,6 +146,7 @@ private:
     QFrame *btnFrame;
     QList<QPushButton*> buttons;
     BoxDialog *boxbar;
+    BoxStatus *boxSta;
 
     QThread *sql;
 
@@ -167,6 +172,10 @@ private:
     QString barcode;
     QTimer *scanner;
     quint8 station;
+
+    QVariantMap tmpMap;
+    QList<QVariantMap> bufwin;
+    bool isChange;
 };
 
 #endif // APPWINDOW_H

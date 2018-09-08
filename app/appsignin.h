@@ -30,7 +30,7 @@
 #include "main.h"
 
 #include "appmaster.h"
-#include "appaction.h"
+#include "apppermit.h"
 
 #define TEMPSIGN  0x00  // 登录状态
 
@@ -41,6 +41,7 @@ public:
     explicit AppSignin(QWidget *parent = 0);
 signals:
     void sendAppMsg(QTmpMap msg);
+    void sendAppMap(QVariantMap msg);
 private slots:
     void initUI();
     void initLayout();
@@ -62,7 +63,7 @@ private:
     QLineEdit *password;
     QCheckBox *autosave;
     QCheckBox *autosign;
-    QList<QComboBox*> inputs;
+    QList<QLineEdit*> inputs;
 
     bool isOk;
     bool isAuto;

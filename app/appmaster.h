@@ -17,26 +17,21 @@
 #include <QListView>
 #include <QLineEdit>
 #include <QGroupBox>
-#include <QDateTime>
+#include <QComboBox>
 #include <QShowEvent>
 #include <QHeaderView>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QTableWidget>
 #include <QTableWidgetItem>
 
-#include "boxqcombo.h"
 #include "boxqitems.h"
-
 #include "main.h"
 
-const int AddrName = 0x00;
-const int AddrPass = 0x01;
-const int AddrRole = 0x02;
-const int AddrLast = 0x03;
-const int AddrSave = 0x04;
-
-#define M_ROW 15
+const int mName = 0x00;
+const int mPass = 0x01;
+const int mRole = 0x02;
+const int mLast = 0x03;
+const int mSave = 0x04;
 
 class AppMaster : public QWidget
 {
@@ -45,30 +40,27 @@ public:
     explicit AppMaster(QWidget *parent = 0);
 signals:
     void sendAppMsg(QTmpMap msg);
+    void sendAppMap(QVariantMap msg);
 private slots:
     void initUI();
     void initLayout();
     void initViewBar();
     void initLineBar();
-    void initButtons();
     void initDelegate();
     void initSettings();
     void saveSettings();
     void clickViewBar();
-    void appendMaster();
-    void removeMaster();
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
-    QHBoxLayout *boxLayout;
-    QVBoxLayout *btnLayout;
+    QVBoxLayout *layout;
     QTableWidget *view;
-    QLineEdit *lineNumb;
-    QLineEdit *lineName;
-    QLineEdit *linePass;
-    QComboBox *boxGroup;
-    QStringList roles;
+    QLineEdit *iName;
+    QLineEdit *iPass;
+    QComboBox *iRole;
+    QStringList gRole;
     QTmpMap tmpSet;
+    QTmpMap tmpMsg;
 };
 
 #endif // APPMASTER_H

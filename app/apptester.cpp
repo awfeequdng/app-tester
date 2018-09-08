@@ -8,6 +8,13 @@
 *******************************************************************************/
 #include "apptester.h"
 
+const QString strMR = "<p style='font:60pt;color:#FF0000;'><b>%1</b></p>";
+const QString strMY = "<p style='font:60pt;color:#FFFF00;'><b>%1</b></p>";
+
+const QString strLY = "<p style='font:64pt;color:#FFFF00;'><b>%1</b></p>";
+const QString strLG = "<p style='font:64pt;color:#00FF00;'><b>%1</b></p>";
+const QString strLR = "<p style='font:64pt;color:#FF0000;'><b>%1</b></p>";
+
 AppTester::AppTester(QWidget *parent) : QWidget(parent)
 {
     initUI();
@@ -23,6 +30,7 @@ void AppTester::initUI()
     initResult();
     initQChart();
     initButton();
+    initTextAll();
     initTextDCR1();
     initTextDCR2();
     initTextDCR3();
@@ -110,14 +118,14 @@ void AppTester::initWorker()
 {  // 工位显示区
     textWorker = new QLabel(this);
     status->setCellWidget(2, 0, textWorker);
-    textWorker->setText(judgeON.arg("左"));
+    textWorker->setText(strLY.arg("左"));
 }
 
 void AppTester::initResult()
 {  // 总结果显示区
     textResult = new QLabel(this);
     status->setCellWidget(2, 3, textResult);
-    textResult->setText(judgeOK);
+    textResult->setText(strLG.arg("OK"));
 }
 
 void AppTester::initQuRate()
@@ -183,19 +191,37 @@ void AppTester::initButton()
     view->setCellWidget(0, 3, frame);
 }
 
+void AppTester::initTextAll()
+{
+    textRA = new BoxQImage(this);
+    connect(textRA, SIGNAL(clicked()), textRA, SLOT(hide()));
+    textRA->hide();
+}
+
 void AppTester::initTextDCR1()
 {
     QLabel *title = new QLabel(this);
     dcrTitles.append(title);
 
-    textDCR1 = new QTextBrowser(this);
-    textDCR1->setStyleSheet("border:none");
+    textDCR1 = new BoxQImage(this);
+    connect(textDCR1, SIGNAL(clicked()), this, SLOT(clickText()));
+
+    QVariantMap tmp;
+    tmp.insert("color", int(Qt::white));
+    for (int i=0; i < 72; i++) {
+        tmp.insert("index", i);
+        tmp.insert("width", 96 * (i % 12) / 12.0 + 2);
+        tmp.insert("lenth", 100-96/6*(i/12+1)+4);
+        tmp.insert("title", "1.200");
+        textDCR1->setTexts(tmp);
+    }
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
     layout->setMargin(0);
     layout->addWidget(title);
     layout->addWidget(textDCR1);
+    layout->setStretch(1, 1);
 
     QFrame *frame = new QFrame(this);
     frame->setLayout(layout);
@@ -207,8 +233,18 @@ void AppTester::initTextDCR2()
     QLabel *title = new QLabel(this);
     dcrTitles.append(title);
 
-    textDCR2 = new QTextBrowser(this);
-    textDCR2->setStyleSheet("border:none");
+    textDCR2 = new BoxQImage(this);
+    connect(textDCR2, SIGNAL(clicked()), this, SLOT(clickText()));
+
+    QVariantMap tmp;
+    tmp.insert("color", int(Qt::white));
+    for (int i=0; i < 72; i++) {
+        tmp.insert("index", i);
+        tmp.insert("width", 96 * (i % 12) / 12.0 + 2);
+        tmp.insert("lenth", 100-96/6*(i/12+1)+4);
+        tmp.insert("title", "1.200");
+        textDCR2->setTexts(tmp);
+    }
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
@@ -227,8 +263,18 @@ void AppTester::initTextDCR3()
     QLabel *title = new QLabel(this);
     dcrTitles.append(title);
 
-    textDCR3 = new QTextBrowser(this);
-    textDCR3->setStyleSheet("border:none;");
+    textDCR3 = new BoxQImage(this);
+    connect(textDCR3, SIGNAL(clicked()), this, SLOT(clickText()));
+
+    QVariantMap tmp;
+    tmp.insert("color", int(Qt::white));
+    for (int i=0; i < 36; i++) {
+        tmp.insert("index", i);
+        tmp.insert("width", 96 * (i % 12) / 12.0 + 2);
+        tmp.insert("lenth", 100-96/6*(i/12+1)*2+4);
+        tmp.insert("title", "1.200");
+        textDCR3->setTexts(tmp);
+    }
 
     QHBoxLayout *largeLayout = new QHBoxLayout;
     largeLayout->setMargin(0);
@@ -367,8 +413,18 @@ void AppTester::initTextIMP1()
         large->addWidget(text);
     }
 
-    textIMPR = new QTextBrowser(this);
-    textIMPR->setStyleSheet("border:none");
+    textIMPR = new BoxQImage(this);
+    connect(textIMPR, SIGNAL(clicked()), this, SLOT(clickText()));
+
+    QVariantMap tmp;
+    tmp.insert("color", int(Qt::white));
+    for (int i=0; i < 36; i++) {
+        tmp.insert("index", i);
+        tmp.insert("width", 96 * (i % 12) / 12.0 + 2);
+        tmp.insert("lenth", 100-96/6*(i/12+1)*2+4);
+        tmp.insert("title", "1.200");
+        textIMPR->setTexts(tmp);
+    }
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setMargin(0);
@@ -396,9 +452,8 @@ void AppTester::initSettings()
         int temp = tmpSet.value((3000 + Qt::Key_0)).toInt();  // 时临数据地址
         int sign = tmpSet.value(temp + TEMPSIGN).toInt();
         int user = tmpSet.value(DataUser).toInt();
-        int file = tmpSet.value(DataFile).toInt();
         status->item(0, 1)->setText((sign == 0) ? tr("未登录") : tmpSet.value(user).toString());
-        status->item(0, 3)->setText(tmpSet.value(file).toString());
+        status->item(0, 3)->setText(tmpSet.value(DataType).toString());
 
         int addr = tmpSet.value((4000 + Qt::Key_0)).toInt();  // 综合配置地址
         boxChart->setNum(tmpSet.value(addr + AddrDCRSC).toInt()); // 电枢片数
@@ -414,9 +469,12 @@ void AppTester::initSettings()
         tt = tt.arg(QString::number(tmpSet[addr+1].toDouble()/1000, 'f', 2));
         tt = tt.arg(tr("单位:")).arg(gg);
         dcrTitles.at(0)->setText(tt);
-        textDCR1->clear();
+        textDCR1->setClear();
         dcrView->setZero();
         dcrView->update();
+
+        textDCR1->setEnabled((test == 1) ? true : false);
+        dcrView->setEnabled((test == 1) ? true : false);
 
         QString ww = (test == 1) ? largeOK : largeEN;
         dcrLabels.at(0)->setText(ww.arg("挂钩顺序"));
@@ -430,7 +488,8 @@ void AppTester::initSettings()
         tt += "&nbsp;&nbsp;%1&nbsp;&nbsp;&lt; %2mΩ</p>";
         tt = tt.arg("焊接电阻").arg(QString::number(tmpSet[addr+1].toDouble()/1000, 'f', 2));
         dcrTitles.at(1)->setText(tt);
-        textDCR2->clear();
+        textDCR2->setClear();
+        textDCR2->setEnabled((test == 1) ? true : false);
     }
 
     if (Qt::Key_3) {  // 初始化跨间电阻
@@ -443,7 +502,8 @@ void AppTester::initSettings()
         tt = tt.arg("跨间电阻").arg("均值");
         tt = tt.arg(QString::number(smin/1000, 'f', 3)).arg(QString::number(smax/1000, 'f', 3));
         dcrTitles.at(2)->setText(tt);
-        textDCR3->clear();
+        textDCR3->setClear();
+        textDCR3->setEnabled((test == 1) ? true : false);
     }
     for (int i=0; i < 4; i++) {  // 初始化介电强度
         double addr = tmpSet.value((4000 + Qt::Key_4) + i).toInt();  // 介电强度配置地址
@@ -487,9 +547,10 @@ void AppTester::initSettings()
         impLabels.at(2)->setText(color.arg("--"));
 
         tmpWave.clear();
-        textIMPR->clear();
+        textIMPR->setClear();
         impView->setZero();
         impView->update();
+        textIMPR->setEnabled((test == 1) ? true : false);
     }
 }
 
@@ -511,15 +572,15 @@ void AppTester::initTextView()
         int parm = tmpSet[(4000 + Qt::Key_1) + i].toInt();  // 配置地址
         if (tmpSet[parm].toInt() == 1) {  // 项目测试
             if (i == 0) {
-                textDCR1->clear();
+                textDCR1->setClear();
                 dcrView->setZero();
                 dcrView->update();
             }
             if (i == 1) {
-                textDCR2->clear();
+                textDCR2->setClear();
             }
             if (i == 2) {
-                textDCR3->clear();
+                textDCR3->setClear();
             }
         }
     }
@@ -530,7 +591,7 @@ void AppTester::initTextView()
             impLabels.at(1)->setText(largeOK.arg("-.---%"));
             impLabels.at(2)->setText(largeOK.arg("--"));
             tmpWave.clear();
-            textIMPR->clear();
+            textIMPR->setClear();
             impView->setZero();
             impView->update();
         }
@@ -597,11 +658,23 @@ void AppTester::drawWaveDCRW(QTmpMap msg)
 
 void AppTester::drawWaveIMPW(int numb)
 {
-    QVector<double> stds(IMP_SIZE), real(IMP_SIZE);
-    int addr = tmpSet[(4000 + Qt::Key_A)].toInt();
-    for (int i=0; i < IMP_SIZE; i++) {
-        real[i] = tmpWave.at(i)*100/0x0400;
-        stds[i] = tmpSet[addr + numb*IMP_SIZE + i].toInt()*100/0x0400;
+    int parm = tmpSet.value(4000 + Qt::Key_8).toInt();  // 测试参数地址
+    int from = tmpSet.value(parm + AddrIMPF1).toInt();
+    int stop = tmpSet.value(parm + AddrIMPF2).toInt();
+    QVector<double> stds(stop-from), real(stop-from);
+    int addr = tmpSet.value(4000 + Qt::Key_A).toInt();
+    int max = 0;
+    int min = 0;
+    for (int i=0; i < stop-from; i++) {
+        max = (max == 0) ? tmpWave.at(from + i) : qMax(max, tmpWave.at(from + i));
+        min = (min == 0) ? tmpWave.at(from + i) : qMin(min, tmpWave.at(from + i));
+        max = qMax(max, tmpSet.value(addr + numb*IMP_SIZE + from + i).toInt());
+        min = qMin(min, tmpSet.value(addr + numb*IMP_SIZE + from + i).toInt());
+    }
+    int std = qMax(max - 512, 512 - min);
+    for (int i=0; i < stop-from; i++) {
+        real[i] = 50 + (tmpWave.at(from + i)-512) * 45.0 / std;
+        stds[i] = 50 + (tmpSet.value(addr + numb*IMP_SIZE + from + i).toInt()-512) * 45.0 / std;
     }
     impView->setWave(real, 0);
     impView->setWave(stds, 1);
@@ -703,17 +776,46 @@ void AppTester::impResize()
     }
 }
 
+void AppTester::clickText()
+{
+    BoxQImage *ww = qobject_cast<BoxQImage*>(sender());
+    QList<QVariantMap> texts = ww->getTexts();
+    textRA->setClear();
+    for (int i=0; i < texts.size(); i++) {
+        textRA->setTexts(texts.at(i));
+    }
+    tmpMap.insert("width", 2);
+    tmpMap.insert("frame", 1);
+    tmpMap.insert("shade", 0);
+    tmpMap.insert("index", 0);
+    textRA->setLines(tmpMap);
+    tmpMap.clear();
+    updateText();
+}
+
+void AppTester::updateText()
+{
+    textRA->show();
+    int w = view->width() - 6;
+    int h = 0;
+    int y = view->rowHeight(0) + 6;
+    for (int i=1; i < 5; i++) {
+        h += view->rowHeight(i);
+    }
+    textRA->move(3, y);
+    textRA->resize(w, h-6);
+    textRA->update();
+}
+
 void AppTester::clickStart()
 {
-    if (btnPlay->text() == tr("启动测试")) {
-        btnPlay->setText(tr("停止测试"));
-        tmpMsg.insert(Qt::Key_0, Qt::Key_Play);
-    } else {
-        btnPlay->setText(tr("启动测试"));
-        tmpMsg.insert(Qt::Key_0, Qt::Key_Stop);
-    }
+    QString str = btnPlay->text();
+    tmpMsg.insert(Qt::Key_0, (str == tr("启动测试")) ? Qt::Key_Play : Qt::Key_Stop);
+    tmpMsg.insert(Qt::Key_1, WORKL);
+    tmpMsg.insert(Qt::Key_2, MODEB);
     emit sendAppMsg(tmpMsg);
     tmpMsg.clear();
+    btnPlay->setText((str == tr("启动测试")) ? tr("停止测试") : tr("启动测试"));
 }
 
 void AppTester::clickButton()
@@ -738,53 +840,35 @@ void AppTester::recvTmpMsg(QTmpMap msg)
 
 void AppTester::recvLedMsg(QTmpMap msg)
 {
-    int stat = msg.value(Qt::Key_2).toInt();
+    int c = msg.value(Qt::Key_2).toInt();
     int beep = msg.value(Qt::Key_3).toInt();
     int work = msg.value(Qt::Key_4).toInt();
-    QString isok = judgeNG;
-    switch (stat) {
-    case DATADC:
-        if (beep > 0) {
-            boxChart->setRun(0);
-            btnHome->setEnabled(true);
-            btnConf->setEnabled(true);
-            btnPlay->setText(tr("启动测试"));
-            textResult->setText(judgeDC);
-        }
-        break;
-    case DATAOK:
-        if (beep > 0) {
-            testOK++;
-            isok = judgeOK;
-        }
-        //        break;
-    case DATANG:
-        if (beep > 0) {
-            boxChart->setRun(0);
-            btnHome->setEnabled(true);
-            btnConf->setEnabled(true);
-            btnPlay->setText(tr("启动测试"));
-            testQu++;
-            textResult->setText(isok);
-            drawAllRate();
-        }
-        break;
-
-    case DATAON:  // 启动测试,清理界面
+    if (c == DATAON) {  // 启动测试,清理界面
         t.restart();
         initTextView();
         btnHome->setEnabled(false);
         btnConf->setEnabled(false);
         btnPlay->setText(tr("停止测试"));
-        textResult->setText(judgeON.arg("ON"));
+        textResult->setText(strMY.arg(tr("测试")));
         boxChart->setRun(1);
-        textWorker->setText(judgeON.arg((work == 0x11 ? tr("左") : tr("右"))));
-        break;
-    case DATADD:
-        break;
-    default:
-        break;
+        textWorker->setText(strLY.arg((work == 0x11 ? tr("左") : tr("右"))));
     }
+    if (beep > 0 && (c == DATAOK || c == DATANG || c == DATADC)) {
+        QString str = strLG.arg("OK");
+        testQu = (c == DATADC) ? testQu : testQu + 1;
+        testOK = (c != DATAOK) ? testOK : testOK + 1;
+        str = (c == DATADC) ? strMR.arg(tr("中断")) : str;
+        str = (c == DATANG) ? strLR.arg(tr("NG")) : str;
+        textResult->setText(str);
+        drawAllRate();
+        boxChart->setRun(0);
+        btnHome->setEnabled(true);
+        btnConf->setEnabled(true);
+        btnPlay->setEnabled(true);
+        btnPlay->setText(tr("启动测试"));
+        boxChart->setTime(t.elapsed()/1000.0);
+    }
+    textRA->hide();
 }
 
 void AppTester::recvDCRMsg(QTmpMap msg)
@@ -793,7 +877,7 @@ void AppTester::recvDCRMsg(QTmpMap msg)
     int quan = tmpSet.value(conf + AddrDCRSC).toInt();
     int curr = msg.value(Qt::Key_1).toInt();
     int addr = tmpSet.value(curr + 3000).toInt() + CACHEDCR;;
-    QTextBrowser *textR = textDCR1;
+    BoxQImage *textR = textDCR1;
     if (curr == Qt::Key_1) {
         textR = textDCR1;
     }
@@ -812,18 +896,23 @@ void AppTester::recvDCRMsg(QTmpMap msg)
         double isok = msg.value(addr + i*4 + OKNGDCRR).toInt();
         gear = (gear > 3) ? gear - 3 : gear;
         real = real * qPow(10, -gear);
-        QString str = (isok == DATAOK) ? SmallOK : SmallNG;
         numb = (curr == Qt::Key_1) ? numb : i;
-        tmpMsg.insert(numb, str.arg(tr("%1").arg(QString::number(real, 'f', gear))));
-        if (str == SmallNG && curr == Qt::Key_1)
+        if ((isok == DATANG) && curr == Qt::Key_1)
             boxChart->setRow(numb);
-        if (str == SmallNG && curr == Qt::Key_2)
+        if ((isok == DATANG) && curr == Qt::Key_2)
             boxChart->setPie(i);
+        tmpMap.insert("color", (isok == DATAOK) ? int(Qt::white) : int(Qt::red));
+        tmpMap.insert("title", QString::number(real, 'f', gear));
+        tmpMsg.insert(numb, tmpMap);
+        tmpMap.clear();
     }
     for (int i=0; i < quan; i++) {
-        textR->insertHtml((i%12 == 0 && i != 0) ? "<br></br>" : "");
-        textR->insertHtml((i%12 == 0) ? "&nbsp;&nbsp;" : "");
-        textR->insertHtml(tmpMsg.value(i).toString());
+        tmpMap = tmpMsg.value(i).toMap();
+        tmpMap.insert("index", i);
+        tmpMap.insert("width", 96 * (i % 12) / 12.0 + 2);
+        tmpMap.insert("lenth", (curr == Qt::Key_3) ? 100-96/6*(i/12+1)*2+4 : 100-96/6*(i/12+1)+4);
+        textR->setTexts(tmpMap);
+        tmpMap.clear();
     }
     tmpMsg.clear();
     if (curr == Qt::Key_1)
@@ -836,6 +925,7 @@ void AppTester::recvACWMsg(QTmpMap msg)
     double numb = curr - Qt::Key_4;  // 第几个测试项
     double addr = tmpSet.value(curr + 3000).toInt();  // 测试结果地址
     double parm = tmpSet.value(curr + 4000).toInt();  // 测试参数地址
+    double stat = msg.value(addr + TEMPACWA).toInt();
     double isok = msg.value(addr + CACHEACW + OKNGACWR).toInt();
     double volt = msg.value(addr + CACHEACW + VOLTACWR).toInt();
     double real = msg.value(addr + CACHEACW + DATAACWR).toInt();
@@ -850,16 +940,24 @@ void AppTester::recvACWMsg(QTmpMap msg)
     acwLabels.at(3*numb + 0)->setText(color.arg(QString::number(volt/1000, 'f', 3) + "kV"));
     acwLabels.at(3*numb + 1)->setText(color.arg(strs));
     acwLabels.at(3*numb + 2)->setText(color.arg((isok == DATANG) ? "NG" : "OK"));
+    if (stat >= 2) {
+        QStringList acwStat;
+        acwStat << "OK" << "NG" << "SUSPEND" << "ARC" << "OVERLEAK"
+                << "OVERPWR" << "DCPT" << "OVERRANGE" << "BREAKDOWNNa" << "PD";
+        stat = qMin(stat, QString::number(acwStat.size()).toDouble()-1);
+        acwLabels.at(3*numb + 1)->setText(largeNG.arg(acwStat.at(stat)));
+        acwLabels.at(3*numb + 2)->setText(largeNG.arg("NG"));
+    }
 }
 
 void AppTester::recvIMPMsg(QTmpMap msg)
 {
-    volatile int parm = tmpSet.value(4000 + Qt::Key_8).toInt();  // 测试参数地址
-    volatile int addr = tmpSet.value(3000 + Qt::Key_8).toInt();  // 测试结果地址
-    volatile int tmpw = tmpSet.value(3000 + Qt::Key_A).toInt();  // 测试波形地址
-    volatile int tmps = msg.value(addr + STATIMPA).toInt();  // 状态
-    volatile int numb = msg.value(addr + NUMBIMPA).toInt();  // 编号
-    volatile int stdn = tmpSet.value(parm + AddrIMPSL).toInt();  // 采样点
+    int parm = tmpSet.value(4000 + Qt::Key_8).toInt();  // 测试参数地址
+    int addr = tmpSet.value(3000 + Qt::Key_8).toInt();  // 测试结果地址
+    int tmpw = tmpSet.value(3000 + Qt::Key_A).toInt();  // 测试波形地址
+    int tmps = msg.value(addr + STATIMPA).toInt();  // 状态
+    int numb = msg.value(addr + NUMBIMPA).toInt();  // 编号
+    int stdn = tmpSet.value(parm + AddrIMPSL).toInt();  // 采样点
     if (tmps >= DataTest) {  // 测试状态更新波形
         tmpWave.clear();
         for (int i=0; i < IMP_SIZE; i++) {
@@ -870,9 +968,7 @@ void AppTester::recvIMPMsg(QTmpMap msg)
         double isok = msg.value(addr + CACHEIMP + 4*(numb-1) + OKNGIMPR).toDouble();
         double gear = real >= 10000 ? 2 : 3;
         QString okng = (isok == DATANG) ? largeNG : largeOK;
-        QString strs = (isok == DATANG) ? SmallNG : SmallOK;
         QString tmp = QString::number(real/1000, 'f', gear);
-        tmpImp.append(strs.arg(tmp));
         volt = tmpSet.value(parm + AddrIMPSV).toInt();
         impLabels.at(0)->setText(okng.arg(QString::number(volt/1000, 'f', 3) + "kV"));
         impLabels.at(1)->setText(okng.arg(tmp + "%"));
@@ -882,13 +978,22 @@ void AppTester::recvIMPMsg(QTmpMap msg)
         last = (impPrev == 0) ? 0 : last;
         impWave = (impPrev == 0 || real > last) ? tmpWave : impWave;
         impPrev = (impPrev == 0 || real > last) ? numb : impPrev;
+
+        tmpMap.insert("color", (isok == DATAOK) ? int(Qt::white) : int(Qt::red));
+        tmpMap.insert("title", tmp);
+        tmpMsg.insert(tmpMsg.keys().size(), tmpMap);
+        tmpMap.clear();
     } else {  // 测试完成更新结果
-        for (int i=0; i < tmpImp.size(); i++) {
-            textIMPR->insertHtml((i%12 == 0 && i != 0) ? "<br></br>" : "");
-            textIMPR->insertHtml((i%12 == 0) ? "&nbsp;&nbsp;" : "");
-            textIMPR->insertHtml(tmpImp.at(i));
+        for (int i=0; i < tmpMsg.keys().size(); i++) {
+            tmpMap = tmpMsg.value(i).toMap();
+            tmpMap.insert("index", i);
+            tmpMap.insert("width", 96 * (i % 12) / 12.0 + 2);
+            tmpMap.insert("lenth", 100-96/6*(i/12+1)*2+4);
+            textIMPR->setTexts(tmpMap);
+            tmpMap.clear();
         }
-        tmpImp.clear();
+        textIMPR->update();
+        tmpMsg.clear();
         // 显示最差结果
         double volt = msg[addr + 4*impPrev + VOLTIMPR].toDouble();
         double real = msg[addr + 4*impPrev + DATAIMPR].toDouble();
@@ -911,6 +1016,9 @@ void AppTester::recvUpdate(QTmpMap msg)
         return;
     int curr = msg.value(Qt::Key_1).toInt();
     switch (curr) {
+    case Qt::Key_0:
+        recvTmpMsg(msg);
+        break;
     case Qt::Key_1:
     case Qt::Key_2:
     case Qt::Key_3:
@@ -944,9 +1052,6 @@ void AppTester::recvAppMsg(QTmpMap msg)
         break;
     case Qt::Key_Call:
         recvLedMsg(msg);
-        break;
-    case Qt::Key_Shop:
-        recvTmpMsg(msg);
         break;
     default:
         break;

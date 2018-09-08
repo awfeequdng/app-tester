@@ -4,22 +4,23 @@
  *
  * version:     0.1
  * author:      zhaonanlin
- * brief:       电枢测试仪主页
+ * brief:       开机主页
 *******************************************************************************/
 #ifndef APPAUTHOR_H
 #define APPAUTHOR_H
 
+#include <QDebug>
 #include <QLabel>
+#include <QTimer>
 #include <QLayout>
 #include <QWidget>
 #include <QVariant>
 #include <QShowEvent>
-#include <QMessageBox>
 #include <QPushButton>
+#include <QApplication>
+#include <QDesktopWidget>
 
 #include "main.h"
-
-const int DataSoft = 22015;  // 软件版本
 
 class AppAuthor : public QWidget
 {
@@ -28,18 +29,22 @@ public:
     explicit AppAuthor(QWidget *parent = 0);
 signals:
     void sendAppMsg(QTmpMap msg);
+    void sendAppMap(QVariantMap msg);
 private slots:
     void initUI();
-    void initSkin();
     void initLayout();
     void initTitleBar();
     void initButtonBar();
     void clickButton();
     void recvAppMsg(QTmpMap msg);
+    virtual void showEvent(QShowEvent *e);
 private:
+    QVBoxLayout *layout;
+    QWidget *bframe;
     QLabel *tcpStat;
-    QLabel *version;
-    QTmpMap tmpMap;
+    QLabel *verStat;
+    QTmpMap tmpMsg;
+    QVariantMap tmpMap;
     QHBoxLayout *topLayout;
     QHBoxLayout *btnLayout;
 };

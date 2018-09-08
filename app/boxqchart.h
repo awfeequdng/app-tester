@@ -39,6 +39,7 @@ public:
     void setPie(int num);
     void setRun(int num);
     void setTurn(int turn);
+    void setTime(double t);
 protected:
     void mouseReleaseEvent(QMouseEvent *e);
     void paintEvent(QPaintEvent *event);
@@ -58,6 +59,7 @@ private:
     int m_lenth;
     int m_start;
     int m_turn;
+    int isTurn;
     QList<int> pies;
     QList<int> rows;
 };

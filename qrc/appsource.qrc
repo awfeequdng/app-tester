@@ -29,5 +29,11 @@
         <file>logo_aip.png</file>
         <file>icon_aip.png</file>
         <file>icon_wifi.png</file>
+        <file>author.png</file>
+        <file>wifi0.png</file>
+        <file>wifi1.png</file>
+        <file>wifi2.png</file>
+        <file>wifi3.png</file>
+        <file>wifi4.png</file>
     </qresource>
 </RCC>

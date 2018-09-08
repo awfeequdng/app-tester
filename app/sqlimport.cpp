@@ -71,8 +71,8 @@ bool SqlImport::readSdcard()
 
 bool SqlImport::initBackup()
 {
-    tmpMap.insert(Qt::Key_0, Qt::Key_Copy);
-    tmpMap.insert(Qt::Key_1, "copy");
+    tmpMap.insert(Qt::Key_0, Qt::Key_Word);
+    tmpMap.insert(Qt::Key_1, tr("正在备份数据"));
     emit sendAppMsg(tmpMap);
     tmpMap.clear();
     QProcess cmddu;
@@ -100,7 +100,8 @@ bool SqlImport::initRecord()
         qWarning() << "aip_record:" << query.lastError();
     query.clear();
     tmpMap.insert(Qt::Key_0, Qt::Key_Copy);
-    tmpMap.insert(Qt::Key_1, "over");
+    tmpMap.insert(Qt::Key_1, tr("备份完成"));
+    tmpMap.insert(Qt::Key_2, 100);
     emit sendAppMsg(tmpMap);
     tmpMap.clear();
     return true;

@@ -61,6 +61,7 @@ private:
     QFile *file;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
+    QTmpMap tmpTyp;
 };
 
 #endif // SQLEXPORT_H

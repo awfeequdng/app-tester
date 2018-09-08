@@ -42,6 +42,8 @@
 #include "typsetimp.h"
 #include "sqlimport.h"
 
+#include "boxqimage.h"
+
 #define NUMS 72
 
 const QString StyleOK = "<p style='font-size:10px;color:#FFFFFF;line-height:14px;'align='left'>";
@@ -54,11 +56,6 @@ const QString titleNG = "<p style='font-size:11pt;color:#666666;' align='left'>"
 const QString largeOK = "<p style='font-size:15pt;color:#00FF00;' align='center'>%1</p>";
 const QString largeNG = "<p style='font-size:15pt;color:#FF0000;' align='center'>%1</p>";
 const QString largeEN = "<p style='font-size:15pt;color:#666666;' align='center'>%1</p>";
-
-const QString judgeOK = "<p style='font-size:64pt;color:#00FF00;'align='center'><b>OK</b></p>";
-const QString judgeNG = "<p style='font-size:64pt;color:#FF0000;'align='center'><b>NG</b></p>";
-const QString judgeON = "<p style='font-size:64pt;color:#FFFF00;'align='center'><b>%1</b></p>";
-const QString judgeDC = "<p style='font-size:64pt;color:#FF0000;'align='center'><b>DC</b></p>";
 
 class AppTester : public QWidget
 {
@@ -77,6 +74,7 @@ private slots:
     void initQuRate();
     void initQChart();
     void initButton();
+    void initTextAll();
     void initTextDCR1();
     void initTextDCR2();
     void initTextDCR3();
@@ -92,13 +90,15 @@ private slots:
     void drawWaveDCRW(QTmpMap msg);
     void drawWaveIMPW(int numb);
     void showViewSize();
-
     void drawAllRate();
     void boxResize();
     void dcrResize();
     void impResize();
+    void clickText();
+    void updateText();
     void clickStart();
     void clickButton();
+
     void recvTmpMsg(QTmpMap msg);
     void recvLedMsg(QTmpMap msg);
     void recvDCRMsg(QTmpMap msg);
@@ -107,7 +107,6 @@ private slots:
     void recvUpdate(QTmpMap msg);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
-
 private:
     QTableWidget *status;
     QVBoxLayout *mLayout;
@@ -124,10 +123,11 @@ private:
     QList<QLabel*> impLabels;
     QList<QLabel*> impTitles;
 
-    QTextBrowser *textDCR1;
-    QTextBrowser *textDCR2;
-    QTextBrowser *textDCR3;
-    QTextBrowser *textIMPR;
+    BoxQImage *textRA;
+    BoxQImage *textDCR1;
+    BoxQImage *textDCR2;
+    BoxQImage *textDCR3;
+    BoxQImage *textIMPR;
 
     QPushButton *btnHome;
     QPushButton *btnConf;
@@ -151,6 +151,7 @@ private:
     QList<int> tmpDcr;
     QList<int> tmpPow;
     QStringList tmpImp;
+    QVariantMap tmpMap;
 };
 
 #endif // APPTESTER_H

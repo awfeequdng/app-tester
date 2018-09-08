@@ -46,14 +46,14 @@ void DevSetRtc::saveDevRtc(QDateTime t)
         QString tmp = tr("RTC设置失败");
         qWarning() << "dev show:" << tmp;
     }
+    qDebug() << "rtc save ok";
 }
 
 void DevSetRtc::recvAppMsg(QTmpMap msg)
 {
     switch (msg.value(Qt::Key_0).toInt()) {
-    case Qt::Key_Time:
-        if (msg.value(Qt::Key_1).toString() == "time")
-            saveDevRtc(msg.value(Qt::Key_4).toDateTime());
+    case Qt::Key_Xfer:
+        saveDevRtc(msg.value(Qt::Key_2).toDateTime());
         break;
     default:
         break;

@@ -28,7 +28,7 @@ QWidget *BoxDouble::createEditor(QWidget *parent,
 
 void BoxDouble::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    int value = index.model()->data(index, Qt::EditRole).toInt();
+    double value = index.model()->data(index, Qt::EditRole).toDouble();
     QDoubleSpinBox *spinBox = static_cast<QDoubleSpinBox*>(editor);
     spinBox->setValue(value);
 }

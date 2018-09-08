@@ -37,6 +37,7 @@
 #include <QCoreApplication>
 
 #include "main.h"
+#include "appbackup.h"
 #include "typconfig.h"
 #include "typsetdcr.h"
 #include "typsetacw.h"
@@ -64,10 +65,12 @@ private slots:
     void initDevStat();
     void sendDevData(int id, QByteArray msg);
     void readDevData(int id, QByteArray msg);
+    void getAllSta();
     void getAllDat();
     void putAllDat();
     void updateAll();
     void updateDat();
+    void debugDCR(QTmpMap map);
     void setupDCR(QTmpMap map);
     void startDCR(QTmpMap map);
     void parseDCR(QByteArray msg);
@@ -78,11 +81,13 @@ private slots:
     void startACW(QTmpMap map);
     void parseACW(QByteArray msg);
     void renewACW();
+    void debugIMP(QTmpMap map);
     void setupIMP(QTmpMap map);
     void startIMP(QTmpMap map);
     void parseIMP(int id, QByteArray msg);
     void judgeIMP();
     void renewIMP();
+    void clearData(QTmpMap msg);
     void setupSave(QTmpMap msg);
     void setupView(QTmpMap msg);
     void setupPump(QTmpMap msg);
@@ -105,7 +110,6 @@ private:
     QTmpMap tmpMsg;
     int timeOut;
     int numb;
-    QTmpMap tmpACW;
     QTmpMap tmpDCR;
     QTmpMap tmpPow;
     QTmpMap tmpRow;
@@ -114,7 +118,7 @@ private:
     QTmpMap tmpdff;
     int currTemp;
     quint8 tmpio;
-    quint8 xxx;
+    quint32 timeAcw;
 };
 
 #endif // DEVSETCAN_H

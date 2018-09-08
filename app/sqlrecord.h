@@ -14,6 +14,7 @@
 #include <QWidget>
 #include <QLayout>
 #include <QProcess>
+#include <QListView>
 #include <QGroupBox>
 #include <QDateEdit>
 #include <QComboBox>
@@ -45,37 +46,26 @@ private slots:
     void initViewBar();
     void initTextBar();
     void initButtonBar();
+    void initSettings();
     void existsFlashDisk();
     void deleteFlashDisk();
     void recvSelect();
     void recvExport();
-    void clickIndex(QModelIndex index);
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
+    QVBoxLayout *boxLayout;
+    BoxQLabel *view;
     QComboBox *type;
     QDateEdit *from;
     QDateEdit *stop;
-    QVBoxLayout *boxLayout;
-
     QLabel *text;
-
-    BoxQLabel *view;
-
-    QString sqlName;
-    QSqlTableModel *mView;
-
-    QTableView *item;
-    QSqlTableModel *mItem;
-
-    QVariantMap tmpMap;
     QTmpMap tmpSet;
     QTmpMap tmpQuan;
     QTmpMap tmpOKNG;
-    quint32 timeOut;
-    QElapsedTimer t;
     QString path;
     QTmpMap tmpMsg;
+    QVariantMap tmpTyp;
 };
 
 #endif // SQLRECORD_H

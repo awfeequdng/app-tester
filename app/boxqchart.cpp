@@ -10,6 +10,7 @@
 
 BoxQChart::BoxQChart(QWidget *parent) : QLabel(parent)
 {
+    isTurn = 0;
     m_turn = 0;
     m_start = 0;
     m_lenth = 0;
@@ -50,6 +51,8 @@ void BoxQChart::setPie(int num)
 
 void BoxQChart::setRun(int num)
 {
+    if (num != 0)
+        isTurn = 0;
     m_start = num;
     if (num > 0) {
         m_timer = 0;
@@ -62,15 +65,25 @@ void BoxQChart::setRun(int num)
 void BoxQChart::setTurn(int turn)
 {
     m_turn = turn;
+    isTurn = 1;
+}
+
+void BoxQChart::setTime(double t)
+{
+    m_title = QString::number(t) + "s";
+    m_timer = 1;
+    this->update();
 }
 
 void BoxQChart::setStr()
 {
-    m_timer++;
-    if (m_timer % 10 == 0) {
+    if (m_timer % 200 == 0) {
         m_title = QTime::currentTime().toString("hh:mm");
+    }
+    if (m_timer % 10 == 0) {
         this->update();
     }
+    m_timer++;
 }
 
 void BoxQChart::mouseReleaseEvent(QMouseEvent *e)
@@ -159,6 +172,8 @@ void BoxQChart::drawPie(QPainter *painter)
 
 void BoxQChart::drawTurn(QPainter *painter)
 {
+    if (isTurn == 0)
+        return;
     painter->save();
     int radius = SCALE*65/100;
     int t = 1;

@@ -44,13 +44,16 @@ int SqlExport::createFile(QTmpMap msg)
 
 int SqlExport::selectNumb(QTmpMap msg)
 {
-    QString name = msg.value(Qt::Key_4).toString();
-    quint64 from = msg.value(Qt::Key_9).toLongLong();
-    quint64 stop = msg.value(Qt::Key_A).toLongLong();
+    QString name = msg.value(Qt::Key_2).toString();
+    QString type = msg.value(Qt::Key_3).toString();
+    quint64 from = msg.value(Qt::Key_4).toLongLong();
+    quint64 stop = msg.value(Qt::Key_5).toLongLong();
 
     QSqlQuery query(QSqlDatabase::database(name));
     QString cmd = tr("select count(*) from aip_record where R_ITEM=65535");
     cmd += tr(" and R_UUID > %1 and R_UUID < %2").arg(from).arg(stop);
+    if (!type.isEmpty())
+        cmd += tr(" and R_TYPE = %1").arg(type.toInt());
 
     if (!query.exec(cmd)) {
         showText(tr("查询数据失败,%1").arg(query.lastError().text()));
@@ -69,13 +72,16 @@ int SqlExport::selectNumb(QTmpMap msg)
 
 int SqlExport::selectItem(QTmpMap msg)
 {
-    QString name = msg.value(Qt::Key_4).toString();
-    quint64 from = msg.value(Qt::Key_9).toLongLong();
-    quint64 stop = msg.value(Qt::Key_A).toLongLong();
+    QString name = msg.value(Qt::Key_2).toString();
+    QString type = msg.value(Qt::Key_3).toString();
+    quint64 from = msg.value(Qt::Key_4).toLongLong();
+    quint64 stop = msg.value(Qt::Key_5).toLongLong();
 
     QSqlQuery query(QSqlDatabase::database(name));
     QString cmd = tr("select distinct R_ITEM from aip_record where R_ITEM < %1").arg(0xFFFF);
     cmd += tr(" and R_UUID > %1 and R_UUID < %2").arg(from).arg(stop);
+    if (!type.isEmpty())
+        cmd += tr(" and R_TYPE = %1").arg(type.toInt());
     if (!query.exec(cmd)) {
         showText(tr("查询数据失败,%1").arg(query.lastError().text()));
         return Qt::Key_Stop;
@@ -85,13 +91,14 @@ int SqlExport::selectItem(QTmpMap msg)
         numbs.append(query.value(0).toInt());
     }
     numbs.append(DataFile);
+
     return Qt::Key_Meta;
 }
 
 int SqlExport::exportHead(QTmpMap msg)
 {
-    quint64 from = msg.value(Qt::Key_9).toLongLong();
-    quint64 stop = msg.value(Qt::Key_A).toLongLong();
+    quint64 from = msg.value(Qt::Key_4).toLongLong();
+    quint64 stop = msg.value(Qt::Key_5).toLongLong();
     quint64 user = tmpSet.value(DataUser).toInt() - tmpSet.value((2000 + Qt::Key_5)).toInt() + 1;
 
     QStringList title;
@@ -156,14 +163,25 @@ int SqlExport::exportHead(QTmpMap msg)
     }
     file->write(ToGbk(title.join(",")));
     file->write("\n");
+
+    QSqlQuery query(QSqlDatabase::database("config"));
+    query.exec("select name from sqlite_master where type='table' order by name");
+    while (query.next()) {
+        QString t = query.value(0).toString();
+        QString numb = t.mid(1, 4);
+        tmpTyp.insert(numb.toInt(), t.mid(6, 50));
+    }
+
     return 0;
 }
 
 int SqlExport::exportData(QTmpMap msg)
 {
-    QString name = msg.value(Qt::Key_4).toString();
-    quint64 from = msg.value(Qt::Key_9).toLongLong();
-    quint64 stop = msg.value(Qt::Key_A).toLongLong();
+    QString name = msg.value(Qt::Key_2).toString();
+    QString type = msg.value(Qt::Key_3).toString();
+//    QString mode = msg.value(Qt::Key_6).toString();
+    quint64 from = msg.value(Qt::Key_4).toLongLong();
+    quint64 stop = msg.value(Qt::Key_5).toLongLong();
 
     QSqlQuery query(QSqlDatabase::database(name));
     quint64 numb = 0;
@@ -177,6 +195,8 @@ int SqlExport::exportData(QTmpMap msg)
     while (1) {
         QString cmd = tr("select * from aip_record where ");
         cmd += tr(" R_UUID > %1 and R_UUID < %2").arg(from).arg(stop);
+        if (!type.isEmpty())
+            cmd += tr(" and R_TYPE = %1").arg(type.toInt());
         if (!query.exec(cmd)) {
             showText(tr("查询数据失败,%1").arg(query.lastError().text()));
             return Qt::Key_Stop;
@@ -186,7 +206,7 @@ int SqlExport::exportData(QTmpMap msg)
 
             buftmp.insert(numb, query.value(3).toString());
             if (numb == 0xFFFF) {
-                buftmp.insert(DataFile, tmpSet.value(query.value(2).toInt()).toString());
+                buftmp.insert(DataFile, tmpTyp.value(query.value(2).toInt()).toString());
                 foreach(int n, numbs) {
                     lineBuffer.append(buftmp.value(n).toString());
                 }
@@ -203,7 +223,7 @@ int SqlExport::exportData(QTmpMap msg)
         tmpMsg.insert(Qt::Key_2, t*100/quan);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
-        if (t >= quan)
+        if (t >= quan || !query.next())
             break;
     }
     return Qt::Key_Meta;

@@ -80,8 +80,11 @@ void DevSerial::clickButton(int id)
     case Qt::Key_Stop:
     case Qt::Key_Play:
         tmpMsg.insert(Qt::Key_0, id);
+        tmpMsg.insert(Qt::Key_1, WORKL);
+        tmpMsg.insert(Qt::Key_2, MODEB);
         emit sendAppMsg(tmpMsg);
         tmpMsg.clear();
+        qDebug() << "com recv:" << "button";
         break;
     case Qt::Key_Enter:
         timeOut++;

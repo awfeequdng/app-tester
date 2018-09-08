@@ -36,6 +36,8 @@
 #include "main.h"
 #include "devsetcan.h"
 
+#define NAME_SIZE 50
+
 const int AddrDCRSC = 0x00;
 const int AddrDEVSC = 0x01;
 
@@ -62,15 +64,14 @@ private slots:
     void createModel();
     void selectModel();
     void removeModel();
-    void clickZoom();
     void clickSave();
     void clickButtons();
     void clickViewBar();
+    void change();
     void recvAppMsg(QTmpMap msg);
     virtual void showEvent(QShowEvent *e);
 private:
     QTableWidget *view;
-    QVariantMap config;
     QLineEdit *page;
     QLabel *type;
     QSplitter *splitter;
@@ -80,11 +81,15 @@ private:
     QStringList names;
     QTableWidget *settings;
     QLineEdit *name;
+    QPushButton *btnSave;
 
+    QVariantMap config;
+    QVariantMap tmpMap;
+    QTmpMap tmpTyp;
     QTmpMap tmpSet;
     QTmpMap tmpMsg;
-//    QPushButton *btnZoom;
-    QPushButton *btnSave;
+    bool isRemove;
+    bool isInit;
 };
 
 #endif // TYPCONFIG_H

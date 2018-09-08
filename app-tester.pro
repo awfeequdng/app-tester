@@ -19,7 +19,6 @@ RESOURCES += \
     qrc/appsource.qrc
 
 HEADERS += \
-    app/appaction.h \
     app/appauthor.h \
     app/appbackup.h \
     app/applogger.h \
@@ -57,10 +56,14 @@ HEADERS += \
     app/typoffimp.h \
     app/typsetacw.h \
     app/typsetdcr.h \
-    app/typsetimp.h
+    app/typsetimp.h \
+    app/apppermit.h \
+    app/apprt3070.h \
+    app/boxstatus.h \
+    app/boxqimage.h \
+    app/devds1302.h
 
 SOURCES += \
-    app/appaction.cpp \
     app/appauthor.cpp \
     app/appbackup.cpp \
     app/applogger.cpp \
@@ -98,6 +101,11 @@ SOURCES += \
     app/typoffimp.cpp \
     app/typsetacw.cpp \
     app/typsetdcr.cpp \
-    app/typsetimp.cpp
+    app/typsetimp.cpp \
+    app/apppermit.cpp \
+    app/apprt3070.cpp \
+    app/boxstatus.cpp \
+    app/boxqimage.cpp \
+    app/devds1302.cpp
 
 

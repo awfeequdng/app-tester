@@ -19,7 +19,6 @@
 #include <QDateTime>
 #include <QComboBox>
 #include <QGroupBox>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QTextStream>
 #include <QTextBrowser>
@@ -35,17 +34,19 @@ public:
     explicit AppLogger(QWidget *parent = 0);
 signals:
     void sendAppMsg(QTmpMap msg);
+    void sendAppMap(QVariantMap msg);
 public slots:
     void output(QtMsgType type, const QString &msg);
 private slots:
     void initUI();
-    void initText();
-    void initButton();
     void initLayout();
+    void initTextBar();
+    void initButtonBar();
     void saveSettings();
     void changeHandle(int t);
     void recvAppMsg(QTmpMap msg);
 private:
+    QVBoxLayout *layout;
     QComboBox *combo;
     QTextBrowser *text;
     QHBoxLayout *btnLayout;
